@@ -1,0 +1,134 @@
+'use client'
+
+import { useState, FormEvent } from 'react'
+import { MembershipRequest } from '@/types'
+import { Button } from '@/components/ui/Button'
+import { X, XCircle } from 'lucide-react'
+
+interface RejectModalProps {
+  request: MembershipRequest
+  onConfirm: (reason: string, canReapply: boolean) => Promise<void>
+  onClose: () => void
+  isLoading: boolean
+}
+
+export function RejectModal({ request, onConfirm, onClose, isLoading }: RejectModalProps) {
+  const [reason, setReason] = useState('')
+  const [canReapply, setCanReapply] = useState(true)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    if (!reason.trim() || reason.length < 10) {
+      setError('Reason must be at least 10 characters')
+      return
+    }
+
+    if (reason.length > 500) {
+      setError('Reason must be less than 500 characters')
+      return
+    }
+
+    await onConfirm(reason, canReapply)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-lg shadow-xl max-w-md w-full">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full">
+              <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-foreground">Reject Request</h2>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <form onSubmit={handleSubmit}>
+          <div className="p-6 space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                You are about to reject the membership request for:
+              </p>
+              <p className="font-medium text-foreground">
+                {request.user?.firstName} {request.user?.lastName}
+              </p>
+              <p className="text-sm text-muted-foreground">{request.user?.email}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Reason for Rejection <span className="text-destructive">*</span>
+              </label>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Provide a clear reason for rejection (minimum 10 characters)..."
+                disabled={isLoading}
+                required
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {reason.length}/500 characters
+              </p>
+              {error && (
+                <p className="text-sm text-destructive mt-1">{error}</p>
+              )}
+            </div>
+
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="canReapply"
+                checked={canReapply}
+                onChange={(e) => setCanReapply(e.target.checked)}
+                disabled={isLoading}
+                className="mt-1 w-4 h-4 text-primary border-input rounded focus:ring-ring"
+              />
+              <label htmlFor="canReapply" className="text-sm text-foreground">
+                Allow user to reapply after 30 days
+              </label>
+            </div>
+
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+              <p className="text-sm text-red-800 dark:text-red-400">
+                The user will receive a rejection email with your reason. This action cannot be undone.
+              </p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="destructive"
+              isLoading={isLoading}
+            >
+              Reject Request
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
