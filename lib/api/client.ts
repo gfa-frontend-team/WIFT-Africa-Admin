@@ -6,6 +6,11 @@ class ApiClient {
   private client: AxiosInstance
 
   constructor() {
+    // Debug logging for production deployment
+    if (typeof window !== 'undefined') {
+      console.log('🚀 API Client initialized with baseURL:', env.API_URL)
+    }
+    
     this.client = axios.create({
       baseURL: env.API_URL,
       headers: {
@@ -91,8 +96,16 @@ class ApiClient {
       const refreshToken = this.getRefreshToken()
       if (!refreshToken) return false
 
-      const response = await axios.post<{ accessToken: string; refreshToken: string }>(
-        `${env.API_URL}/auth/refresh`,
+      // Use a fresh axios instance to avoid interceptor loops
+      const refreshClient = axios.create({
+        baseURL: env.API_URL,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const response = await refreshClient.post<{ accessToken: string; refreshToken: string }>(
+        '/auth/refresh',
         { refreshToken }
       )
 
