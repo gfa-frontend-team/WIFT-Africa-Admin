@@ -6,11 +6,6 @@ class ApiClient {
   private client: AxiosInstance
 
   constructor() {
-    // Debug logging for production deployment
-    if (typeof window !== 'undefined') {
-      console.log('🚀 API Client initialized with baseURL:', env.API_URL)
-    }
-    
     this.client = axios.create({
       baseURL: env.API_URL,
       headers: {
@@ -140,7 +135,7 @@ class ApiClient {
     return response.data
   }
 
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.delete<T>(url, config)
     return response.data
   }

@@ -3,12 +3,6 @@
 function getEnvVar(key: string, defaultValue?: string): string {
   const value = process.env[key] || defaultValue
   
-  // Debug logging for production deployment
-  if (typeof window !== 'undefined') {
-    console.log(`🔍 Environment Debug - ${key}:`, value)
-    console.log(`🔍 All NEXT_PUBLIC vars:`, Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC')))
-  }
-  
   if (!value) {
     throw new Error(`Missing environment variable: ${key}`)
   }
