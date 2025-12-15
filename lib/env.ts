@@ -12,12 +12,12 @@ function getEnvVar(key: string, defaultValue?: string): string {
 
 export const env = {
   // API Configuration
-  API_URL: getEnvVar('NEXT_PUBLIC_API_URL', 'http://localhost:3001/api/v1'),
+  API_URL: getEnvVar('NEXT_PUBLIC_API_URL'),
   API_VERSION: getEnvVar('NEXT_PUBLIC_API_VERSION', 'v1'),
   
   // App Configuration
   APP_NAME: getEnvVar('NEXT_PUBLIC_APP_NAME', 'WIFT Africa Admin'),
-  APP_URL: getEnvVar('NEXT_PUBLIC_APP_URL', 'http://localhost:3002'),
+  APP_URL: getEnvVar('NEXT_PUBLIC_APP_URL'),
 } as const
 
 export type Env = typeof env
