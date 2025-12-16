@@ -1,23 +1,12 @@
-// Environment variables with validation
-
-function getEnvVar(key: string, defaultValue?: string): string {
-  const value = process.env[key] || defaultValue
-  
-  if (!value) {
-    throw new Error(`Missing environment variable: ${key}`)
-  }
-  
-  return value
-}
-
+// Environment variables with type safety
 export const env = {
-  // API Configuration
-  API_URL: getEnvVar('NEXT_PUBLIC_API_URL'),
-  API_VERSION: getEnvVar('NEXT_PUBLIC_API_VERSION', 'v1'),
-  
-  // App Configuration
-  APP_NAME: getEnvVar('NEXT_PUBLIC_APP_NAME', 'WIFT Africa Admin'),
-  APP_URL: getEnvVar('NEXT_PUBLIC_APP_URL'),
+  apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+  apiVersion: process.env.NEXT_PUBLIC_API_VERSION || 'v1',
+  appName: process.env.NEXT_PUBLIC_APP_NAME || 'WIFT Africa Admin',
+  appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002',
+  isDevelopment: process.env.NODE_ENV === 'development',
+  isProduction: process.env.NODE_ENV === 'production',
 } as const
 
-export type Env = typeof env
+// Construct full API base URL
+export const API_BASE_URL = `${env.apiUrl}/api/${env.apiVersion}`

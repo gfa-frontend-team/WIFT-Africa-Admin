@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
-import { env } from '../env'
+import { API_BASE_URL } from '../env'
 import type { ApiError, ApiResponse } from '@/types'
 
 class ApiClient {
@@ -7,11 +7,11 @@ class ApiClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: env.API_URL,
+      baseURL: API_BASE_URL,
       headers: {
         'Content-Type': 'application/json',
       },
-      withCredentials: false, // Change to true if using cookies
+      withCredentials: true, // Important for cookies
     })
 
     // Request interceptor - add auth token
@@ -26,37 +26,48 @@ class ApiClient {
       (error) => Promise.reject(error)
     )
 
-    // Response interceptor - handle errors
+    // Response interceptor - handle errors and token refresh
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError<ApiError>) => {
-        // Handle 401 - Unauthorized (token expired)
-        if (error.response?.status === 401) {
-          // Token expired, try to refresh
-          const refreshed = await this.refreshToken()
-          if (refreshed && error.config) {
-            // Retry the original request
-            return this.client.request(error.config)
-          } else {
-            // Refresh failed, logout
+        const originalRequest = error.config
+
+        // If 401 and we haven't tried to refresh yet
+        if (error.response?.status === 401 && originalRequest && !originalRequest.headers['X-Retry']) {
+          try {
+            // Try to refresh token
+            const refreshToken = this.getRefreshToken()
+            if (refreshToken) {
+              const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+                refreshToken,
+              })
+
+              // Save new tokens
+              this.setTokens(data.tokens.accessToken, data.tokens.refreshToken)
+
+              // Retry original request with new token
+              originalRequest.headers['Authorization'] = `Bearer ${data.tokens.accessToken}`
+              originalRequest.headers['X-Retry'] = 'true'
+              return this.client(originalRequest)
+            }
+          } catch (refreshError) {
+            // Refresh failed, clear tokens and redirect to login
             this.clearTokens()
             if (typeof window !== 'undefined') {
               window.location.href = '/login'
             }
+            return Promise.reject(refreshError)
           }
         }
-        
+
         // Handle 403 - Forbidden (insufficient permissions)
         if (error.response?.status === 403) {
           if (typeof window !== 'undefined') {
-            // Log the error for debugging
             console.error('Access denied:', error.response.data?.error || 'Insufficient permissions')
-            
-            // Redirect to unauthorized page
             window.location.href = '/unauthorized'
           }
         }
-        
+
         return Promise.reject(error)
       }
     )
@@ -86,56 +97,30 @@ class ApiClient {
     localStorage.removeItem('user')
   }
 
-  private async refreshToken(): Promise<boolean> {
-    try {
-      const refreshToken = this.getRefreshToken()
-      if (!refreshToken) return false
 
-      // Use a fresh axios instance to avoid interceptor loops
-      const refreshClient = axios.create({
-        baseURL: env.API_URL,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      const response = await refreshClient.post<{ accessToken: string; refreshToken: string }>(
-        '/auth/refresh',
-        { refreshToken }
-      )
-
-      if (response.data.accessToken && response.data.refreshToken) {
-        this.setTokens(response.data.accessToken, response.data.refreshToken)
-        return true
-      }
-      return false
-    } catch {
-      return false
-    }
-  }
 
   // HTTP methods
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  async get<T>(url: string, config = {}) {
     const response = await this.client.get<T>(url, config)
     return response.data
   }
 
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(url: string, data?: unknown, config = {}) {
     const response = await this.client.post<T>(url, data, config)
     return response.data
   }
 
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T>(url: string, data?: unknown, config = {}) {
     const response = await this.client.put<T>(url, data, config)
     return response.data
   }
 
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T>(url: string, data?: unknown, config = {}) {
     const response = await this.client.patch<T>(url, data, config)
     return response.data
   }
 
-  async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  async delete<T>(url: string, config = {}) {
     const response = await this.client.delete<T>(url, config)
     return response.data
   }
