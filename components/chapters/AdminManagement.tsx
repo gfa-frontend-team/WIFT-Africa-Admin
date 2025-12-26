@@ -6,16 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { UserPlus, UserMinus, Shield } from 'lucide-react'
-import { useChapterStore } from '@/lib/stores'
+import { useAddChapterAdmin, useRemoveChapterAdmin } from '@/lib/hooks/queries/useChapters'
+import { useQueryClient } from '@tanstack/react-query'
+
+import { UserSelector } from './UserSelector'
 
 interface AdminManagementProps {
   chapter: Chapter
 }
 
 export function AdminManagement({ chapter }: AdminManagementProps) {
-  const { addChapterAdmin, removeChapterAdmin, fetchChapter } = useChapterStore()
-  const [isLoading, setIsLoading] = useState(false)
+  const { mutateAsync: removeAdmin, isPending: isRemoving } = useRemoveChapterAdmin()
+  const { mutateAsync: addAdmin, isPending: isAdding } = useAddChapterAdmin()
   const [showAddModal, setShowAddModal] = useState(false)
+  
+  const isLoading = isRemoving || isAdding
 
   const admins = Array.isArray(chapter.adminIds) && typeof chapter.adminIds[0] === 'object'
     ? (chapter.adminIds as User[])
@@ -24,14 +29,21 @@ export function AdminManagement({ chapter }: AdminManagementProps) {
   const handleRemoveAdmin = async (userId: string) => {
     if (!confirm('Are you sure you want to remove this admin?')) return
     
-    setIsLoading(true)
     try {
-      await removeChapterAdmin(chapter.id, userId)
-      await fetchChapter(chapter.id)
+      await removeAdmin({ chapterId: chapter.id, userId })
     } catch (error) {
       console.error('Failed to remove admin:', error)
-    } finally {
-      setIsLoading(false)
+    }
+  }
+
+  const handleAddAdmin = async (user: User) => {
+    if (!confirm(`Are you sure you want to make ${user.firstName} ${user.lastName} a Chapter Admin?`)) return
+
+    try {
+      await addAdmin({ chapterId: chapter.id, userId: user.id })
+      setShowAddModal(false)
+    } catch (error) {
+      console.error('Failed to add admin:', error)
     }
   }
 
@@ -90,18 +102,32 @@ export function AdminManagement({ chapter }: AdminManagementProps) {
         )}
       </CardContent>
 
-      {/* Add Admin Modal - Placeholder */}
+      {/* Add Admin Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold mb-4">Add Chapter Admin</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              This feature requires selecting from approved chapter members.
-              Implementation coming soon.
+          <div className="bg-background rounded-lg shadow-xl max-w-lg w-full p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-semibold mb-2">Add Chapter Admin</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Select an existing chapter member to promote to Chapter Admin.
             </p>
-            <Button onClick={() => setShowAddModal(false)}>
-              Close
-            </Button>
+            
+            <div className="mb-6">
+              <UserSelector 
+                chapterId={chapter.id}
+                onSelect={handleAddAdmin}
+                excludeIds={admins.map(a => a.id)}
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAddModal(false)}
+                disabled={isAdding}
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         </div>
       )}

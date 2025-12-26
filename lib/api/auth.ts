@@ -2,10 +2,25 @@ import { apiClient } from './client'
 import type { AuthResponse, AuthTokens, User } from '@/types'
 
 // Helper function to transform MongoDB _id to id
-const transformUser = (user: any): User => ({
-  ...user,
-  id: user._id || user.id,
-})
+const transformUser = (user: any): User => {
+  // Extract chapterId from various possible locations
+  let chapterId = user.chapterId;
+  
+  // If chapterId is missing but chapter object exists
+  if (!chapterId && user.chapter) {
+    if (typeof user.chapter === 'object') {
+      chapterId = user.chapter._id || user.chapter.id;
+    } else if (typeof user.chapter === 'string') {
+      chapterId = user.chapter;
+    }
+  }
+
+  return {
+    ...user,
+    id: user._id || user.id,
+    chapterId,
+  }
+}
 
 export const authApi = {
   // Login - Fetches full user data including accountType after getting tokens
@@ -39,10 +54,39 @@ export const authApi = {
     throw new Error('Login failed')
   },
 
+  // Google Login
+  googleLogin: async (idToken: string): Promise<AuthResponse> => {
+    // Step 1: Get tokens from google login endpoint
+    const response = await apiClient.post<{ user: any; tokens: AuthTokens }>('/auth/google', {
+      idToken,
+    })
+
+    if (response.user && response.tokens) {
+      // Step 2: Store tokens
+      apiClient.setTokens(response.tokens.accessToken, response.tokens.refreshToken)
+
+      // Step 3: Fetch full user data
+      const fullUser = await authApi.getCurrentUser()
+
+      // Step 4: Store complete user data
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(fullUser))
+      }
+
+      return {
+        user: fullUser,
+        tokens: response.tokens,
+      }
+    }
+
+    throw new Error('Google login failed')
+  },
+
   // Logout
   logout: async (): Promise<void> => {
     try {
-      await apiClient.post('/auth/logout')
+      const refreshToken = localStorage.getItem('refreshToken')
+      await apiClient.post('/auth/logout', { refreshToken })
     } finally {
       apiClient.clearTokens()
     }

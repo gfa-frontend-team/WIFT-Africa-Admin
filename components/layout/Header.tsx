@@ -1,19 +1,18 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { LogOut, Bell, Shield } from 'lucide-react'
 import { useAuthStore } from '@/lib/stores'
 import { Button } from '@/components/ui/Button'
 import { usePermissions } from '@/lib/hooks/usePermissions'
+import { useLogout } from '@/lib/hooks/queries/useAuth'
 
 export function Header() {
-  const router = useRouter()
-  const { user, logout } = useAuthStore()
+  const { user } = useAuthStore()
   const { isSuperAdmin, isChapterAdmin } = usePermissions()
+  const logoutMutation = useLogout()
 
-  const handleLogout = async () => {
-    await logout()
-    router.push('/login')
+  const handleLogout = () => {
+    logoutMutation.mutate()
   }
 
   return (
@@ -61,10 +60,11 @@ export function Header() {
           variant="ghost"
           size="sm"
           onClick={handleLogout}
+          disabled={logoutMutation.isPending}
           className="gap-2"
         >
           <LogOut className="w-4 h-4" />
-          Logout
+          {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
         </Button>
       </div>
     </header>

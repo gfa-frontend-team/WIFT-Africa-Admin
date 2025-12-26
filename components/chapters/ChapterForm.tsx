@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Chapter } from '@/types'
-import { useChapterStore } from '@/lib/stores'
+import { useCreateChapter, useUpdateChapter } from '@/lib/hooks/queries/useChapters'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -11,12 +11,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 interface ChapterFormProps {
   chapter?: Chapter
   isEdit?: boolean
+  isAdminView?: boolean
 }
 
-export function ChapterForm({ chapter, isEdit = false }: ChapterFormProps) {
+export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: ChapterFormProps) {
   const router = useRouter()
-  const { createChapter, updateChapter, isLoading } = useChapterStore()
+  const { mutateAsync: createChapter, isPending: isCreating } = useCreateChapter()
+  const { mutateAsync: updateChapter, isPending: isUpdating } = useUpdateChapter(isAdminView)
   
+  const isLoading = isCreating || isUpdating
+
   const [formData, setFormData] = useState({
     name: chapter?.name || '',
     code: chapter?.code || '',
@@ -45,7 +49,7 @@ export function ChapterForm({ chapter, isEdit = false }: ChapterFormProps) {
 
     try {
       if (isEdit && chapter) {
-        await updateChapter(chapter.id, formData)
+        await updateChapter({ id: chapter.id, data: formData })
         router.push(`/dashboard/chapters/${chapter.id}`)
       } else {
         const newChapter = await createChapter(formData)

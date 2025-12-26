@@ -72,13 +72,40 @@ export const chaptersApi = {
     }
   },
 
-  // Get single chapter
+  // Get single chapter (Admin View - includes restricted stats)
   getChapter: async (id: string): Promise<Chapter> => {
     const response = await apiClient.get<{ chapter: any; stats: ChapterDetailStats }>(`/admin/chapters/${id}`)
     if (response.chapter) {
       return { ...transformChapter(response.chapter), stats: response.stats }
     }
     throw new Error('Failed to fetch chapter')
+  },
+
+  // Get single chapter (Chapter Admin View - limited details)
+  getChapterDetails: async (id: string): Promise<Chapter> => {
+    const response = await apiClient.get<{ id: string; name: string }>(`/chapters/${id}`)
+    // The non-admin endpoint returns the chapter object directly (or wrapped, need to be careful with transform)
+    // Based on docs: returns { id, name, ... } directly?? 
+    // Wait, docs say: "Success Response: Status Code 200 OK ... JSON: { id: ..., name: ... }"
+    // So it might return the object directly. But apiClient.get<T> usually expects the *body*.
+    // Let's assume standard response structure or handle it.  
+    // Looking at docs again: 
+    // "Success Response ... { id: '...', ... }"
+    // It does NOT seem to be wrapped in keys like "chapter".
+    // I will verify this assumption by checking how `apiClient` works or try it.
+    // Actually, most API endpoints in this project wrap data in { data: ... } or { chapter: ... }.
+    // Docs for /chapters/:id say:
+    // { "id": "...", "name": "...", ... }
+    // It seems to be the root object.
+    
+    // SAFEGUARDS:
+    // If response has "id", it's the chapter.
+    // If response has "chapter", use that.
+    
+    const data = response as any
+    const chapterData = data.chapter || data
+    
+    return transformChapter(chapterData)
   },
 
   // Create chapter
@@ -90,13 +117,27 @@ export const chaptersApi = {
     throw new Error('Failed to create chapter')
   },
 
-  // Update chapter
+  // Update chapter (Admin View)
   updateChapter: async (id: string, data: Partial<CreateChapterData>): Promise<Chapter> => {
     const response = await apiClient.patch<{ message: string; chapter: any }>(`/admin/chapters/${id}`, data)
     if (response.chapter) {
       return transformChapter(response.chapter)
     }
     throw new Error('Failed to update chapter')
+  },
+
+  // Update chapter (Chapter Admin View)
+  updateChapterDetails: async (id: string, data: Partial<CreateChapterData>): Promise<Chapter> => {
+    // Only restricted fields are allowed by backend, but we send what we have.
+    // Backend ignores restricted fields if sent? Or errors? Docs say "Restricted Fields... cannot be changed".
+    // Usually means 400 if tried, or silent ignore. Best to send partial.
+    const response = await apiClient.patch<{ id: string }>(`/chapters/${id}`, data)
+    
+    // Same response assumption as getChapterDetails
+    const resData = response as any
+    const chapterData = resData.chapter || resData
+    
+    return transformChapter(chapterData)
   },
 
   // Deactivate chapter

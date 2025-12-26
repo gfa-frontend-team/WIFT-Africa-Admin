@@ -2,25 +2,30 @@
 
 import { useEffect } from 'react'
 import { Building2, Users, UserCheck, Globe } from 'lucide-react'
-import { useAuthStore, useChapterStore } from '@/lib/stores'
+import { useAuthStore } from '@/lib/stores'
+import { useChapterStatistics, useChapter } from '@/lib/hooks/queries/useChapters'
+import { useVerificationStats } from '@/lib/hooks/queries/useVerification'
 import { StatCard } from '@/components/dashboard/StatCard'
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
-  const { statistics, fetchStatistics, currentChapter, fetchChapter, isLoading } = useChapterStore()
-
+  
   const isSuperAdmin = user?.accountType === 'SUPER_ADMIN'
   const isChapterAdmin = user?.accountType === 'CHAPTER_ADMIN'
 
-  useEffect(() => {
-    if (isSuperAdmin) {
-      fetchStatistics()
-    } else if (isChapterAdmin && user?.chapterId) {
-      fetchChapter(user.chapterId)
-    }
-  }, [isSuperAdmin, isChapterAdmin, user?.chapterId, fetchStatistics, fetchChapter])
+  // Super Admin Stats
+  const { data: statistics, isLoading: isStatsLoading } = useChapterStatistics({
+    enabled: isSuperAdmin
+  })
+  
+  // Chapter Admin Stats
+  const { data: currentChapter, isLoading: isChapterLoading } = useChapter(
+    isChapterAdmin ? (user?.chapterId || '') : ''
+  )
+  
+  const isLoading = (isSuperAdmin && isStatsLoading) || (isChapterAdmin && isChapterLoading)
 
-  if (isLoading && (!statistics && !currentChapter)) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">

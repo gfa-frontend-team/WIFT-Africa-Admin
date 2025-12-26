@@ -3,7 +3,8 @@
 import { useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Edit, Trash2, Users, MapPin, Mail, Phone, Globe, Calendar } from 'lucide-react'
-import { useAuthStore, useChapterStore } from '@/lib/stores'
+import { useAuthStore } from '@/lib/stores'
+import { useChapter, useDeactivateChapter, useReactivateChapter } from '@/lib/hooks/queries/useChapters'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -16,14 +17,14 @@ import { Permission } from '@/lib/constants/permissions'
 export default function ChapterDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { currentChapter, isLoading, fetchChapter, deactivateChapter, reactivateChapter } = useChapterStore()
-  const chapterId = params.id as string
+  // React Query hooks
+  const { id: chapterId } = useParams() as { id: string }
+  // Force Admin View for this page since it's under /admin/chapters
+  const { data: currentChapter, isLoading } = useChapter(chapterId, { isAdminView: true })
+  const { mutateAsync: deactivateChapter } = useDeactivateChapter()
+  const { mutateAsync: reactivateChapter } = useReactivateChapter()
 
-  useEffect(() => {
-    if (chapterId) {
-      fetchChapter(chapterId)
-    }
-  }, [chapterId, fetchChapter])
+  // No useEffect needed for fetching!
 
   const handleToggleStatus = async () => {
     if (!currentChapter) return
@@ -34,7 +35,7 @@ export default function ChapterDetailPage() {
       } else {
         await reactivateChapter(chapterId)
       }
-      fetchChapter(chapterId)
+      // Invalidation happens in the hook, so no need to manually fetch
     } catch (error) {
       console.error('Failed to toggle chapter status:', error)
     }

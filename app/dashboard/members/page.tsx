@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuthStore, useChapterStore, useMembershipStore } from '@/lib/stores'
+import { useAuthStore } from '@/lib/stores'
+import { useChapters, useChapter } from '@/lib/hooks/queries/useChapters'
+import { useChapterMembers } from '@/lib/hooks/queries/useMembership'
 import { User } from '@/types'
 import { MemberCard } from '@/components/members/MemberCard'
 import { Search, Users as UsersIcon, Info } from 'lucide-react'
@@ -10,39 +12,35 @@ import { PermissionGuard } from '@/lib/guards/PermissionGuard'
 import { Permission } from '@/lib/constants/permissions'
 
 export default function MembersPage() {
-  const { user } = useAuthStore()
   const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions()
-  const { chapters, currentChapter, fetchChapters, fetchChapter } = useChapterStore()
-  const { isLoading } = useMembershipStore()
   
   // Auto-scope to user's chapter for Chapter Admins
   const [selectedChapter, setSelectedChapter] = useState<string>('')
-  const [members, setMembers] = useState<User[]>([])
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Fetch chapters on mount (Super Admin only)
-  useEffect(() => {
-    if (isSuperAdmin) {
-      fetchChapters({ isActive: true })
-    }
-  }, [isSuperAdmin, fetchChapters])
+  // Fetch all chapters for dropdown (Super Admin)
+  const { data: chaptersResponse } = useChapters({ isActive: true }, { enabled: isSuperAdmin })
+  const chapters = chaptersResponse?.data || []
 
-  // Auto-select chapter for Chapter Admin and fetch chapter details
+  // Fetch current chapter details if selected (for display name, etc.)
+  // Note: Chapter Admins may not have permission to fetch full chapter details via /admin/chapters/:id
+  const { data: currentChapter } = useChapter(selectedChapter, { enabled: isSuperAdmin })
+
+  // Fetch members
+  const { data: membersResponse, isLoading } = useChapterMembers(
+    selectedChapter, 
+    1, // page
+    100 // limit
+  )
+
+  const members = membersResponse?.data || []
+
+  // Auto-select chapter for Chapter Admin
   useEffect(() => {
     if (isChapterAdmin && userChapterId) {
       setSelectedChapter(userChapterId)
-      fetchChapter(userChapterId)
     }
-  }, [isChapterAdmin, userChapterId, fetchChapter])
-
-  // Fetch members when chapter is selected
-  useEffect(() => {
-    if (selectedChapter) {
-      // TODO: Implement fetchMembers from membershipStore
-      // For now, using empty array
-      setMembers([])
-    }
-  }, [selectedChapter])
+  }, [isChapterAdmin, userChapterId])
 
   // Filter members by search term
   const filteredMembers = members.filter(member => {

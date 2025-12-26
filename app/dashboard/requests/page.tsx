@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuthStore, useChapterStore, useMembershipStore } from '@/lib/stores'
+import { useAuthStore } from '@/lib/stores'
+import { useChapters, useChapter } from '@/lib/hooks/queries/useChapters'
+import { useMembershipRequests, useApproveRequest, useRejectRequest } from '@/lib/hooks/queries/useMembership'
 import { MembershipRequest } from '@/types'
 import { RequestCard } from '@/components/requests/RequestCard'
 import { ApproveModal } from '@/components/requests/ApproveModal'
@@ -14,8 +16,6 @@ import { Permission } from '@/lib/constants/permissions'
 export default function RequestsPage() {
   const { user } = useAuthStore()
   const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions()
-  const { chapters, currentChapter, fetchChapters, fetchChapter } = useChapterStore()
-  const { requests, isLoading, fetchRequests, approveRequest, rejectRequest } = useMembershipStore()
   
   // Auto-scope to user's chapter for Chapter Admins
   const [selectedChapter, setSelectedChapter] = useState<string>('')
@@ -24,62 +24,67 @@ export default function RequestsPage() {
   
   const [approveModalRequest, setApproveModalRequest] = useState<MembershipRequest | null>(null)
   const [rejectModalRequest, setRejectModalRequest] = useState<MembershipRequest | null>(null)
-  const [actionLoading, setActionLoading] = useState(false)
 
-  // Fetch chapters on mount (Super Admin only)
-  useEffect(() => {
-    if (isSuperAdmin) {
-      fetchChapters({ isActive: true })
+  // Fetch chapters for Super Admin
+  const { data: chaptersResponse } = useChapters({ isActive: true }, { enabled: isSuperAdmin })
+  const chapters = chaptersResponse?.data || []
+
+  // Fetch current chapter details
+  // Note: Chapter Admins may not have permission to fetch full chapter details via /admin/chapters/:id
+  const { data: currentChapter } = useChapter(selectedChapter, { enabled: isSuperAdmin })
+
+  // Fetch requests
+  const { data: requestsResponse, isLoading } = useMembershipRequests(
+    selectedChapter,
+    {
+       status: 'PENDING',
+       memberType: memberTypeFilter || undefined
     }
-  }, [isSuperAdmin, fetchChapters])
+  )
 
-  // Auto-select chapter for Chapter Admin and fetch chapter details
+  const requests = requestsResponse?.data || []
+
+  // Mutations
+  const { mutateAsync: approveRequest, isPending: isApproving } = useApproveRequest()
+  const { mutateAsync: rejectRequest, isPending: isRejecting } = useRejectRequest()
+  
+  const actionLoading = isApproving || isRejecting
+
+  // Auto-select chapter for Chapter Admin
   useEffect(() => {
     if (isChapterAdmin && userChapterId) {
       setSelectedChapter(userChapterId)
-      fetchChapter(userChapterId)
     }
-  }, [isChapterAdmin, userChapterId, fetchChapter])
-
-  // Fetch requests when chapter is selected
-  useEffect(() => {
-    if (selectedChapter) {
-      fetchRequests(selectedChapter, {
-        status: 'PENDING',
-        memberType: memberTypeFilter || undefined,
-      })
-    }
-  }, [selectedChapter, memberTypeFilter, fetchRequests])
+  }, [isChapterAdmin, userChapterId])
 
   const handleApprove = async (notes?: string) => {
     if (!approveModalRequest || !selectedChapter) return
     
-    setActionLoading(true)
     try {
-      await approveRequest(selectedChapter, approveModalRequest.id, notes)
+      await approveRequest({
+          chapterId: selectedChapter,
+          requestId: approveModalRequest.id,
+          notes
+      })
       setApproveModalRequest(null)
-      // Refresh requests
-      fetchRequests(selectedChapter, { status: 'PENDING' })
     } catch (error) {
       console.error('Failed to approve request:', error)
-    } finally {
-      setActionLoading(false)
     }
   }
 
   const handleReject = async (reason: string, canReapply: boolean) => {
     if (!rejectModalRequest || !selectedChapter) return
     
-    setActionLoading(true)
     try {
-      await rejectRequest(selectedChapter, rejectModalRequest.id, reason, canReapply)
+      await rejectRequest({
+          chapterId: selectedChapter,
+          requestId: rejectModalRequest.id,
+          reason,
+          canReapply
+      })
       setRejectModalRequest(null)
-      // Refresh requests
-      fetchRequests(selectedChapter, { status: 'PENDING' })
     } catch (error) {
       console.error('Failed to reject request:', error)
-    } finally {
-      setActionLoading(false)
     }
   }
 
