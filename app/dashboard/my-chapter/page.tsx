@@ -1,32 +1,28 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore, useChapterStore } from '@/lib/stores'
-import { Users, MapPin, Mail, Phone, Globe, Calendar, UserCheck, LayoutDashboard } from 'lucide-react'
+import { useAuthStore } from '@/lib/stores'
+import { useChapter } from '@/lib/hooks/queries/useChapters'
+import { Users, MapPin, Mail, Phone, Globe, Calendar, UserCheck, LayoutDashboard, Edit } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/lib/utils'
+import { ChapterEditModal } from '@/components/chapters/ChapterEditModal'
 
 export default function MyChapterPage() {
   const router = useRouter()
   const { user } = useAuthStore()
-  const { currentChapter, isLoading, fetchChapter } = useChapterStore()
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  
+  // Fetch chapter details using the safe endpoint (defaults to isAdminView: false)
+  const { data: currentChapter, isLoading } = useChapter(
+    (user?.chapterId) ? user.chapterId : '',
+    { enabled: !!user?.chapterId }
+  )
 
-  useEffect(() => {
-    // Redirect super admin to chapters list
-    if (user?.accountType === 'SUPER_ADMIN') {
-      router.push('/dashboard/chapters')
-      return
-    }
-
-    // Fetch chapter for chapter admin
-    if (user?.accountType === 'CHAPTER_ADMIN' && user.chapterId) {
-      fetchChapter(user.chapterId)
-    }
-  }, [user, fetchChapter, router])
-
-  if (isLoading || !currentChapter) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -37,26 +33,37 @@ export default function MyChapterPage() {
     )
   }
 
+  // If after loading we still don't have a chapter (and not loading), show empty state
+  if (!currentChapter) {
+      return (
+        <div className="text-center py-12">
+            <h1 className="text-2xl font-bold mb-4">No Chapter Assigned</h1>
+            <p className="text-muted-foreground">You are not currently assigned to manage any chapter.</p>
+        </div>
+      )
+  }
+
   return (
     <div>
+      <ChapterEditModal 
+        chapter={currentChapter} 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+      />
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">My Chapter</h1>
-            <p className="text-muted-foreground">View your chapter information</p>
+            <p className="text-muted-foreground">View and manage your chapter information</p>
           </div>
-          <Badge variant="default" className="px-3 py-1">
-            Read-Only
-          </Badge>
-        </div>
-
-        {/* Info Banner */}
-        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-900 dark:text-blue-300">
-            <strong>Note:</strong> Only Super Admins can edit chapter information. 
-            If you need to update any details, please contact a Super Admin.
-          </p>
+          <div className="flex items-center gap-3">
+            <Button onClick={() => setIsEditModalOpen(true)}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Chapter
+            </Button>
+          </div>
         </div>
 
         {/* Chapter Name and Status */}
@@ -235,7 +242,7 @@ export default function MyChapterPage() {
                   href={currentChapter.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className="text-primary hover:underline whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px] block"
                 >
                   {currentChapter.website}
                 </a>

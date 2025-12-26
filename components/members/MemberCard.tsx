@@ -47,12 +47,7 @@ export function MemberCard({ member }: MemberCardProps) {
 
         {/* Details */}
         <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Mail className="w-4 h-4" />
-            <span className={member.emailVerified ? 'text-green-600' : 'text-yellow-600'}>
-              {member.emailVerified ? 'Email Verified' : 'Email Not Verified'}
-            </span>
-          </div>
+
 
           <div className="flex items-center gap-2 text-muted-foreground">
             <Calendar className="w-4 h-4" />

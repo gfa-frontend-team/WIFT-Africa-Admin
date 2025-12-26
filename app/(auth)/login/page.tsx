@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores'
+import { useLogin, useGoogleLogin } from '@/lib/hooks/queries/useAuth'
 import { Shield, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react'
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isLoading, error, isAuthenticated, clearError } = useAuthStore()
+  const { error, isAuthenticated, clearError } = useAuthStore()
   
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,24 +27,43 @@ export default function LoginPage() {
     return () => clearError()
   }, [clearError])
 
+  useEffect(() => {
+    return () => clearError()
+  }, [clearError])
+
+  const { mutate: login, isPending: isLoading, error: loginError } = useLogin()
+  const { mutate: googleLogin, isPending: isGoogleLoading } = useGoogleLogin()
+
+  // Use the error from query, or fall back to store error if any (though store shouldn't have much now)
+  const errorMessage = loginError?.message || error
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     clearError()
 
-    // Basic validation
-    if (!email || !password) {
-      return
-    }
+    if (!email || !password) return
 
-    try {
-      await login(email, password)
-      // Redirect will happen via useEffect above
-      router.push('/dashboard')
-    } catch (err) {
-      // Error is already set in store
-      console.error('Login failed:', err)
+    login(
+      { email, password },
+      {
+        onSuccess: () => {
+             router.push('/dashboard')
+        },
+      }
+    )
+  }
+
+  const handleGoogleSuccess = (credentialResponse: any) => {
+    if (credentialResponse.credential) {
+      googleLogin(credentialResponse.credential, {
+        onSuccess: () => {
+          router.push('/dashboard')
+        },
+      })
     }
   }
+
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
   return (
     <div className="w-full">
@@ -63,7 +84,7 @@ export default function LoginPage() {
       <div className="bg-card rounded-2xl shadow-xl border border-border p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Message */}
-          {error && (
+          {errorMessage && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -71,7 +92,7 @@ export default function LoginPage() {
                   Login Failed
                 </p>
                 <p className="text-sm text-destructive/90 mt-1">
-                  {error}
+                  {errorMessage}
                 </p>
               </div>
             </div>
@@ -174,6 +195,38 @@ export default function LoginPage() {
               </>
             )}
           </button>
+
+
+          {/* Google Login */}
+          {googleClientId && (
+            <>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-card text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <GoogleOAuthProvider clientId={googleClientId}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => {
+                      console.error('Google Login Failed')
+                    }}
+                    useOneTap
+                    theme="outline"
+                    shape="circle"
+                    width="100%"
+                  />
+                </GoogleOAuthProvider>
+              </div>
+            </>
+          )}
         </form>
 
         {/* Divider */}

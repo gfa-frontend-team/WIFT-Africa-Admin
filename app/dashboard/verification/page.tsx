@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AlertCircle, RefreshCw, CheckCircle } from 'lucide-react'
-import { useVerificationStore } from '@/lib/stores'
+import { useVerificationStats, useTriggerDelayCheck } from '@/lib/hooks/queries/useVerification'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { StatCard } from '@/components/dashboard/StatCard'
@@ -10,19 +10,14 @@ import { RoleGuard } from '@/lib/guards/RoleGuard'
 import { Permission } from '@/lib/constants/permissions'
 
 export default function VerificationPage() {
-  const { delayedStats, isLoading, fetchDelayedStats, triggerDelayCheck } = useVerificationStore()
+  const { data: delayedStats, isLoading } = useVerificationStats()
+  const { mutateAsync: triggerCheck, isPending: isChecking } = useTriggerDelayCheck()
   const [checkResult, setCheckResult] = useState<{ processed: number; errors: number } | null>(null)
-
-  useEffect(() => {
-    fetchDelayedStats()
-  }, [fetchDelayedStats])
 
   const handleTriggerCheck = async () => {
     try {
-      const result = await triggerDelayCheck()
+      const result = await triggerCheck()
       setCheckResult(result)
-      // Refresh stats after check
-      setTimeout(() => fetchDelayedStats(), 1000)
     } catch (error) {
       console.error('Failed to trigger delay check:', error)
     }
@@ -72,7 +67,7 @@ export default function VerificationPage() {
           </p>
           <Button
             onClick={handleTriggerCheck}
-            isLoading={isLoading}
+            isLoading={isChecking}
             className="gap-2"
           >
             <RefreshCw className="w-4 h-4" />

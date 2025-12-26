@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Plus, Search } from 'lucide-react'
-import { useAuthStore, useChapterStore } from '@/lib/stores'
+import { useAuthStore } from '@/lib/stores'
+import { useChapters, useCountries } from '@/lib/hooks/queries/useChapters'
 import { Button } from '@/components/ui/Button'
 import { ChapterCard } from '@/components/chapters/ChapterCard'
 import { RoleGuard } from '@/lib/guards/RoleGuard'
@@ -11,24 +12,25 @@ import { Permission } from '@/lib/constants/permissions'
 
 export default function ChaptersPage() {
   const { user } = useAuthStore()
-  const { chapters, pagination, isLoading, fetchChapters, fetchCountries, countries } = useChapterStore()
   const [search, setSearch] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('')
   const [activeFilter, setActiveFilter] = useState<boolean | undefined>(undefined)
+  const [page, setPage] = useState(1)
 
-  useEffect(() => {
-    fetchCountries()
-  }, [fetchCountries])
+  const { data: countries = [] } = useCountries()
+  
+  const { data, isLoading } = useChapters({
+    search: search || undefined,
+    country: selectedCountry || undefined,
+    isActive: activeFilter,
+    page,
+    limit: 20,
+  })
 
-  useEffect(() => {
-    fetchChapters({
-      search: search || undefined,
-      country: selectedCountry || undefined,
-      isActive: activeFilter,
-      page: 1,
-      limit: 20,
-    })
-  }, [search, selectedCountry, activeFilter, fetchChapters])
+  const chapters = data?.data || []
+  const pagination = data?.pagination || { page: 1, totalPages: 1 }
+
+  // Search debounce could be added here, but for now we pass state directly
 
   return (
     <RoleGuard requiredPermission={Permission.VIEW_ALL_CHAPTERS}>
@@ -95,7 +97,7 @@ export default function ChaptersPage() {
       </div>
 
       {/* Loading State */}
-      {isLoading && !chapters.length ? (
+      {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -125,7 +127,7 @@ export default function ChaptersPage() {
                 variant="outline"
                 size="sm"
                 disabled={pagination.page === 1}
-                onClick={() => fetchChapters({ page: pagination.page - 1 })}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
               >
                 Previous
               </Button>
@@ -136,7 +138,7 @@ export default function ChaptersPage() {
                 variant="outline"
                 size="sm"
                 disabled={pagination.page === pagination.totalPages}
-                onClick={() => fetchChapters({ page: pagination.page + 1 })}
+                onClick={() => setPage(p => p + 1)}
               >
                 Next
               </Button>

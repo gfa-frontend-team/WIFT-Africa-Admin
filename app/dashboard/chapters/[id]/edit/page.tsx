@@ -3,23 +3,25 @@
 import { useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { useChapterStore } from '@/lib/stores'
+import { useChapter } from '@/lib/hooks/queries/useChapters'
 import { Button } from '@/components/ui/Button'
 import { ChapterForm } from '@/components/chapters/ChapterForm'
 import { RoleGuard } from '@/lib/guards/RoleGuard'
 import { Permission } from '@/lib/constants/permissions'
 
+import { PermissionGuard } from '@/lib/guards/PermissionGuard'
+import { usePermissions } from '@/lib/hooks/usePermissions'
+
 export default function EditChapterPage() {
   const params = useParams()
   const router = useRouter()
-  const { currentChapter, isLoading, fetchChapter } = useChapterStore()
-  const chapterId = params.id as string
+  const id = params?.id as string
+  const { isSuperAdmin } = usePermissions()
 
-  useEffect(() => {
-    if (chapterId) {
-      fetchChapter(chapterId)
-    }
-  }, [chapterId, fetchChapter])
+  // Use Admin View for Super Admins, otherwise Standard View
+  const { data: currentChapter, isLoading } = useChapter(id, { isAdminView: isSuperAdmin })
+
+  // No effect needed for fetching
 
   if (isLoading || !currentChapter) {
     return (
@@ -54,7 +56,7 @@ export default function EditChapterPage() {
           </p>
         </div>
 
-        <ChapterForm chapter={currentChapter} isEdit />
+        <ChapterForm chapter={currentChapter} isEdit isAdminView={isSuperAdmin} />
       </div>
     </RoleGuard>
   )

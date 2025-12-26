@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+
+import { useUser } from '@/lib/hooks/queries/useAuth'
 
 export default function DashboardLayout({
   children,
@@ -12,25 +14,22 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { isAuthenticated, user, checkAuth, refreshUser } = useAuthStore()
+  const { isAuthenticated, user, checkAuth } = useAuthStore()
+  const [isMounted, setIsMounted] = useState(false)
+  
+  // Keep user data fresh and sync with store
+  useUser()
 
   useEffect(() => {
+    setIsMounted(true)
     checkAuth()
     if (!isAuthenticated) {
       router.push('/login')
     }
   }, [isAuthenticated, router, checkAuth])
 
-  // Safety check: Refresh user data if accountType is missing
-  // This handles cases where users logged in before the auth fix
-  useEffect(() => {
-    if (isAuthenticated && user && !user.accountType) {
-      console.warn('⚠️ User missing accountType, refreshing user data...')
-      refreshUser()
-    }
-  }, [isAuthenticated, user, refreshUser])
 
-  if (!isAuthenticated) {
+  if (!isMounted || !isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

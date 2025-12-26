@@ -9,8 +9,8 @@ interface AuthState {
   isAuthenticated: boolean
   
   // Actions
-  login: (email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
+  login: (user: User) => void
+  logout: () => void
   checkAuth: () => void
   refreshUser: () => Promise<void>
   setUser: (user: User | null) => void
@@ -19,75 +19,37 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: authApi.getStoredUser(),
-  isLoading: false,
-  error: null,
   isAuthenticated: authApi.isAuthenticated(),
+  isLoading: false, // Keep for backward compatibility mostly, or remove if fully migrated
+  error: null,
 
-  login: async (email: string, password: string) => {
-    set({ isLoading: true, error: null })
-    try {
-      const response = await authApi.login(email, password)
-      set({
-        user: response.user,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      })
-    } catch (error: any) {
-      set({
-        error: error.message || 'Login failed',
-        isLoading: false,
-        isAuthenticated: false,
-      })
-      throw error
-    }
-  },
-
-  logout: async () => {
-    set({ isLoading: true })
-    try {
-      await authApi.logout()
-    } finally {
-      set({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-      })
-    }
-  },
-
-  checkAuth: () => {
-    const isAuth = authApi.isAuthenticated()
-    const user = authApi.getStoredUser()
+  // Synchronous actions only
+  login: (user: User) => {
     set({
-      isAuthenticated: isAuth,
-      user: user,
+      user,
+      isAuthenticated: true,
+      error: null,
     })
   },
 
-  refreshUser: async () => {
-    try {
-      const user = await authApi.getCurrentUser()
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(user))
-      }
-      set({ user })
-    } catch (error) {
-      console.error('Failed to refresh user:', error)
-      // If refresh fails, user might need to re-login
-      set({
-        user: null,
-        isAuthenticated: false,
-      })
-    }
+  logout: () => {
+    set({
+      user: null,
+      isAuthenticated: false,
+      error: null,
+    })
   },
 
   setUser: (user: User | null) => {
     set({ user, isAuthenticated: !!user })
   },
-
-  clearError: () => {
-    set({ error: null })
+  
+  // Deprecated/No-op actions to prevent breaking other components immediately
+  checkAuth: () => {
+     const isAuth = authApi.isAuthenticated()
+     const user = authApi.getStoredUser()
+     set({ isAuthenticated: isAuth, user })
   },
+  refreshUser: async () => {}, 
+  clearError: () => set({ error: null }),
 }))
