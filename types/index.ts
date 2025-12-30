@@ -29,6 +29,31 @@ export enum MemberType {
   EXISTING = 'EXISTING',
 }
 
+// ============================================
+// EVENT TYPES
+// ============================================
+
+export enum EventType {
+  WORKSHOP = 'WORKSHOP',
+  SCREENING = 'SCREENING',
+  NETWORKING = 'NETWORKING',
+  MEETUP = 'MEETUP',
+  CONFERENCE = 'CONFERENCE',
+  OTHER = 'OTHER',
+}
+
+export enum LocationType {
+  PHYSICAL = 'PHYSICAL',
+  VIRTUAL = 'VIRTUAL',
+  HYBRID = 'HYBRID',
+}
+
+export enum RSVPStatus {
+  GOING = 'GOING',
+  INTERESTED = 'INTERESTED',
+  NOT_GOING = 'NOT_GOING',
+}
+
 export interface User {
   id: string
   email: string
@@ -270,4 +295,97 @@ export interface ChapterDetailStats {
   approved: number
   pending: number
   rejected: number
+}
+
+// ============================================
+// EVENT INTERFACES
+// ============================================
+
+export interface EventLocation {
+  type: LocationType
+  address?: string
+  city?: string
+  country?: string
+  virtualLink?: string
+  virtualPlatform?: string
+}
+
+export interface Event {
+  id: string
+  title: string
+  description: string
+  type: EventType
+  chapterId: string
+  chapter?: Chapter
+  organizerId: string
+  organizer?: User
+  startDate: string
+  endDate: string
+  timezone: string
+  location: EventLocation
+  coverImage?: string
+  capacity?: number
+  currentAttendees: number
+  tags: string[]
+  isActive: boolean
+  myRSVP?: RSVPStatus | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface EventRSVP {
+  id: string
+  eventId: string
+  userId: string
+  status: RSVPStatus
+  rsvpDate: Date
+  user?: User
+}
+
+export interface EventAttendee {
+  user: User
+  status: RSVPStatus
+  rsvpDate: string
+}
+
+export interface EventAttendeesResponse {
+  attendees: EventAttendee[]
+  stats: {
+    going: number
+    interested: number
+    notGoing: number
+  }
+}
+
+// Event API Request/Response Types
+export interface EventFilters {
+  page?: number
+  limit?: number
+  chapterId?: string
+  type?: EventType
+  startDate?: string
+  endDate?: string
+}
+
+export interface CreateEventData {
+  title: string
+  description: string
+  type: EventType
+  chapterId: string
+  startDate: string
+  endDate: string
+  timezone: string
+  location: EventLocation
+  capacity?: number
+  tags?: string[]
+}
+
+export interface UpdateEventData extends Partial<CreateEventData> {}
+
+export interface RSVPEventData {
+  status: RSVPStatus
+}
+
+export interface CancelEventData {
+  reason: string
 }
