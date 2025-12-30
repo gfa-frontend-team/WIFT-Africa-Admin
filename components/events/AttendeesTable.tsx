@@ -20,10 +20,30 @@ export function AttendeesTable({ data, onExport, isLoading }: AttendeesTableProp
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<RSVPStatus | ''>('')
 
+  // Safety check for data
+  if (!data || !Array.isArray(data.attendees)) {
+    return (
+      <div className="bg-card rounded-lg border border-border p-6">
+        <div className="text-center">
+          <p className="text-muted-foreground">No attendee data available</p>
+        </div>
+      </div>
+    )
+  }
+
   const filteredAttendees = data.attendees.filter(attendee => {
+    // Safety check for attendee data
+    if (!attendee?.user) {
+      return false
+    }
+    
+    const fullName = `${attendee.user.firstName || ''} ${attendee.user.lastName || ''}`.toLowerCase()
+    const email = (attendee.user.email || '').toLowerCase()
+    const searchLower = searchTerm.toLowerCase()
+    
     const matchesSearch = searchTerm === '' || 
-      `${attendee.user.firstName} ${attendee.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      attendee.user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      fullName.includes(searchLower) ||
+      email.includes(searchLower)
     
     const matchesStatus = statusFilter === '' || attendee.status === statusFilter
     
@@ -157,55 +177,62 @@ export function AttendeesTable({ data, onExport, isLoading }: AttendeesTableProp
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredAttendees.map((attendee) => (
-                <tr key={attendee.user.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      {attendee.user.profilePhoto ? (
-                        <img
-                          src={attendee.user.profilePhoto}
-                          alt={`${attendee.user.firstName} ${attendee.user.lastName}`}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-medium">
-                          {attendee.user.firstName[0]}{attendee.user.lastName[0]}
-                        </div>
-                      )}
-                      <div>
-                        <div className="font-medium text-foreground">
-                          {attendee.user.firstName} {attendee.user.lastName}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Member ID: {attendee.user.id.slice(-8)}
+              {filteredAttendees.map((attendee) => {
+                // Safety check for attendee data
+                if (!attendee?.user) {
+                  return null
+                }
+                
+                return (
+                  <tr key={attendee.user.id || Math.random()} className="hover:bg-muted/30 transition-colors">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        {attendee.user.profilePhoto ? (
+                          <img
+                            src={attendee.user.profilePhoto}
+                            alt={`${attendee.user.firstName || ''} ${attendee.user.lastName || ''}`}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-medium">
+                            {(attendee.user.firstName?.[0] || '?')}{(attendee.user.lastName?.[0] || '')}
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-medium text-foreground">
+                            {attendee.user.firstName || 'Unknown'} {attendee.user.lastName || 'User'}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Member ID: {attendee.user.id?.slice(-8) || 'N/A'}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="w-4 h-4" />
-                      <a 
-                        href={`mailto:${attendee.user.email}`}
-                        className="hover:text-primary transition-colors"
-                      >
-                        {attendee.user.email}
-                      </a>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${rsvpStatusColors[attendee.status]}`}>
-                      {attendee.status.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      {formatDate(attendee.rsvpDate)}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Mail className="w-4 h-4" />
+                        <a 
+                          href={`mailto:${attendee.user.email || ''}`}
+                          className="hover:text-primary transition-colors"
+                        >
+                          {attendee.user.email || 'No email'}
+                        </a>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${rsvpStatusColors[attendee.status] || 'bg-gray-100 text-gray-800'}`}>
+                        {attendee.status?.replace('_', ' ') || 'Unknown'}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4" />
+                        {attendee.rsvpDate ? formatDate(attendee.rsvpDate) : 'Unknown date'}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}
