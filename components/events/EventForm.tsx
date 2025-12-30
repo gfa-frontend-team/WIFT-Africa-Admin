@@ -25,13 +25,19 @@ export function EventForm({ initialData, onSubmit, onCancel, isSubmitting = fals
 
   const [formData, setFormData] = useState<CreateEventData>(() => {
     if (initialData) {
+      // Convert ISO dates to datetime-local format (YYYY-MM-DDTHH:mm)
+      const formatDateForInput = (isoDate: string) => {
+        const date = new Date(isoDate)
+        return date.toISOString().slice(0, 16)
+      }
+      
       return {
         title: initialData.title,
         description: initialData.description,
         type: initialData.type,
         chapterId: initialData.chapterId,
-        startDate: initialData.startDate,
-        endDate: initialData.endDate,
+        startDate: formatDateForInput(initialData.startDate),
+        endDate: formatDateForInput(initialData.endDate),
         timezone: initialData.timezone,
         location: initialData.location,
         capacity: initialData.capacity,
@@ -97,8 +103,8 @@ export function EventForm({ initialData, onSubmit, onCancel, isSubmitting = fals
       }
     }
 
-    if (formData.location.type === LocationType.VIRTUAL && !formData.location.virtualLink) {
-      newErrors.virtualLink = 'Virtual link is required for virtual events'
+    if (formData.location.type === LocationType.VIRTUAL && !formData.location.virtualUrl) {
+      newErrors.virtualUrl = 'Virtual link is required for virtual events'
     }
 
     if (formData.capacity && formData.capacity < 1) {
@@ -168,7 +174,15 @@ export function EventForm({ initialData, onSubmit, onCancel, isSubmitting = fals
     }
 
     try {
-      await onSubmit(formData)
+      // Convert datetime-local format to ISO format
+      const submitData = {
+        ...formData,
+        startDate: new Date(formData.startDate).toISOString(),
+        endDate: new Date(formData.endDate).toISOString(),
+      }
+      
+      console.log('Submitting event data:', submitData)
+      await onSubmit(submitData)
     } catch (error) {
       console.error('Form submission error:', error)
     }
@@ -408,15 +422,15 @@ export function EventForm({ initialData, onSubmit, onCancel, isSubmitting = fals
                     </label>
                     <input
                       type="url"
-                      value={formData.location.virtualLink || ''}
-                      onChange={(e) => handleLocationChange('virtualLink', e.target.value)}
+                      value={formData.location.virtualUrl || ''}
+                      onChange={(e) => handleLocationChange('virtualUrl', e.target.value)}
                       className={`w-full px-3 py-2 bg-background border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-foreground ${
-                        errors.virtualLink ? 'border-destructive' : 'border-input'
+                        errors.virtualUrl ? 'border-destructive' : 'border-input'
                       }`}
                       placeholder="https://zoom.us/j/..."
                     />
-                    {errors.virtualLink && (
-                      <p className="mt-1 text-sm text-destructive">{errors.virtualLink}</p>
+                    {errors.virtualUrl && (
+                      <p className="mt-1 text-sm text-destructive">{errors.virtualUrl}</p>
                     )}
                   </div>
 

@@ -306,7 +306,7 @@ export interface EventLocation {
   address?: string
   city?: string
   country?: string
-  virtualLink?: string
+  virtualUrl?: string
   virtualPlatform?: string
 }
 

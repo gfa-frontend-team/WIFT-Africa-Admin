@@ -84,7 +84,7 @@ export const eventsApi = {
   // Create event
   createEvent: async (data: CreateEventData): Promise<Event> => {
     const response = await apiClient.post<{ message: string; event: any }>(
-      '/admin/events',
+      '/events/admin/events',
       data
     )
     if (response.event) {
@@ -96,7 +96,7 @@ export const eventsApi = {
   // Update event
   updateEvent: async (eventId: string, data: UpdateEventData): Promise<Event> => {
     const response = await apiClient.patch<{ message: string; event: any }>(
-      `/admin/events/${eventId}`,
+      `/events/admin/events/${eventId}`,
       data
     )
     if (response.event) {
@@ -108,7 +108,7 @@ export const eventsApi = {
   // Cancel/Archive event
   cancelEvent: async (eventId: string, data: CancelEventData): Promise<void> => {
     await apiClient.delete<{ message: string; notifiedAttendees: number }>(
-      `/admin/events/${eventId}`,
+      `/events/admin/events/${eventId}`,
       data
     )
   },
@@ -117,7 +117,7 @@ export const eventsApi = {
   getEventAttendees: async (eventId: string, exportCsv = false): Promise<EventAttendeesResponse> => {
     const params = exportCsv ? '?export=true' : ''
     const response = await apiClient.get<EventAttendeesResponse>(
-      `/admin/events/${eventId}/attendees${params}`
+      `/events/admin/events/${eventId}/attendees${params}`
     )
     return response
   },

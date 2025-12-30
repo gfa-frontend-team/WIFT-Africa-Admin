@@ -281,16 +281,16 @@ export default function EventDetailsPage() {
                       <span className="text-sm text-muted-foreground">{event.location.virtualPlatform}</span>
                     </div>
                   )}
-                  {event.location.virtualLink && (
+                  {event.location.virtualUrl && (
                     <div className="flex items-start gap-2">
                       <span className="text-sm font-medium text-foreground">Link:</span>
                       <a
-                        href={event.location.virtualLink}
+                        href={event.location.virtualUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-primary hover:underline break-all"
                       >
-                        {event.location.virtualLink}
+                        {event.location.virtualUrl}
                       </a>
                     </div>
                   )}
