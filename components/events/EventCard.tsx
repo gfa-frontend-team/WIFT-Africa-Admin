@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Calendar, MapPin, Users, Clock, MoreVertical } from 'lucide-react'
 import { Event, EventType, LocationType, RSVPStatus } from '@/types'
 import { usePermissions } from '@/lib/hooks'
@@ -172,9 +173,12 @@ export function EventCard({ event, onEdit, onDelete, onViewAttendees }: EventCar
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <button className="flex-1 px-4 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors">
+          <Link
+            href={`/dashboard/events/${event.id}`}
+            className="flex-1 px-4 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors text-center"
+          >
             View Details
-          </button>
+          </Link>
           
           {canViewAttendees && (
             <button
