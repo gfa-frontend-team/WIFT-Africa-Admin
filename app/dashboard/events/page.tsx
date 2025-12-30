@@ -180,10 +180,6 @@ export default function EventsPage() {
               <EventCard
                 key={event.id}
                 event={event}
-                onViewAttendees={(event) => {
-                  // TODO: Navigate to attendees page
-                  console.log('View attendees for:', event.id)
-                }}
               />
             ))}
           </div>

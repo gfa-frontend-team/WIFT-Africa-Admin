@@ -10,7 +10,6 @@ interface EventCardProps {
   event: Event
   onEdit?: (event: Event) => void
   onDelete?: (event: Event) => void
-  onViewAttendees?: (event: Event) => void
 }
 
 const eventTypeColors = {
@@ -28,7 +27,7 @@ const rsvpStatusColors = {
   [RSVPStatus.NOT_GOING]: 'bg-red-100 text-red-800',
 }
 
-export function EventCard({ event, onEdit, onDelete, onViewAttendees }: EventCardProps) {
+export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
   const { hasPermission } = usePermissions()
   
   const canEdit = hasPermission(Permission.EDIT_EVENT)
@@ -181,12 +180,12 @@ export function EventCard({ event, onEdit, onDelete, onViewAttendees }: EventCar
           </Link>
           
           {canViewAttendees && (
-            <button
-              onClick={() => onViewAttendees?.(event)}
+            <Link
+              href={`/dashboard/events/${event.id}/attendees`}
               className="px-4 py-2 text-sm font-medium text-muted-foreground bg-muted hover:bg-muted/80 rounded-lg transition-colors"
             >
               Attendees
-            </button>
+            </Link>
           )}
         </div>
       </div>

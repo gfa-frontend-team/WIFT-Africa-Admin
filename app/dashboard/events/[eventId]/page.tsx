@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useEvent, useCancelEvent } from '@/lib/hooks/queries/useEvents'
 import { usePermissions } from '@/lib/hooks'
 import { Permission } from '@/lib/constants/permissions'
+import { RSVPButton } from '@/components/events/RSVPButton'
 import { EventType, LocationType, RSVPStatus } from '@/types'
 
 const eventTypeColors = {
@@ -381,6 +382,18 @@ export default function EventDetailsPage() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* RSVP Section */}
+          <div className="bg-card rounded-lg border border-border p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">RSVP</h3>
+            <RSVPButton
+              eventId={eventId}
+              currentRSVP={event.myRSVP}
+              isEventFull={event.capacity ? event.currentAttendees >= event.capacity : false}
+              isEventCancelled={!event.isActive}
+              isEventPast={new Date(event.endDate) < new Date()}
+            />
           </div>
 
           {/* Organizer */}
