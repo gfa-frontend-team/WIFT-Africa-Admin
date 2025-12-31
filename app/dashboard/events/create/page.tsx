@@ -8,7 +8,7 @@ import { useCreateEvent } from '@/lib/hooks/queries/useEvents'
 import { usePermissions } from '@/lib/hooks'
 import { Permission } from '@/lib/constants/permissions'
 import { EventForm } from '@/components/events/EventForm'
-import { CreateEventData } from '@/types'
+import { CreateEventData, UpdateEventData } from '@/types'
 
 export default function CreateEventPage() {
   const router = useRouter()
@@ -28,10 +28,10 @@ export default function CreateEventPage() {
     )
   }
 
-  const handleSubmit = async (data: CreateEventData) => {
+  const handleSubmit = async (data: CreateEventData | UpdateEventData) => {
     setIsSubmitting(true)
     try {
-      await createEventMutation.mutateAsync(data)
+      await createEventMutation.mutateAsync(data as CreateEventData)
       router.push('/dashboard/events')
     } catch (error) {
       console.error('Failed to create event:', error)

@@ -150,10 +150,10 @@ export function EventForm({ initialData, onSubmit, onCancel, isSubmitting = fals
 
   const addTag = () => {
     const trimmedTag = tagInput.trim()
-    if (trimmedTag && !formData.tags.includes(trimmedTag)) {
+    if (trimmedTag && !(formData.tags || []).includes(trimmedTag)) {
       setFormData(prev => ({
         ...prev,
-        tags: [...prev.tags, trimmedTag],
+        tags: [...(prev.tags || []), trimmedTag],
       }))
       setTagInput('')
     }
@@ -162,7 +162,7 @@ export function EventForm({ initialData, onSubmit, onCancel, isSubmitting = fals
   const removeTag = (tagToRemove: string) => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove),
+      tags: (prev.tags || []).filter(tag => tag !== tagToRemove),
     }))
   }
 
@@ -549,9 +549,9 @@ export function EventForm({ initialData, onSubmit, onCancel, isSubmitting = fals
                 </button>
               </div>
 
-              {formData.tags.length > 0 && (
+              {(formData.tags?.length || 0) > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag) => (
+                  {(formData.tags || []).map((tag) => (
                     <span
                       key={tag}
                       className="inline-flex items-center gap-1 px-2 py-1 bg-muted text-muted-foreground text-sm rounded"
