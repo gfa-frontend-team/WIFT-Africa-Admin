@@ -1,56 +1,49 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { eventsApi } from '@/lib/api/events'
-import type { EventFilters, CreateEventData, UpdateEventData, RSVPEventData, CancelEventData } from '@/types'
+import { EventFilters, CreateEventData, UpdateEventData, CancelEventData, RSVPEventData } from '@/types'
 
-export const EVENT_KEYS = {
+// Keys
+export const eventKeys = {
   all: ['events'] as const,
-  lists: () => [...EVENT_KEYS.all, 'list'] as const,
-  list: (filters: EventFilters = {}) => [...EVENT_KEYS.lists(), filters] as const,
-  details: () => [...EVENT_KEYS.all, 'detail'] as const,
-  detail: (id: string) => [...EVENT_KEYS.details(), id] as const,
-  attendees: (id: string) => [...EVENT_KEYS.all, 'attendees', id] as const,
+  lists: () => [...eventKeys.all, 'list'] as const,
+  list: (filters: EventFilters) => [...eventKeys.lists(), { ...filters }] as const,
+  details: () => [...eventKeys.all, 'detail'] as const,
+  detail: (id: string) => [...eventKeys.details(), id] as const,
+  attendees: (id: string) => [...eventKeys.detail(id), 'attendees'] as const,
 }
 
-// ============================================
-// QUERY HOOKS
-// ============================================
-
-export function useEvents(filters: EventFilters = {}, options: { enabled?: boolean } = {}) {
+// Queries
+export function useEvents(filters: EventFilters = {}) {
   return useQuery({
-    queryKey: EVENT_KEYS.list(filters),
+    queryKey: eventKeys.list(filters),
     queryFn: () => eventsApi.getEvents(filters),
-    placeholderData: (previousData) => previousData,
-    enabled: options.enabled,
   })
 }
 
-export function useEvent(eventId: string, options: { enabled?: boolean } = {}) {
+export function useEvent(id: string) {
   return useQuery({
-    queryKey: EVENT_KEYS.detail(eventId),
-    queryFn: () => eventsApi.getEvent(eventId),
-    enabled: !!eventId && options.enabled,
+    queryKey: eventKeys.detail(id),
+    queryFn: () => eventsApi.getEvent(id),
+    enabled: !!id,
   })
 }
 
-export function useEventAttendees(eventId: string, options: { enabled?: boolean } = {}) {
+export function useEventAttendees(id: string) {
   return useQuery({
-    queryKey: EVENT_KEYS.attendees(eventId),
-    queryFn: () => eventsApi.getEventAttendees(eventId),
-    enabled: !!eventId && options.enabled,
+    queryKey: eventKeys.attendees(id),
+    queryFn: () => eventsApi.getEventAttendees(id),
+    enabled: !!id,
   })
 }
 
-// ============================================
-// MUTATION HOOKS
-// ============================================
-
+// Mutations
 export function useCreateEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (data: CreateEventData) => eventsApi.createEvent(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.lists() })
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
     },
   })
 }
@@ -59,11 +52,11 @@ export function useUpdateEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ eventId, data }: { eventId: string; data: UpdateEventData }) =>
-      eventsApi.updateEvent(eventId, data),
-    onSuccess: (updatedEvent) => {
-      queryClient.setQueryData(EVENT_KEYS.detail(updatedEvent.id), updatedEvent)
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.lists() })
+    mutationFn: ({ id, data }: { id: string; data: UpdateEventData }) => 
+      eventsApi.updateEvent(id, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(data.event.id) })
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
     },
   })
 }
@@ -72,25 +65,25 @@ export function useCancelEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ eventId, data }: { eventId: string; data: CancelEventData }) =>
-      eventsApi.cancelEvent(eventId, data),
-    onSuccess: (_, { eventId }) => {
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.lists() })
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.detail(eventId) })
+    mutationFn: ({ id, data }: { id: string; data: CancelEventData }) => 
+      eventsApi.cancelEvent(id, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(data.event.id) })
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
     },
   })
 }
 
-export function useRSVPToEvent() {
+export function useRSVPEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ eventId, data }: { eventId: string; data: RSVPEventData }) =>
-      eventsApi.rsvpToEvent(eventId, data),
-    onSuccess: (_, { eventId }) => {
-      // Invalidate event details to refresh myRSVP status
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.detail(eventId) })
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.attendees(eventId) })
+    mutationFn: ({ id, data }: { id: string; data: RSVPEventData }) => 
+      eventsApi.rsvpEvent(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(variables.id) })
+      // Ideally we should also invalidate the list if listing shows RSVP status
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
     },
   })
 }
@@ -99,11 +92,10 @@ export function useCancelRSVP() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (eventId: string) => eventsApi.cancelRSVP(eventId),
-    onSuccess: (_, eventId) => {
-      // Invalidate event details to refresh myRSVP status
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.detail(eventId) })
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.attendees(eventId) })
+    mutationFn: (id: string) => eventsApi.cancelRSVP(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) })
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
     },
   })
 }

@@ -1,124 +1,116 @@
 import { apiClient } from './client'
-import type { 
+import { 
   Event, 
   EventFilters, 
   CreateEventData, 
   UpdateEventData, 
-  RSVPEventData, 
   CancelEventData,
   EventAttendeesResponse,
-  PaginatedResponse 
+  RSVPEventData,
+  EventRSVP
 } from '@/types'
 
-// Helper function to transform MongoDB _id to id
-const transformEvent = (event: any): Event => ({
-  ...event,
-  id: event._id || event.id,
-  chapter: event.chapter ? {
-    ...event.chapter,
-    id: event.chapter._id || event.chapter.id,
-  } : undefined,
-  organizer: event.organizer ? {
-    ...event.organizer,
-    id: event.organizer._id || event.organizer.id,
-  } : undefined,
-})
+const BASE_URL = '/events'
+const ADMIN_BASE_URL = '/events/admin/events'
+
+interface GetEventsResponse {
+  events: Event[]
+  total: number
+  pages: number
+}
+
+interface CreateEventResponse {
+  message: string
+  event: Event
+}
+
+interface UpdateEventResponse {
+  message: string
+  event: Event
+}
+
+interface CancelEventResponse {
+  message: string
+  event: Event
+}
+
+interface RSVPResponse {
+  message: string
+  rsvp: EventRSVP
+}
+
+// Helper to normalize backend _id to frontend id
+const transformEvent = (event: any): Event => {
+  if (!event) return event
+  const transformed = {
+    ...event,
+    id: event.id || event._id,
+  }
+  // Handle nested chapter if strictly needed, though usually just ID is enough for basics
+  if (event.chapter && (event.chapter._id || event.chapter.id)) {
+    transformed.chapter = {
+      ...event.chapter,
+      id: event.chapter.id || event.chapter._id
+    }
+  }
+  return transformed
+}
 
 export const eventsApi = {
-  // ============================================
-  // PUBLIC ENDPOINTS
-  // ============================================
-  
-  // Get all events with filters (Public)
-  getEvents: async (filters?: EventFilters): Promise<PaginatedResponse<Event>> => {
-    const params = new URLSearchParams()
-    if (filters?.page) params.append('page', String(filters.page))
-    if (filters?.limit) params.append('limit', String(filters.limit))
-    if (filters?.chapterId) params.append('chapterId', filters.chapterId)
-    if (filters?.type) params.append('type', filters.type)
-    if (filters?.startDate) params.append('startDate', filters.startDate)
-    if (filters?.endDate) params.append('endDate', filters.endDate)
-
-    const response = await apiClient.get<{ events: any[]; total: number; pages: number }>(
-      `/events?${params.toString()}`
-    )
-    
-    return {
-      data: response.events.map(transformEvent),
-      pagination: {
-        page: filters?.page || 1,
-        limit: filters?.limit || 20,
-        total: response.total,
-        totalPages: response.pages,
-      },
+  // Public/Shared Endpoints
+  getEvents: async (params?: EventFilters) => {
+    const data = await apiClient.get<GetEventsResponse>(BASE_URL, { params })
+    if (data.events) {
+      data.events = data.events.map(transformEvent)
     }
+    return data
   },
 
-  // Get single event details (Public)
-  getEvent: async (eventId: string): Promise<Event> => {
-    const response = await apiClient.get<any>(`/events/${eventId}`)
-    return transformEvent(response)
+  getEvent: async (id: string) => {
+    const data = await apiClient.get<Event>(`${BASE_URL}/${id}`)
+    return transformEvent(data)
   },
 
-  // ============================================
-  // USER ENDPOINTS (Authentication Required)
-  // ============================================
-  
-  // RSVP to event
-  rsvpToEvent: async (eventId: string, data: RSVPEventData): Promise<void> => {
-    await apiClient.post<{ message: string; rsvp: any }>(
-      `/events/${eventId}/rsvp`,
-      data
-    )
+  rsvpEvent: async (id: string, rsvpData: RSVPEventData) => {
+    const data = await apiClient.post<RSVPResponse>(`${BASE_URL}/${id}/rsvp`, rsvpData)
+    // RSVP returns the RSVP object, not the full event usually, but checking types
+    return data
   },
 
-  // Cancel RSVP
-  cancelRSVP: async (eventId: string): Promise<void> => {
-    await apiClient.delete<{ message: string }>(`/events/${eventId}/rsvp`)
+  cancelRSVP: async (id: string) => {
+    const data = await apiClient.delete<{ message: string }>(`${BASE_URL}/${id}/rsvp`)
+    return data
   },
 
-  // ============================================
-  // ADMIN ENDPOINTS (Chapter Admin Required)
-  // ============================================
-  
-  // Create event
-  createEvent: async (data: CreateEventData): Promise<Event> => {
-    const response = await apiClient.post<{ message: string; event: any }>(
-      '/events/admin/events',
-      data
-    )
-    if (response.event) {
-      return transformEvent(response.event)
+  // Admin Endpoints
+  createEvent: async (eventData: CreateEventData) => {
+    const data = await apiClient.post<CreateEventResponse>(ADMIN_BASE_URL, eventData)
+    if (data.event) {
+      data.event = transformEvent(data.event)
     }
-    throw new Error('Failed to create event')
+    return data
   },
 
-  // Update event
-  updateEvent: async (eventId: string, data: UpdateEventData): Promise<Event> => {
-    const response = await apiClient.patch<{ message: string; event: any }>(
-      `/events/admin/events/${eventId}`,
-      data
-    )
-    if (response.event) {
-      return transformEvent(response.event)
+  updateEvent: async (id: string, eventData: UpdateEventData) => {
+    const data = await apiClient.patch<UpdateEventResponse>(`${ADMIN_BASE_URL}/${id}`, eventData)
+    if (data.event) {
+      data.event = transformEvent(data.event)
     }
-    throw new Error('Failed to update event')
+    return data
   },
 
-  // Cancel/Archive event
-  cancelEvent: async (eventId: string, data: CancelEventData): Promise<void> => {
-    await apiClient.delete<{ message: string; notifiedAttendees: number }>(
-      `/events/admin/events/${eventId}`,
-      data
-    )
+  cancelEvent: async (id: string, cancelData: CancelEventData) => {
+    const data = await apiClient.delete<CancelEventResponse>(`${ADMIN_BASE_URL}/${id}`, { 
+      data: cancelData 
+    })
+    if (data.event) {
+      data.event = transformEvent(data.event)
+    }
+    return data
   },
 
-  // Get event attendees
-  getEventAttendees: async (eventId: string, exportCsv = false): Promise<EventAttendeesResponse> => {
-    const params = exportCsv ? '?export=true' : ''
-    const response = await apiClient.get<EventAttendeesResponse>(
-      `/events/admin/events/${eventId}/attendees${params}`
-    )
-    return response
-  },
+  getEventAttendees: async (id: string) => {
+    const data = await apiClient.get<EventAttendeesResponse>(`${ADMIN_BASE_URL}/${id}/attendees`)
+    return data
+  }
 }
