@@ -54,6 +54,13 @@ export enum RSVPStatus {
   NOT_GOING = 'NOT_GOING',
 }
 
+export enum EventStatus {
+  DRAFT = 'DRAFT',
+  PUBLISHED = 'PUBLISHED',
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+}
+
 export interface User {
   id: string
   email: string
@@ -315,7 +322,7 @@ export interface Event {
   title: string
   description: string
   type: EventType
-  chapterId: string
+  chapterId?: string
   chapter?: Chapter
   organizerId: string
   organizer?: User
@@ -327,7 +334,9 @@ export interface Event {
   capacity?: number
   currentAttendees: number
   tags: string[]
-  isActive: boolean
+  status: EventStatus
+  isPublished: boolean
+  isCancelled: boolean
   myRSVP?: RSVPStatus | null
   createdAt: Date
   updatedAt: Date
@@ -365,19 +374,22 @@ export interface EventFilters {
   type?: EventType
   startDate?: string
   endDate?: string
+  status?: EventStatus
 }
 
 export interface CreateEventData {
   title: string
   description: string
   type: EventType
-  chapterId: string
+  chapterId?: string
   startDate: string
   endDate: string
   timezone: string
   location: EventLocation
   capacity?: number
+  coverImage?: string
   tags?: string[]
+  status?: EventStatus
 }
 
 export interface UpdateEventData extends Partial<CreateEventData> {}
