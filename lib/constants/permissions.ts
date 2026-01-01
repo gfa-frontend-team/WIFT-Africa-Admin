@@ -19,6 +19,15 @@ export enum Permission {
   VIEW_ALL_MEMBERS = 'view_all_members',
   VIEW_OWN_CHAPTER_MEMBERS = 'view_own_chapter_members',
   
+  // Event Management
+  VIEW_ALL_EVENTS = 'view_all_events',
+  VIEW_OWN_CHAPTER_EVENTS = 'view_own_chapter_events',
+  CREATE_EVENT = 'create_event',
+  EDIT_EVENT = 'edit_event',
+  DELETE_EVENT = 'delete_event',
+  VIEW_EVENT_ATTENDEES = 'view_event_attendees',
+  EXPORT_EVENT_ATTENDEES = 'export_event_attendees',
+  
   // System & Statistics
   VIEW_PLATFORM_STATS = 'view_platform_stats',
   VIEW_COUNTRIES_LIST = 'view_countries_list',
@@ -44,6 +53,14 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     // Members - All chapters
     Permission.VIEW_ALL_MEMBERS,
     
+    // Event Management - Full access
+    Permission.VIEW_ALL_EVENTS,
+    Permission.CREATE_EVENT,
+    Permission.EDIT_EVENT,
+    Permission.DELETE_EVENT,
+    Permission.VIEW_EVENT_ATTENDEES,
+    Permission.EXPORT_EVENT_ATTENDEES,
+    
     // System & Statistics - Full access
     Permission.VIEW_PLATFORM_STATS,
     Permission.VIEW_COUNTRIES_LIST,
@@ -58,6 +75,14 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     
     // Members - Own chapter only
     Permission.VIEW_OWN_CHAPTER_MEMBERS,
+    
+    // Event Management - Own chapter only
+    Permission.VIEW_OWN_CHAPTER_EVENTS,
+    Permission.CREATE_EVENT,
+    Permission.EDIT_EVENT,
+    Permission.DELETE_EVENT,
+    Permission.VIEW_EVENT_ATTENDEES,
+    Permission.EXPORT_EVENT_ATTENDEES,
   ],
   
   // Regular members have no admin permissions

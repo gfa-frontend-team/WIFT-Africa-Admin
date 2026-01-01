@@ -9,7 +9,8 @@ import {
   UserCheck, 
   Settings,
   Shield,
-  AlertCircle
+  AlertCircle,
+  Calendar
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/lib/stores'
@@ -17,6 +18,7 @@ import { useAuthStore } from '@/lib/stores'
 const superAdminNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Chapters', href: '/dashboard/chapters', icon: Building2 },
+  { name: 'Events', href: '/dashboard/events', icon: Calendar },
   { name: 'Membership Requests', href: '/dashboard/requests', icon: UserCheck },
   { name: 'Members', href: '/dashboard/members', icon: Users },
   { name: 'Verification Delays', href: '/dashboard/verification', icon: AlertCircle },
@@ -26,6 +28,7 @@ const superAdminNavigation = [
 const chapterAdminNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'My Chapter', href: '/dashboard/my-chapter', icon: Building2 },
+  { name: 'Events', href: '/dashboard/events', icon: Calendar },
   { name: 'Membership Requests', href: '/dashboard/requests', icon: UserCheck },
   { name: 'Members', href: '/dashboard/members', icon: Users },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
