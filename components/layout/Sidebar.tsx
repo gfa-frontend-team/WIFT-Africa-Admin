@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Calendar,
   ShieldAlert,
-  BarChart3
+  BarChart3,
+  MessageSquarePlus
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/lib/stores'
@@ -26,10 +27,14 @@ const superAdminNavigation = [
   { name: 'Verification Delays', href: '/dashboard/verification', icon: AlertCircle },
   { name: 'Reports', href: '/dashboard/reports', icon: ShieldAlert },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { name: 'Broadcasts', href: '/dashboard/messages', icon: MessageSquarePlus },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
 const chapterAdminNavigation = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'My Chapter', href: '/dashboard/my-chapter', icon: Building2 },
+  { name: 'Broadcasts', href: '/dashboard/messages', icon: MessageSquarePlus },
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'My Chapter', href: '/dashboard/my-chapter', icon: Building2 },
   { name: 'Events', href: '/dashboard/events', icon: Calendar },
