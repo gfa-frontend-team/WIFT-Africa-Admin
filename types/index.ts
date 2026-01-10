@@ -1,4 +1,6 @@
 // Core types matching backend models
+export * from './reports'
+
 
 // ============================================
 // USER & AUTH TYPES
