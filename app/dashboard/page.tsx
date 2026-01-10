@@ -5,7 +5,10 @@ import { Building2, Users, UserCheck, Globe } from 'lucide-react'
 import { useAuthStore } from '@/lib/stores'
 import { useChapterStatistics, useChapter } from '@/lib/hooks/queries/useChapters'
 import { useVerificationStats } from '@/lib/hooks/queries/useVerification'
+import { analyticsApi } from '@/lib/api/analytics'
+import { PostAnalyticsSummary, ConnectionAnalytics } from '@/types'
 import { StatCard } from '@/components/dashboard/StatCard'
+import { useState } from 'react'
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
@@ -22,6 +25,28 @@ export default function DashboardPage() {
   const { data: currentChapter, isLoading: isChapterLoading } = useChapter(
     isChapterAdmin ? (user?.chapterId || '') : ''
   )
+
+  // Analytics Data
+  const [analytics, setAnalytics] = useState<{
+    posts: PostAnalyticsSummary | null
+    connections: ConnectionAnalytics | null
+  }>({ posts: null, connections: null })
+
+  useEffect(() => {
+    async function fetchAnalytics() {
+      if (!isSuperAdmin) return
+      try {
+        const [postsData, connectionsData] = await Promise.all([
+          analyticsApi.getPostSummary(),
+          analyticsApi.getTotalConnections()
+        ])
+        setAnalytics({ posts: postsData, connections: connectionsData })
+      } catch (err) {
+        console.error('Failed to fetch analytics', err)
+      }
+    }
+    fetchAnalytics()
+  }, [isSuperAdmin])
   
   const isLoading = (isSuperAdmin && isStatsLoading) || (isChapterAdmin && isChapterLoading)
 
@@ -58,18 +83,18 @@ export default function DashboardPage() {
             icon={Building2}
           />
           <StatCard
-            title="Active Chapters"
-            value={statistics?.activeChapters || 0}
-            icon={Building2}
-          />
-          <StatCard
             title="Total Members"
             value={statistics?.totalMembers || 0}
             icon={Users}
           />
           <StatCard
-            title="Countries"
-            value={statistics?.totalCountries || 0}
+            title="Network Connections"
+            value={analytics.connections?.totalConnections || 0}
+            icon={Globe}
+          />
+          <StatCard
+            title="Total Impressions"
+            value={analytics.posts?.totalImpressions.toLocaleString() || 0}
             icon={Globe}
           />
         </div>

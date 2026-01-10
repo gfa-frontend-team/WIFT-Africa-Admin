@@ -1,5 +1,6 @@
 // Core types matching backend models
 export * from './reports'
+export * from './analytics'
 
 
 // ============================================
