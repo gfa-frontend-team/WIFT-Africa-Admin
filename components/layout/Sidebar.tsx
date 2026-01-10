@@ -10,7 +10,8 @@ import {
   Settings,
   Shield,
   AlertCircle,
-  Calendar
+  Calendar,
+  ShieldAlert
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/lib/stores'
@@ -22,6 +23,7 @@ const superAdminNavigation = [
   { name: 'Membership Requests', href: '/dashboard/requests', icon: UserCheck },
   { name: 'Members', href: '/dashboard/members', icon: Users },
   { name: 'Verification Delays', href: '/dashboard/verification', icon: AlertCircle },
+  { name: 'Reports', href: '/dashboard/reports', icon: ShieldAlert },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
