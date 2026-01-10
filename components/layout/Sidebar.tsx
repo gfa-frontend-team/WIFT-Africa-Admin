@@ -35,8 +35,6 @@ const chapterAdminNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'My Chapter', href: '/dashboard/my-chapter', icon: Building2 },
   { name: 'Broadcasts', href: '/dashboard/messages', icon: MessageSquarePlus },
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'My Chapter', href: '/dashboard/my-chapter', icon: Building2 },
   { name: 'Events', href: '/dashboard/events', icon: Calendar },
   { name: 'Membership Requests', href: '/dashboard/requests', icon: UserCheck },
   { name: 'Members', href: '/dashboard/members', icon: Users },
