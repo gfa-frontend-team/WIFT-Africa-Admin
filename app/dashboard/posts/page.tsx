@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { postsApi } from '@/lib/api/posts'
+import { useState } from 'react'
+import { usePosts } from '@/lib/hooks/queries/usePosts'
 import { Post } from '@/types'
 import { 
   Card, 
@@ -34,30 +34,17 @@ import { PostActionsModal, PostActionType } from '@/components/posts/post-action
 import { CreatePostModal } from '@/components/posts/create-post-modal'
 
 export default function PostsPage() {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
   
+  // Data Fetching
+  const { data: postsResponse, isLoading } = usePosts(page, 20)
+  const posts = postsResponse?.data || []
+
   // Modals state
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [actionModalOpen, setActionModalOpen] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [selectedAction, setSelectedAction] = useState<PostActionType>(null)
-
-  const fetchPosts = async () => {
-    try {
-      setLoading(true)
-      const response = await postsApi.getFeed(1, 20)
-      setPosts(response.data || [])
-    } catch (err) {
-      console.error('Failed to load posts', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchPosts()
-  }, [])
 
   const handleAction = (post: Post, action: PostActionType) => {
     setSelectedPost(post)
@@ -88,7 +75,7 @@ export default function PostsPage() {
         </Button>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center p-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -203,13 +190,13 @@ export default function PostsPage() {
       <CreatePostModal 
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onSuccess={fetchPosts}
+        onSuccess={() => {}} // Query invalidation handles refresh
       />
 
       <PostActionsModal
         isOpen={actionModalOpen}
         onClose={() => setActionModalOpen(false)}
-        onSuccess={fetchPosts}
+        onSuccess={() => {}} // Query invalidation handles refresh
         post={selectedPost}
         action={selectedAction}
       />

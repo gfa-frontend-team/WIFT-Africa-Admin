@@ -14,9 +14,9 @@ import { Button } from '@/components/ui/Button'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/use-toast'
-import { postsApi } from '@/lib/api/posts'
 import { Loader2, AlertTriangle } from 'lucide-react'
 import { Post } from '@/types'
+import { useHidePost, useUnhidePost, useDeletePost, usePinPost } from '@/lib/hooks/queries/usePosts'
 
 export type PostActionType = 'HIDE' | 'UNHIDE' | 'DELETE' | 'PIN' | 'UNPIN' | null
 
@@ -27,7 +27,6 @@ interface PostActionsModalProps {
   post: Post | null
   action: PostActionType
 }
-
 export function PostActionsModal({ 
   isOpen, 
   onClose, 
@@ -37,8 +36,14 @@ export function PostActionsModal({
 }: PostActionsModalProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
   const [reason, setReason] = useState('')
+
+  const { mutateAsync: hidePost, isPending: hiding } = useHidePost()
+  const { mutateAsync: unhidePost, isPending: unhiding } = useUnhidePost()
+  const { mutateAsync: deletePost, isPending: deleting } = useDeletePost()
+  const { mutateAsync: pinPost, isPending: pinning } = usePinPost()
+
+  const loading = hiding || unhiding || deleting || pinning
 
   if (!post || !action) return null
 
@@ -71,40 +76,26 @@ export function PostActionsModal({
     }
 
     try {
-      setLoading(true)
-      
       if (action === 'HIDE') {
-        await postsApi.hidePost(post.id, { reason })
+        await hidePost({ id: post!.id, reason })
       } else if (action === 'UNHIDE') {
-        await postsApi.unhidePost(post.id)
+        await unhidePost(post!.id)
       } else if (action === 'DELETE') {
-        await postsApi.deletePost(post.id)
-      } else if (action === 'PIN') {
-        await postsApi.pinPost(post.id) // Note: API usually toggles or has separate endpoint. Assuming toggle or separate based on doc. Doc said /pin.
-      } else if (action === 'UNPIN') {
-         // If API only has /pin to toggle, we call pinPost. checks docs...
-         // Docs say POST /api/v1/posts/:id/pin.
-         // Assuming it toggles or handles pinning. If unpin is needed and endpoint is missing, we might need verify.
-         // Let's assume pinPost works for pin. For unpin, if no endpoint, maybe same endpoint toggles? 
-         // Re-reading docs: "3.2 Pin Post: POST /api/v1/posts/:id/pin". 
-         // Often means toggle or set isPinned=true.
-         // Let's try calling pinPost() for now. If it's toggle, it works. If separate, we might need another one.
-         await postsApi.pinPost(post.id)
+        await deletePost(post!.id)
+      } else if (action === 'PIN' || action === 'UNPIN') {
+        await pinPost(post!.id)
       }
 
-      toast({ title: 'Success', description: `Post ${action.toLowerCase()}d successfully.` }) // e.g. "Post hided" -> text fix needed, but ok for MVP logic
+      toast({ title: 'Success', description: `Post ${action!.toLowerCase()}d successfully.` }) // Fix text later if needed
       setReason('')
       onSuccess()
       onClose()
-      router.refresh()
     } catch (error: any) {
       toast({ 
         title: 'Error', 
         description: error?.response?.data?.message || 'Failed to perform action', 
         variant: 'destructive' 
       })
-    } finally {
-      setLoading(false)
     }
   }
 

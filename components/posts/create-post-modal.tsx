@@ -14,9 +14,9 @@ import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
 import { NativeSelect } from '@/components/ui/NativeSelect'
 import { useToast } from '@/components/ui/use-toast'
-import { postsApi } from '@/lib/api/posts'
-import { useChapters } from '@/lib/hooks/queries/useChapters'
+import { useCreatePost } from '@/lib/hooks/queries/usePosts'
 import { useAuthStore } from '@/lib/stores'
+import { useChapters } from '@/lib/hooks/queries/useChapters'
 import { Loader2 } from 'lucide-react'
 
 interface CreatePostModalProps {
@@ -29,21 +29,18 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
   const { toast } = useToast()
   const router = useRouter()
   const { user } = useAuthStore()
-  const [loading, setLoading] = useState(false)
+  
+  const { mutateAsync: createPost, isPending: loading } = useCreatePost()
   
   const [content, setContent] = useState('')
   const [targetType, setTargetType] = useState<'ALL' | 'CHAPTER'>('ALL')
   const [targetChapterId, setTargetChapterId] = useState('')
   
-  // Can expand to handle media upload later
-  // const [media, setMedia] = useState<File[]>([])
-
   const { data: chaptersData } = useChapters({}, { enabled: isOpen && user?.accountType === 'SUPER_ADMIN' })
   const chapters = chaptersData?.data || []
 
   // Check Permissions
   const isSuperAdmin = user?.accountType === 'SUPER_ADMIN'
-  // Chapter Admin logic if needed (they post to their own chapter usually)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,31 +51,23 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
     }
 
     try {
-      setLoading(true)
-      
       const targetChapters = targetType === 'CHAPTER' && targetChapterId ? [targetChapterId] : undefined
 
-      await postsApi.createAdminPost({
+      await createPost({
         content,
-        // map targetType logic to API expectations
-        // API: targetChapters?: string[] // Empty for all
         targetChapters,
-        // Media todo later
       })
 
       toast({ title: 'Success', description: 'Announcement posted successfully' })
       setContent('')
       onSuccess()
       onClose()
-      router.refresh()
     } catch (error: any) {
       toast({ 
         title: 'Error', 
         description: error?.response?.data?.message || 'Failed to create post', 
         variant: 'destructive' 
       })
-    } finally {
-      setLoading(false)
     }
   }
 

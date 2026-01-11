@@ -5,7 +5,9 @@ import {
   Post, 
   CreatePostData, 
   HidePostData,
-  PostFilters 
+  PostFilters,
+  Comment,
+  PostAnalytics
 } from '@/types'
 
 // Helper to map backend _id to frontend id
@@ -41,13 +43,35 @@ export const postsApi = {
   },
 
   getPost: async (id: string): Promise<Post> => {
-    // Ideally the backend should return the post directly or wrapped in data
-    // The user error suggested "Invalid post ID", likely because we sent "undefined"
-    // But also check if the single endpoint returns _id
     const response = await apiClient.get<any>(`/posts/${id}`)
-    // Check if response.data is the post or response is the post
     const postData = response.data || response
     return mapPost(postData)
+  },
+
+  // Interactions (Comments)
+  getComments: async (postId: string): Promise<Comment[]> => {
+    const response = await apiClient.get<any>(`/posts/${postId}/comments`)
+    // Response might be array directly or { comments: [...] }
+    const comments = Array.isArray(response) ? response : (response.comments || response.data || [])
+    
+    return comments.map((c: any) => ({
+      ...c,
+      id: c._id || c.id,
+      author: c.author ? {
+        ...c.author,
+        id: c.author._id || c.author.id
+      } : undefined
+    }))
+  },
+
+  deleteComment: async (commentId: string): Promise<void> => {
+    await apiClient.delete(`/posts/comments/${commentId}`)
+  },
+
+  // Analytics
+  getPostAnalytics: async (postId: string): Promise<PostAnalytics> => {
+    const response = await apiClient.get<any>(`/posts/${postId}/analytics`)
+    return response.data || response // Assuming structure matches interface
   },
 
   // Actions
