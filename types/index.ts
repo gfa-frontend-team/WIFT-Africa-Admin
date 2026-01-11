@@ -2,6 +2,7 @@
 export * from './reports'
 export * from './analytics'
 export * from './messages'
+export * from './posts'
 
 
 // ============================================

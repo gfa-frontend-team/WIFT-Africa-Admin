@@ -13,7 +13,8 @@ import {
   Calendar,
   ShieldAlert,
   BarChart3,
-  MessageSquarePlus
+  MessageSquarePlus,
+  Radio
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/lib/stores'
@@ -27,6 +28,7 @@ const superAdminNavigation = [
   { name: 'Verification Delays', href: '/dashboard/verification', icon: AlertCircle },
   { name: 'Reports', href: '/dashboard/reports', icon: ShieldAlert },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { name: 'Moderation', href: '/dashboard/posts', icon: Radio },
   { name: 'Broadcasts', href: '/dashboard/messages', icon: MessageSquarePlus },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
