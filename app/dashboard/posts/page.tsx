@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import Link from 'next/link'
 import { 
   Loader2, 
   MoreVertical, 
@@ -123,9 +124,9 @@ export default function PostsPage() {
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVertical className="h-4 w-4" />
+                    <Button variant="outline" size="icon" className="h-8 w-8 text-foreground shrink-0 ml-2">
+                       <span className="sr-only">Actions</span>
+                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -154,7 +155,8 @@ export default function PostsPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <Link href={`/dashboard/posts/${post.id}`} className="block transition-opacity hover:opacity-80">
+                <CardContent className="space-y-4 cursor-pointer">
                 <div className="text-sm whitespace-pre-wrap">
                   {post.content}
                 </div>
@@ -173,9 +175,10 @@ export default function PostsPage() {
                         )}
                       </div>
                     ))}
-                  </div>
-                )}
-              </CardContent>
+                    </div>
+                  )}
+                </CardContent>
+              </Link>
               <CardFooter className="border-t bg-muted/5 p-3 flex gap-4 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Heart className="w-4 h-4" /> {post.stats?.likes || 0}

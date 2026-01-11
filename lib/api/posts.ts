@@ -8,14 +8,29 @@ import {
   PostFilters 
 } from '@/types'
 
+// Helper to map backend _id to frontend id
+const mapPost = (data: any): Post => {
+  return {
+    ...data,
+    id: data._id || data.id,
+    author: data.author ? {
+      ...data.author,
+      id: data.author._id || data.author.id
+    } : undefined,
+    media: data.media?.map((m: any) => ({
+      ...m,
+      id: m._id || m.id
+    }))
+  }
+}
+
 export const postsApi = {
   // Feed
   getFeed: async (page = 1, limit = 10): Promise<PaginatedResponse<Post>> => {
     const response = await apiClient.get<any>(`/posts/feed?page=${page}&limit=${limit}`)
-    // The feed endpoint returns { posts: [], total: number, page: number, pages: number }
-    // We map it to our standard PaginatedResponse
+    
     return {
-      data: response.posts,
+      data: (response.posts || []).map(mapPost),
       pagination: {
         page: response.page,
         limit,
@@ -25,10 +40,20 @@ export const postsApi = {
     }
   },
 
+  getPost: async (id: string): Promise<Post> => {
+    // Ideally the backend should return the post directly or wrapped in data
+    // The user error suggested "Invalid post ID", likely because we sent "undefined"
+    // But also check if the single endpoint returns _id
+    const response = await apiClient.get<any>(`/posts/${id}`)
+    // Check if response.data is the post or response is the post
+    const postData = response.data || response
+    return mapPost(postData)
+  },
+
   // Actions
   createAdminPost: async (data: CreatePostData): Promise<Post> => {
-    const response = await apiClient.post<ApiResponse<Post>>('/posts/admin', data)
-    return response.data!
+    const response = await apiClient.post<any>('/posts/admin', data)
+    return mapPost(response.data || response)
   },
 
   // Admin Controls
