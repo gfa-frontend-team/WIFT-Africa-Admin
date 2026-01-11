@@ -14,7 +14,8 @@ import {
   ShieldAlert,
   BarChart3,
   MessageSquarePlus,
-  Radio
+  Radio,
+  Briefcase
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/lib/stores'
@@ -23,6 +24,7 @@ const superAdminNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Chapters', href: '/dashboard/chapters', icon: Building2 },
   { name: 'Events', href: '/dashboard/events', icon: Calendar },
+  { name: 'Jobs', href: '/dashboard/jobs', icon: Briefcase },
   { name: 'Membership Requests', href: '/dashboard/requests', icon: UserCheck },
   { name: 'Members', href: '/dashboard/members', icon: Users },
   { name: 'Verification Delays', href: '/dashboard/verification', icon: AlertCircle },
@@ -38,6 +40,7 @@ const chapterAdminNavigation = [
   { name: 'My Chapter', href: '/dashboard/my-chapter', icon: Building2 },
   { name: 'Broadcasts', href: '/dashboard/messages', icon: MessageSquarePlus },
   { name: 'Events', href: '/dashboard/events', icon: Calendar },
+  { name: 'Jobs', href: '/dashboard/jobs', icon: Briefcase },
   { name: 'Membership Requests', href: '/dashboard/requests', icon: UserCheck },
   { name: 'Members', href: '/dashboard/members', icon: Users },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
