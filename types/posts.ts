@@ -33,12 +33,47 @@ export interface Post {
   targetChapters?: string[]
 }
 
+export interface Comment {
+  id: string
+  content: string
+  postId: string
+  authorId: string
+  author: User
+  parentCommentId?: string
+  replyCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PostAnalytics {
+  discovery: {
+    impressions: number
+    membersReached: number
+  }
+  engagement: {
+    likes: number
+    comments: number
+    shares: number
+    saves: number
+    totalWatchTime: number
+  }
+  viewerDemography: {
+    byLocation: Array<{ location: string; count: number }>
+    byRole: Array<{ role: string; count: number }>
+  }
+}
+
 export interface CreatePostData {
   content: string
   visibility?: 'PUBLIC' | 'CHAPTER_ONLY' | 'CONNECTIONS_ONLY'
   targetChapters?: string[] // For admin announcements
   isPinned?: boolean
   media?: Media[]
+}
+
+export interface CreateCommentData {
+  content: string
+  parentCommentId?: string
 }
 
 export interface HidePostData {

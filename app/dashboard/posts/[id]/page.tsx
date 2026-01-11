@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { postsApi } from '@/lib/api/posts'
+import { usePost, usePostComments, useDeleteComment } from '@/lib/hooks/queries/usePosts'
 import { Post } from '@/types'
 import { 
   Card, 
@@ -23,40 +23,63 @@ import {
 } from '@/components/ui/DropdownMenu'
 import { PostActionsModal, PostActionType } from '@/components/posts/post-actions-modal'
 
+// Helper component for comment item to use hook
+function CommentItem({ comment }: { comment: any }) {
+  const { mutateAsync: deleteComment, isPending } = useDeleteComment()
+  
+  const handleDelete = async () => {
+    if (confirm('Delete this comment?')) {
+      await deleteComment({ commentId: comment.id })
+    }
+  }
+
+  return (
+    <div className="flex gap-4">
+       <Avatar className="h-8 w-8">
+         <AvatarImage src={comment.author?.profilePhoto} />
+         <AvatarFallback>{comment.author?.firstName?.[0]}</AvatarFallback>
+       </Avatar>
+       <div className="flex-1 space-y-1">
+         <div className="flex items-center justify-between">
+           <div className="text-sm font-semibold">
+             {comment.author?.firstName} {comment.author?.lastName}
+             <span className="text-muted-foreground font-normal ml-2">
+               {new Date(comment.createdAt).toLocaleDateString()}
+             </span>
+           </div>
+           <Button 
+             variant="ghost" 
+             size="sm" 
+             className="h-8 w-8 text-muted-foreground hover:text-red-500"
+             onClick={handleDelete}
+             disabled={isPending}
+           >
+             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+           </Button>
+         </div>
+         <p className="text-sm text-gray-700 dark:text-gray-300">
+           {comment.content}
+         </p>
+       </div>
+    </div>
+  )
+}
+
 export default function PostDetailsPage() {
   const params = useParams()
   const router = useRouter()
-  const [post, setPost] = useState<Post | null>(null)
-  const [loading, setLoading] = useState(true)
+  const postId = params.id as string
+
+  // Queries
+  const { data: post, isLoading: isPostLoading } = usePost(postId)
+  const { data: comments, isLoading: isCommentsLoading } = usePostComments(postId)
+  
+  // Loading state
+  const loading = isPostLoading || isCommentsLoading
 
   // Actions state
   const [actionModalOpen, setActionModalOpen] = useState(false)
   const [selectedAction, setSelectedAction] = useState<PostActionType>(null)
-
-  const fetchPost = async () => {
-    try {
-      setLoading(true)
-      // We don't have getPost(id) in api yet, adding it to lib/api/posts.ts is needed
-      // For now, I'll assume getFeed can't get single. 
-      // I will add getPost to api next.
-      // Wait, checking lib/api/posts.ts...
-      // I only implemented getFeed, createAdminPost, pin, hide, unhide, delete.
-      // I need to implement getPost.
-      const response = await postsApi.getPost(params.id as string)
-      setPost(response)
-    } catch (err) {
-      console.error('Failed to load post', err)
-      // Redirect or show error
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    if (params.id) {
-       fetchPost()
-    }
-  }, [params.id])
 
   const handleAction = (action: PostActionType) => {
     setSelectedAction(action)
@@ -174,12 +197,24 @@ export default function PostDetailsPage() {
 
           <Card>
             <CardHeader>
-              <h3 className="text-lg font-semibold">Comments</h3>
+              <h3 className="text-lg font-semibold">Comments ({comments?.length || 0})</h3>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Comments moderation coming soon.
-              </div>
+               {isCommentsLoading ? (
+                 <div className="flex justify-center p-8">
+                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                 </div>
+               ) : comments && comments.length > 0 ? (
+                 <div className="space-y-6">
+                   {comments.map((comment: any) => (
+                      <CommentItem key={comment.id} comment={comment} />
+                   ))}
+                 </div>
+               ) : (
+                 <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg">
+                   No comments yet.
+                 </div>
+               )}
             </CardContent>
           </Card>
         </div>
@@ -217,7 +252,7 @@ export default function PostDetailsPage() {
       <PostActionsModal
         isOpen={actionModalOpen}
         onClose={() => setActionModalOpen(false)}
-        onSuccess={fetchPost}
+        onSuccess={() => {}} 
         post={post}
         action={selectedAction}
       />
