@@ -1,5 +1,6 @@
 'use client'
 
+import { Dialog } from '@/components/ui/Dialog'
 import { useState, FormEvent } from 'react'
 import { MembershipRequest } from '@/types'
 import { Button } from '@/components/ui/Button'
@@ -35,8 +36,11 @@ export function RejectModal({ request, onConfirm, onClose, isLoading }: RejectMo
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-lg shadow-xl max-w-md w-full">
+    <Dialog 
+      open={true} 
+      onOpenChange={(open) => !open && onClose()}
+      className="bg-card w-full max-w-md shadow-xl p-0 overflow-hidden"
+    >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-3">
@@ -128,7 +132,6 @@ export function RejectModal({ request, onConfirm, onClose, isLoading }: RejectMo
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Dialog>
   )
 }

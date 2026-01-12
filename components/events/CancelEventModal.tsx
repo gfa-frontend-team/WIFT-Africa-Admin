@@ -1,5 +1,6 @@
 'use client'
 
+import { Dialog } from '@/components/ui/Dialog'
 import { useState } from 'react'
 import { Loader2, AlertTriangle } from 'lucide-react'
 import { useCancelEvent } from '@/lib/hooks/queries/useEvents'
@@ -38,8 +39,11 @@ export function CancelEventModal({ eventId, isOpen, onClose }: CancelEventModalP
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="bg-card w-full max-w-md rounded-lg border border-border shadow-lg p-6 space-y-4">
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => !open && onClose()}
+      className="bg-card w-full max-w-md border border-border p-6 space-y-4"
+    >
         <div className="flex items-center gap-3 text-destructive">
           <AlertTriangle className="w-6 h-6" />
           <h2 className="text-lg font-semibold">Cancel Event</h2>
@@ -75,7 +79,6 @@ export function CancelEventModal({ eventId, isOpen, onClose }: CancelEventModalP
             Confirm Cancellation
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   )
 }

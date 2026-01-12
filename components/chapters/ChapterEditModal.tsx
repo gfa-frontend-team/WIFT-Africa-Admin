@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { Chapter } from '@/types'
 import { useUpdateChapter } from '@/lib/hooks/queries/useChapters'
+import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
@@ -28,7 +29,7 @@ export function ChapterEditModal({ chapter, isOpen, onClose }: ChapterEditModalP
     instagramHandle: '',
     linkedinUrl: '',
   })
-
+  
   // Initialize form data when chapter changes or modal opens
   useEffect(() => {
     if (chapter) {
@@ -68,12 +69,11 @@ export function ChapterEditModal({ chapter, isOpen, onClose }: ChapterEditModalP
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div 
-        className="bg-background rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col animate-in zoom-in-95 duration-200"
-        role="dialog"
-        aria-modal="true"
-      >
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => !open && onClose()}
+      className="max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col block p-0"
+    >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-background z-10">
           <h2 className="text-xl font-semibold text-foreground">Edit Chapter Details</h2>
@@ -205,7 +205,6 @@ export function ChapterEditModal({ chapter, isOpen, onClose }: ChapterEditModalP
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Dialog>
   )
 }
