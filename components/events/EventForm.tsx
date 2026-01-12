@@ -8,6 +8,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 import { eventSchema, EventFormValues } from '@/lib/validations/events'
+import { FileUpload } from '@/components/ui/FileUpload'
+
 import { EventStatus, EventType, LocationType, CreateEventData, UpdateEventData } from '@/types'
 import { useChapters } from '@/lib/hooks/queries/useChapters'
 import { usePermissions } from '@/lib/hooks/usePermissions'
@@ -164,14 +166,20 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
             </select>
           </div>
 
-           <div className="space-y-2">
-            <label className="text-sm font-medium">Cover Image URL</label>
-            <input
-              {...register('coverImage')}
-              className="w-full px-3 py-2 bg-background border border-input rounded-md"
-              placeholder="https://..."
+            <div className="space-y-2">
+            <label className="text-sm font-medium">Cover Image</label>
+            <Controller
+              name="coverImage"
+              control={control}
+              render={({ field }) => (
+                <FileUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.coverImage?.message}
+                  label=""
+                />
+              )}
             />
-             {errors.coverImage && <p className="text-destructive text-xs">{errors.coverImage.message}</p>}
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@ import {
 } from '@/types'
 
 const BASE_URL = '/events'
-const ADMIN_BASE_URL = '/admin/events'
+const ADMIN_BASE_URL = '/events/admin/events'
 
 interface GetEventsResponse {
   events: Event[]
