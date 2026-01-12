@@ -1,23 +1,39 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 interface DialogProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   children?: ReactNode
+  className?: string
 }
 
-export function Dialog({ open, onOpenChange, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, children, className }: DialogProps) {
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onOpenChange?.(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [open, onOpenChange])
+
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-lg rounded-lg bg-background shadow-lg" onClick={(e) => e.stopPropagation()}>
-         {/* Close button handling via backdrop click can be added in parent div if needed */}
-         {/* We assume children will have the logic or backdrop closes it */}
-         {/* Simple Backdrop Click Close */}
-         <div className="absolute inset-0 -z-10" onClick={() => onOpenChange?.(false)} />
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200"
+      onClick={() => onOpenChange?.(false)}
+    >
+      <div 
+        className={cn("relative w-full max-w-lg rounded-lg bg-background shadow-lg animate-in zoom-in-95 duration-200", className)} 
+        onClick={(e) => e.stopPropagation()}
+      >
         {children}
       </div>
     </div>
