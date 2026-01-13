@@ -153,13 +153,7 @@ export default function PostDetailsPage() {
                         Hide Post
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem 
-                      className="text-red-600 focus:text-red-600"
-                      onClick={() => handleAction('DELETE')}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Post
-                    </DropdownMenuItem>
+
                   </DropdownMenuContent>
                 </DropdownMenu>
             </CardHeader>

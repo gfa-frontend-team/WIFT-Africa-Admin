@@ -18,7 +18,7 @@ import { Loader2, AlertTriangle } from 'lucide-react'
 import { Post } from '@/types'
 import { useHidePost, useUnhidePost, useDeletePost, usePinPost } from '@/lib/hooks/queries/usePosts'
 
-export type PostActionType = 'HIDE' | 'UNHIDE' | 'DELETE' | 'PIN' | 'UNPIN' | null
+export type PostActionType = 'HIDE' | 'UNHIDE' | 'PIN' | 'UNPIN' | null
 
 interface PostActionsModalProps {
   isOpen: boolean
@@ -40,10 +40,9 @@ export function PostActionsModal({
 
   const { mutateAsync: hidePost, isPending: hiding } = useHidePost()
   const { mutateAsync: unhidePost, isPending: unhiding } = useUnhidePost()
-  const { mutateAsync: deletePost, isPending: deleting } = useDeletePost()
   const { mutateAsync: pinPost, isPending: pinning } = usePinPost()
 
-  const loading = hiding || unhiding || deleting || pinning
+  const loading = hiding || unhiding || pinning
 
   if (!post || !action) return null
 
@@ -51,7 +50,6 @@ export function PostActionsModal({
     switch (action) {
       case 'HIDE': return 'Hide Post'
       case 'UNHIDE': return 'Unhide Post'
-      case 'DELETE': return 'Delete Post'
       case 'PIN': return 'Pin Post'
       case 'UNPIN': return 'Unpin Post'
       default: return ''
@@ -62,7 +60,6 @@ export function PostActionsModal({
     switch (action) {
       case 'HIDE': return 'This post will be hidden from the public feed. Please provide a reason.'
       case 'UNHIDE': return 'This post will be visible to the public again.'
-      case 'DELETE': return 'Are you sure you want to permanently delete this post? This action cannot be undone.'
       case 'PIN': return 'This post will be pinned to the top of the feed.'
       case 'UNPIN': return 'This post will no longer be pinned.'
       default: return ''
@@ -70,9 +67,15 @@ export function PostActionsModal({
   }
 
   const handleSubmit = async () => {
-    if (action === 'HIDE' && !reason.trim()) {
-      toast({ title: 'Error', description: 'Please provide a reason for hiding the post.', variant: 'destructive' })
-      return
+    if (action === 'HIDE') {
+      if (!reason.trim()) {
+        toast({ title: 'Error', description: 'Please provide a reason for hiding the post.', variant: 'destructive' })
+        return
+      }
+      if (reason.trim().length < 10) {
+        toast({ title: 'Error', description: 'Reason must be at least 10 characters long.', variant: 'destructive' })
+        return
+      }
     }
 
     try {
@@ -80,8 +83,6 @@ export function PostActionsModal({
         await hidePost({ id: post!.id, reason })
       } else if (action === 'UNHIDE') {
         await unhidePost(post!.id)
-      } else if (action === 'DELETE') {
-        await deletePost(post!.id)
       } else if (action === 'PIN' || action === 'UNPIN') {
         await pinPost(post!.id)
       }
@@ -117,24 +118,28 @@ export function PostActionsModal({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 disabled={loading}
+                className={reason.length > 0 && reason.length < 10 ? 'border-red-500 focus-visible:ring-red-500' : ''}
               />
+              <div className="flex justify-between text-xs">
+                <span className={reason.length > 0 && reason.length < 10 ? 'text-red-500' : 'text-muted-foreground'}>
+                  Minimum 10 characters required
+                </span>
+                <span className="text-muted-foreground">
+                  {reason.length} chars
+                </span>
+              </div>
             </div>
           </div>
         )}
 
-        {action === 'DELETE' && (
-           <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm flex items-center gap-2 dark:bg-red-900/30 dark:text-red-400 my-4">
-             <AlertTriangle className="w-4 h-4" />
-             Warning: This is a destructive action.
-           </div>
-        )}
+
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
           <Button 
-            variant={action === 'DELETE' || action === 'HIDE' ? 'destructive' : 'primary'}
+            variant={action === 'HIDE' ? 'destructive' : 'primary'}
             onClick={handleSubmit} 
-            disabled={loading}
+            disabled={loading || (action === 'HIDE' && reason.length < 10)}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Confirm

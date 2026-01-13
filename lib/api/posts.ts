@@ -15,6 +15,7 @@ const mapPost = (data: any): Post => {
   return {
     ...data,
     id: data._id || data.id,
+    isHidden: data.isDeleted || data.isHidden || false, // Map backend isDeleted to frontend isHidden
     author: data.author ? {
       ...data.author,
       id: data.author._id || data.author.id
