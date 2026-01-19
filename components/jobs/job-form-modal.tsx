@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { CreateJobData, Job, UpdateJobData } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { useCreateJob, useUpdateJob } from '@/lib/hooks/queries/useJobs'
+import { useToast } from '@/components/ui/use-toast'
 
 // Zod schema
 const jobSchema = z.object({
@@ -45,6 +46,7 @@ interface JobFormModalProps {
 export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalProps) {
   const { mutateAsync: createJob, isPending: isCreating } = useCreateJob()
   const { mutateAsync: updateJob, isPending: isUpdating } = useUpdateJob()
+  const { toast } = useToast()
   const isLoading = isCreating || isUpdating
 
   const {
