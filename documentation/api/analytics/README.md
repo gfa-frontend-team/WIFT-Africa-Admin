@@ -112,3 +112,31 @@ The Analytics module provides data on post performance (impressions, engagement)
 ### 2.3 Inter-Chapter Analytics
 **Method:** `GET`
 **Path:** `/api/v1/analytics/connections/chapters/:chapter1Id/:chapter2Id`
+
+---
+
+## 3. Chapter Admin Dashboard
+
+**Attributes:** Requires `ChapterAdmin` or `SuperAdmin` privileges.
+
+### 3.1 Get Dashboard Stats
+**Method:** `GET`
+**Path:** `/api/v1/analytics/chapter-dashboard`
+**Description:** Get real-time statistics for the Chapter Admin dashboard, including member counts, pending approvals, growth trends, and network connections.
+
+#### Response (200 OK)
+```typescript
+{
+  success: boolean;
+  data: {
+    totalMembers: number; // Count of APPROVED members
+    pendingApprovals: number; // Count of PENDING requests
+    growth: {
+      newMembersThisMonth: number;
+      percentageChange: number; // e.g. 15.5 for +15.5%
+      trend: 'UP' | 'DOWN' | 'STABLE';
+    };
+    networkConnections: number; // Connections involving chapter members
+  }
+}
+```

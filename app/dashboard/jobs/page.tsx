@@ -11,10 +11,12 @@ import { JobFormModal } from '@/components/jobs/job-form-modal'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function JobsPage() {
   const { isChapterAdmin, isSuperAdmin } = usePermissions()
   const canManage = isChapterAdmin || isSuperAdmin
+  const { toast } = useToast()
 
   const [filters, setFilters] = useState<JobFilters>({
     page: 1,
@@ -34,7 +36,16 @@ export default function JobsPage() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this job?')) {
-      await deleteJob(id)
+      try {
+        await deleteJob(id)
+        toast({ title: 'Success', description: 'Job deleted successfully' })
+      } catch (error: any) {
+        toast({ 
+          title: 'Error', 
+          description: error?.response?.data?.message || 'Failed to delete job', 
+          variant: 'destructive' 
+        })
+      }
     }
   }
 
@@ -52,7 +63,9 @@ export default function JobsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Jobs Board</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {isChapterAdmin ? 'My Posted Jobs' : 'Jobs Board'}
+          </h1>
           <p className="text-muted-foreground">Manage job postings and opportunities.</p>
         </div>
         {canManage && (

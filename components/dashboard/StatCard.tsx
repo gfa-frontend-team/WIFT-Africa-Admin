@@ -1,6 +1,7 @@
 import { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 
 interface StatCardProps {
   title: string
@@ -11,11 +12,20 @@ interface StatCardProps {
     isPositive: boolean
   }
   className?: string
+  href?: string
+  onClick?: () => void
 }
 
-export function StatCard({ title, value, icon: Icon, trend, className }: StatCardProps) {
-  return (
-    <Card className={cn('hover:shadow-md transition-shadow', className)}>
+export function StatCard({ title, value, icon: Icon, trend, className, href, onClick }: StatCardProps) {
+  const content = (
+    <Card 
+      className={cn(
+        'transition-shadow', 
+        (href || onClick) ? 'hover:shadow-md cursor-pointer hover:border-primary/50' : '',
+        className
+      )}
+      onClick={onClick}
+    >
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
@@ -41,4 +51,10 @@ export function StatCard({ title, value, icon: Icon, trend, className }: StatCar
       </CardContent>
     </Card>
   )
+
+  if (href) {
+    return <Link href={href}>{content}</Link>
+  }
+
+  return content
 }

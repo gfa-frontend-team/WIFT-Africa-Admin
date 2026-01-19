@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { 
   LayoutDashboard, 
@@ -69,8 +70,13 @@ export function Sidebar() {
     <div className="flex flex-col w-64 bg-card border-r border-border h-screen fixed left-0 top-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
-        <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-lg">
-          <Shield className="w-6 h-6 text-primary-foreground" />
+        <div className="relative w-10 h-10 rounded-lg overflow-hidden">
+          <Image 
+            src="/logo.jpg" 
+            alt="WIFT Africa Logo" 
+            fill
+            className="object-contain"
+          />
         </div>
         <div>
           <h1 className="text-lg font-bold text-foreground">WIFT Africa</h1>

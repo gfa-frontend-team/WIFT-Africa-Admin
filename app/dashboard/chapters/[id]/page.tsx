@@ -168,11 +168,22 @@ export default function ChapterDetailPage() {
               </div>
             )}
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               <Users className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Members</p>
-                <p className="text-foreground font-medium">{currentChapter.memberCount}</p>
+              <div className="space-y-1">
+                <div>
+                  <p className="text-sm text-muted-foreground">System Member Count</p>
+                  <p className="text-foreground font-medium">{currentChapter.memberCount}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Public Display Count</p>
+                  <p className="text-foreground font-medium">
+                    {currentChapter.fixedMemberCount && currentChapter.fixedMemberCount > 0 
+                      ? currentChapter.fixedMemberCount 
+                      : <span className="text-muted-foreground italic">Not Set (Uses System Count)</span>
+                    }
+                  </p>
+                </div>
               </div>
             </div>
 

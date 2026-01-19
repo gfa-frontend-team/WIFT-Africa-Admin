@@ -23,6 +23,10 @@ export interface PostAnalyticsDetail {
     shares: number
     totalWatchTime?: number // For videos, in seconds
   }
+  profileActivity?: {
+    profileViewsFromPost: number
+    followersGained: number
+  }
   viewerDemography: {
     byLocation: Array<{ location: string; count: number }>
     byRole: Array<{ role: string; count: number }>

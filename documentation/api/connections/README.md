@@ -64,7 +64,13 @@ The Connections module manages professional networking features, allowing users 
 ### 2.3 Check Connection Status
 **Method:** `GET`
 **Path:** `/api/v1/connections/check/:targetUserId`
-**Response:** `{ connected: boolean }`
+**Response:**
+```typescript
+{
+  status: 'CONNECTED' | 'PENDING_INCOMING' | 'PENDING_OUTGOING' | 'NONE';
+  requestId?: string;
+}
+```
 
 ### 2.4 Get Stats
 **Method:** `GET`

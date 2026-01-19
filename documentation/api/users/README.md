@@ -96,18 +96,45 @@ Returns the updated profile object.
 
 ---
 
-### 1.4 Upload Profile Photo
+### 1.4 Profile Photo & Banner Management
+
+#### Upload Profile Photo
 **Method:** `POST`
 **Path:** `/api/v1/users/me/profile-photo`
 **Description:** Uploads a new profile photo. Max 5MB, image files only.
 
-#### Header
-`Content-Type: multipart/form-data`
+**Header:** `Content-Type: multipart/form-data`
+**Body:** `photo` (File)
 
-#### Body (FormData)
-- `photo`: File (Required)
+**Response (200 OK):**
+```typescript
+{
+  message: string;
+  photoUrl: string;
+}
+```
 
-#### Response (200 OK)
+#### Delete Profile Photo
+**Method:** `DELETE`
+**Path:** `/api/v1/users/me/profile-photo`
+**Description:** Removes the current profile photo.
+
+**Response (200 OK):**
+```typescript
+{
+  description: "Photo deleted successfully"
+}
+```
+
+#### Upload Banner
+**Method:** `PATCH`
+**Path:** `/api/v1/users/me/banner/upload`
+**Description:** Uploads a profile banner image.
+
+**Header:** `Content-Type: multipart/form-data`
+**Body:** `photo` (File)
+
+**Response (200 OK):**
 ```typescript
 {
   message: string;
@@ -117,42 +144,44 @@ Returns the updated profile object.
 
 ---
 
-### 1.5 Update Username
+### 1.5 Username Management
+
+#### Update Username
 **Method:** `PUT`
 **Path:** `/api/v1/users/me/username`
-**Description:** Changes the user's unique username (slug). Rate limited to 3 changes per month.
+**Description:** Changes the user's username. Rate limited to 3 changes per month.
 
-#### Body
-```typescript
-{
-  username: string; // 3-30 chars, lowercase alphanumeric + hyphens
-}
-```
+**Body:** `{ username: string }`
 
-#### Response (200 OK)
-Returns updated user object.
-
----
-
-### 1.6 Check Username Availability
+#### Check Username Availability
 **Method:** `GET`
 **Path:** `/api/v1/users/me/username/check`
+**Query Params:** `username` (string)
 
-#### Query Params
-- `username`: string (Required)
-
-#### Response (200 OK)
+**Response (200 OK):**
 ```typescript
 {
   available: boolean;
   username: string;
-  error?: string; // If unavailable, reason why
+  error?: string;
+}
+```
+
+#### Get Username Suggestions
+**Method:** `GET`
+**Path:** `/api/v1/users/me/username/suggestions`
+**Description:** Get a list of available username suggestions.
+
+**Response (200 OK):**
+```typescript
+{
+  suggestions: string[];
 }
 ```
 
 ---
 
-### 1.7 Privacy Settings
+### 1.6 Privacy Settings
 **Method:** `GET` | `PATCH`
 **Path:** `/api/v1/users/me/privacy`
 
@@ -169,13 +198,12 @@ Returns updated user object.
   }
 }
 ```
-
 #### PATCH Body
 Same fields as GET response (all optional).
 
 ---
 
-### 1.8 CV/Resume Management
+### 1.7 CV/Resume Management
 
 #### Upload CV
 **Method:** `POST`
@@ -194,6 +222,47 @@ Same fields as GET response (all optional).
 
 ---
 
+### 1.8 Share Profile
+**Method:** `GET`
+**Path:** `/api/v1/users/me/share-link`
+**Description:** Generates a shareable link for the user's profile.
+
+**Response (200 OK):**
+```typescript
+{
+  url: string;
+  username: string;
+  profileSlug: string;
+}
+```
+
+---
+
+### 1.9 Post Analytics
+**Method:** `GET`
+**Path:** `/api/v1/users/me/posts/analytics`
+**Description:** Retrieves analytics for the user's posts.
+
+**Response (200 OK):**
+```typescript
+{
+  totalPosts: number;
+  posts: Array<{
+    postId: string;
+    postType: 'TEXT' | 'IMAGE' | 'VIDEO';
+    createdAt: string; // ISO Date
+    engagement: {
+      likes: number;
+      comments: number;
+      saves: number;
+      shares: number;
+    };
+  }>;
+}
+```
+
+---
+
 ## 2. Public Profile Endpoints
 
 ### 2.1 Get Public Profile
@@ -201,10 +270,6 @@ Same fields as GET response (all optional).
 **Path:** `/api/v1/profiles/:identifier`
 **Description:** Fetches a user's public profile.
 - `:identifier` can be a **username** (e.g. `jane-doe`) or **User ID**.
-- The response is filtered based on the target user's privacy settings and the viewer's relationship (logged in, connection, same chapter).
-
-#### Authentication
-- **Optional**: If authenticated, passing the token allows seeing more details (e.g. "Chapter Only" visibility).
 
 #### Response (200 OK)
 ```typescript
@@ -221,47 +286,13 @@ Same fields as GET response (all optional).
   }
 }
 ```
-**Errors:**
-- `404`: Profile not found
-- `403`: Profile is private and viewer doesn't have access.
-
----
 
 ### 2.2 Record Profile View
 **Method:** `POST`
 **Path:** `/api/v1/profiles/views/:profileOwnerId`
 **Description:** Records that the current user viewed `profileOwnerId`'s profile.
 
-#### Authentication
-- Required: Yes (Anonymous views are not recorded in this endpoint)
-
-#### Response (200 OK)
-```typescript
-{
-  message: "View recorded"
-}
-```
-
----
-
 ### 2.3 Get Profile Views (Analytics)
 **Method:** `GET`
 **Path:** `/api/v1/profiles/views/:profileOwnerId`
-**Description:** Returns who viewed the profile. Users can only fetch analytics for their **own** profile (checked in business logic).
-
-#### Query Params
-- `lastMonth`: `boolean` (default: false, returns 90 days)
-
-#### Response (200 OK)
-```typescript
-{
-  count: number;
-  viewers: Array<{
-    viewerId: string;
-    firstName: string;
-    lastName: string;
-    viewedAt: string; // ISO Date
-    // ...
-  }>;
-}
-```
+**Description:** Returns who viewed the profile. Users can only fetch analytics for their **own** profile.

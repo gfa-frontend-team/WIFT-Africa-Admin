@@ -30,6 +30,7 @@ export interface CreateChapterData {
   instagramHandle?: string
   linkedinUrl?: string
   foundedDate?: string
+  fixedMemberCount?: number
 }
 
 // Helper function to transform MongoDB _id to id

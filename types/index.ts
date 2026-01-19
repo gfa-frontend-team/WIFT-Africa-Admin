@@ -173,6 +173,7 @@ export interface Chapter {
   description?: string
   missionStatement?: string
   memberCount: number
+  fixedMemberCount?: number
   isActive: boolean
   adminIds: string[] | User[]
   
@@ -283,6 +284,17 @@ export interface ChapterStats {
   pendingRequests: number
   approvedThisMonth: number
   rejectedThisMonth: number
+}
+
+export interface ChapterDashboardStats {
+  totalMembers: number
+  pendingApprovals: number
+  growth: {
+    newMembersThisMonth: number
+    percentageChange: number
+    trend: 'UP' | 'DOWN' | 'STABLE'
+  }
+  networkConnections: number
 }
 
 // ============================================

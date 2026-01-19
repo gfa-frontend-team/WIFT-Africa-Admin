@@ -27,12 +27,14 @@ The Posts module powers the main social feed. It handles content creation (text,
 #### Response (200 OK)
 ```typescript
 {
-  posts: Array<Post>;
+  posts: Array<Post & { isSaved: boolean }>;
   total: number;
   page: number;
   pages: number;
 }
 ```
+
+> **Note:** The `isSaved` boolean is dynamically computed for the current user.
 
 ---
 
@@ -113,9 +115,14 @@ Returns created `Post` object.
 }
 ```
 
+### 2.4 Get Post Shares
+**Method:** `GET`
+**Path:** `/api/v1/posts/:id/shares`
+**Description:** List of users who shared the post.
+
 ---
 
-### 2.4 Save Post
+### 2.5 Save Post
 **Method:** `POST`
 **Path:** `/api/v1/posts/:id/save`
 
@@ -127,11 +134,57 @@ Returns created `Post` object.
 ```
 **Response:** `{ saved: boolean }`
 
+### 2.6 Check Saved Status
+**Method:** `GET`
+**Path:** `/api/v1/posts/:id/is-saved`
+**Response:** `{ saved: boolean }`
+
+### 2.7 Get Saved Collections
+**Method:** `GET`
+**Path:** `/api/v1/posts/saved/collections`
+**Description:** Returns a list of the user's saved post collections with counts.
+
+#### Response (200 OK)
+```typescript
+{
+  collections: Array<{
+    name: string;
+    count: number;
+  }>;
+}
+```
+
 ---
 
-## 3. Admin & Moderation
+## 3. Impressions & Tracking
 
-### 3.1 Create Admin Announcement
+### 3.1 Record Impression
+**Method:** `POST`
+**Path:** `/api/v1/posts/:postId/impression`
+**Description:** Records that a user viewed a post (useful for video watch time etc).
+
+#### Body
+```typescript
+{
+  watchTime?: number; // Seconds (for videos)
+}
+```
+
+### 3.2 Track Profile View from Post
+**Method:** `PATCH`
+**Path:** `/api/v1/posts/:postId/impression/profile-view`
+**Description:** Attributes a profile view to a specific post.
+
+### 3.3 Track Follow from Post
+**Method:** `PATCH`
+**Path:** `/api/v1/posts/:postId/impression/follow`
+**Description:** Attributes a follow action to a specific post.
+
+---
+
+## 4. Admin & Moderation
+
+### 4.1 Create Admin Announcement
 **Method:** `POST`
 **Path:** `/api/v1/posts/admin`
 **Permission:** Admin only.
@@ -146,15 +199,15 @@ Returns created `Post` object.
 }
 ```
 
-### 3.2 Pin Post
+### 4.2 Pin Post
 **Method:** `POST`
 **Path:** `/api/v1/posts/:id/pin`
 
 ---
 
-## 4. Analytics
+## 5. Analytics
 
-### 4.1 Post Analytics
+### 5.1 Post Analytics
 **Method:** `GET`
 **Path:** `/api/v1/posts/:postId/analytics`
 **Description:** Detailed metrics for a specific post.
@@ -180,7 +233,7 @@ Returns created `Post` object.
 }
 ```
 
-### 4.2 User Analytics Overview
+### 5.2 User Analytics Overview
 **Method:** `GET`
 **Path:** `/api/v1/posts/analytics/overview`
 **Description:** Aggregated stats across all user's posts.

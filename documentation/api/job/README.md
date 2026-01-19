@@ -20,6 +20,10 @@ The Jobs module allows for the creation, management, and retrieval of job opport
 **Path:** `/api/v1/jobs`
 **Description:** Retrieve a list of job postings with optional filtering.
 
+**Visibility Rules:**
+- **Regular Users:** View all active jobs.
+- **Chapter Admins:** View **only jobs created by them**.
+
 #### Query Parameters
 - `location`: string (e.g., "Lagos")
 - `role`: string (e.g., "Engineer")
@@ -45,6 +49,7 @@ The Jobs module allows for the creation, management, and retrieval of job opport
       max: number;
       currency: string;
     };
+    createdBy: string; // ID of the creator
     applicationLink?: string;
     createdAt: string;
     // ... other fields
@@ -83,6 +88,9 @@ The Jobs module allows for the creation, management, and retrieval of job opport
 ## 3. Job Management (Admin Only)
 
 **Attributes:** Requires `ChapterAdmin` privileges.
+
+**Permission Rules:**
+- **Strict Ownership:** Chapter Admins can **ONLY** Update or Archive jobs that **they created**. Attempting to modify another admin's job will result in a `403 Forbidden` error.
 
 ### 3.1 Create Job
 **Method:** `POST`
@@ -124,3 +132,4 @@ The Jobs module allows for the creation, management, and retrieval of job opport
 **Method:** `DELETE`
 **Path:** `/api/v1/jobs/:jobId`
 **Description:** Soft-delete or archive a job posting.
+*(Recall only the creator can perform this action).*

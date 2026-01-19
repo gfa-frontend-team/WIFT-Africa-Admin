@@ -30,7 +30,7 @@ export default function NewChapterPage() {
           </p>
         </div>
 
-        <ChapterForm />
+        <ChapterForm isAdminView={true} />
       </div>
     </RoleGuard>
   )

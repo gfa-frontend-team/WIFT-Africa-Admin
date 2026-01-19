@@ -112,3 +112,63 @@ The Profiles module handles the public-facing aspects of the platform. It allows
 
 #### Errors
 - `403`: Unauthorized (trying to view someone else's analytics).
+
+---
+
+### 4. Experience
+
+### 4.1 List Experience
+**Method:** `GET`
+**Path:** `/api/v1/profiles/experience`
+**Description:** Get a list of professional experiences for the authenticated user.
+
+### 4.2 Add Experience
+**Method:** `POST`
+**Path:** `/api/v1/profiles/experience`
+
+#### Body
+```typescript
+{
+  company: string;
+  title: string;
+  startDate: string; // ISO Date
+  endDate?: string;  // ISO Date (optional, current if null)
+  current: boolean;  // true if currently working here
+  description?: string;
+}
+```
+
+### 4.3 Update Experience
+**Method:** `PUT`
+**Path:** `/api/v1/profiles/experience/:experienceId`
+
+### 4.4 Delete Experience
+**Method:** `DELETE`
+**Path:** `/api/v1/profiles/experience/:experienceId`
+
+---
+
+### 5. Localization
+
+### 5.1 Get Supported Languages
+**Method:** `GET`
+**Path:** `/api/v1/profiles/languages`
+**Description:** Get list of languages supported by the platform.
+
+### 5.2 Get My Language
+**Method:** `GET`
+**Path:** `/api/v1/profiles/languages/me`
+**Authentication:** Required
+
+### 5.3 Update My Language
+**Method:** `PATCH`
+**Path:** `/api/v1/profiles/languages/me`
+**Authentication:** Required
+
+#### Body
+```typescript
+{
+  language_code: string; // e.g., 'en', 'fr'
+}
+```
+

@@ -111,8 +111,13 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
 
       onSuccess()
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save job:', error)
+      toast({ 
+        title: 'Error', 
+        description: error?.response?.data?.message || 'Failed to save job details', 
+        variant: 'destructive' 
+      })
     }
   }
 

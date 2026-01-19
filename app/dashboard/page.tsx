@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Building2, Users, UserCheck, Globe } from 'lucide-react'
+import { Building2, Users, UserCheck, Globe, ArrowUp, ArrowDown, Minus, Activity } from 'lucide-react'
 import { useAuthStore } from '@/lib/stores'
 import { useChapterStatistics, useChapter } from '@/lib/hooks/queries/useChapters'
 import { useVerificationStats } from '@/lib/hooks/queries/useVerification'
 import { analyticsApi } from '@/lib/api/analytics'
-import { PostAnalyticsSummary, ConnectionAnalytics } from '@/types'
+import { PostAnalyticsSummary, ConnectionAnalytics, ChapterDashboardStats } from '@/types'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { useState } from 'react'
 
@@ -21,7 +21,7 @@ export default function DashboardPage() {
     enabled: isSuperAdmin
   })
   
-  // Chapter Admin Stats
+  // Chapter Admin Data (Keep for name/details)
   const { data: currentChapter, isLoading: isChapterLoading } = useChapter(
     isChapterAdmin ? (user?.chapterId || '') : ''
   )
@@ -30,23 +30,28 @@ export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<{
     posts: PostAnalyticsSummary | null
     connections: ConnectionAnalytics | null
-  }>({ posts: null, connections: null })
+    chapterStats: ChapterDashboardStats | null
+  }>({ posts: null, connections: null, chapterStats: null })
 
   useEffect(() => {
     async function fetchAnalytics() {
-      if (!isSuperAdmin) return
       try {
-        const [postsData, connectionsData] = await Promise.all([
-          analyticsApi.getPostSummary(),
-          analyticsApi.getTotalConnections()
-        ])
-        setAnalytics({ posts: postsData, connections: connectionsData })
+        if (isSuperAdmin) {
+          const [postsData, connectionsData] = await Promise.all([
+            analyticsApi.getPostSummary(),
+            analyticsApi.getTotalConnections()
+          ])
+          setAnalytics(prev => ({ ...prev, posts: postsData, connections: connectionsData }))
+        } else if (isChapterAdmin) {
+           const stats = await analyticsApi.getChapterDashboardStats()
+           setAnalytics(prev => ({ ...prev, chapterStats: stats }))
+        }
       } catch (err) {
         console.error('Failed to fetch analytics', err)
       }
     }
     fetchAnalytics()
-  }, [isSuperAdmin])
+  }, [isSuperAdmin, isChapterAdmin])
   
   const isLoading = (isSuperAdmin && isStatsLoading) || (isChapterAdmin && isChapterLoading)
 
@@ -81,11 +86,13 @@ export default function DashboardPage() {
             title="Total Chapters"
             value={statistics?.totalChapters || 0}
             icon={Building2}
+            href="/dashboard/chapters"
           />
           <StatCard
             title="Total Members"
             value={statistics?.totalMembers || 0}
             icon={Users}
+            href="/dashboard/members"
           />
           <StatCard
             title="Network Connections"
@@ -180,27 +187,39 @@ export default function DashboardPage() {
       </div>
 
       {/* Chapter Statistics */}
-      {currentChapter?.stats && (
+      {analytics.chapterStats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             title="Total Members"
-            value={currentChapter.stats.total}
+            value={analytics.chapterStats.totalMembers}
             icon={Users}
+            href="/dashboard/members"
           />
           <StatCard
-            title="Approved"
-            value={currentChapter.stats.approved}
+            title="Pending Approvals"
+            value={analytics.chapterStats.pendingApprovals}
             icon={UserCheck}
+            href="/dashboard/requests"
+            trend={analytics.chapterStats.pendingApprovals > 0 ? {
+                value: 'Pending',
+                isPositive: false // Red color to indicate urgency
+            } : undefined}
+            className={analytics.chapterStats.pendingApprovals > 0 ? "border-amber-500/50" : ""}
+          />
+          {/* Growth Metrics Card */}
+          <StatCard
+            title="Monthly Growth"
+            value={`${analytics.chapterStats.growth.percentageChange}%`}
+            icon={Activity}
+             trend={{
+                value: analytics.chapterStats.growth.trend === 'STABLE' ? 'Stable' : 'This Month',
+                isPositive: analytics.chapterStats.growth.trend === 'UP'
+            }}
           />
           <StatCard
-            title="Pending Requests"
-            value={currentChapter.stats.pending}
-            icon={UserCheck}
-          />
-          <StatCard
-            title="Rejected"
-            value={currentChapter.stats.rejected}
-            icon={UserCheck}
+            title="Network Reach"
+            value={analytics.chapterStats.networkConnections}
+            icon={Globe}
           />
         </div>
       )}

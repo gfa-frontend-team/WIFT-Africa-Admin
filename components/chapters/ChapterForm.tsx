@@ -39,6 +39,7 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
     twitterHandle: chapter?.twitterHandle || '',
     instagramHandle: chapter?.instagramHandle || '',
     linkedinUrl: chapter?.linkedinUrl || '',
+    fixedMemberCount: chapter?.fixedMemberCount || 0,
   })
 
   const [error, setError] = useState('')
@@ -48,11 +49,17 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
     setError('')
 
     try {
+      // Ensure fixedMemberCount is a number
+      const submissionData = {
+        ...formData,
+        fixedMemberCount: Number(formData.fixedMemberCount) || 0
+      }
+
       if (isEdit && chapter) {
-        await updateChapter({ id: chapter.id, data: formData })
+        await updateChapter({ id: chapter.id, data: submissionData })
         router.push(`/dashboard/chapters/${chapter.id}`)
       } else {
-        const newChapter = await createChapter(formData)
+        const newChapter = await createChapter(submissionData)
         router.push(`/dashboard/chapters/${newChapter.id}`)
       }
     } catch (err: any) {
@@ -110,6 +117,39 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
               onChange={(e) => handleChange('city', e.target.value)}
               placeholder="e.g., Lagos"
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                Current App Users
+              </label>
+              <Input
+                value={chapter?.memberCount || 0}
+                disabled
+                className="bg-muted text-muted-foreground"
+                title="Real-time count of users registered in the database."
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Real-time count of users registered in the database.
+              </p>
+            </div>
+            {isAdminView && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  Public Display Count
+                </label>
+                <Input
+                  type="number"
+                  value={formData.fixedMemberCount}
+                  onChange={(e) => handleChange('fixedMemberCount', e.target.value)}
+                  placeholder="Enter static count (optional)"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  If set &gt; 0, this number will be shown on the public directory instead of the system count.
+                </p>
+              </div>
+            )}
           </div>
 
           <div>

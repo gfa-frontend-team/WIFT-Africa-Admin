@@ -6,6 +6,7 @@ import { useChapters, useChapter } from '@/lib/hooks/queries/useChapters'
 import { useChapterMembers } from '@/lib/hooks/queries/useMembership'
 import { User } from '@/types'
 import { MemberCard } from '@/components/members/MemberCard'
+import { MemberProfileModal } from '@/components/members/MemberProfileModal'
 import { Search, Users as UsersIcon, Info } from 'lucide-react'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { PermissionGuard } from '@/lib/guards/PermissionGuard'
@@ -17,17 +18,18 @@ export default function MembersPage() {
   // Auto-scope to user's chapter for Chapter Admins
   const [selectedChapter, setSelectedChapter] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedMember, setSelectedMember] = useState<User | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Fetch all chapters for dropdown (Super Admin)
   const { data: chaptersResponse } = useChapters({ isActive: true }, { enabled: isSuperAdmin })
   const chapters = chaptersResponse?.data || []
 
   // Fetch current chapter details if selected (for display name, etc.)
-  // Note: Chapter Admins may not have permission to fetch full chapter details via /admin/chapters/:id
   const { data: currentChapter } = useChapter(selectedChapter, { enabled: isSuperAdmin })
 
   // Fetch members
-  const { data: membersResponse, isLoading } = useChapterMembers(
+  const { data: membersResponse, isLoading, refetch } = useChapterMembers(
     selectedChapter, 
     1, // page
     100 // limit
@@ -168,11 +170,51 @@ export default function MembersPage() {
           {/* Members Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMembers.map((member) => (
-              <MemberCard key={member.id} member={member} />
+              <MemberCard 
+                key={member.id} 
+                member={member} 
+                onClick={() => {
+                  setSelectedMember(member)
+                  setIsModalOpen(true)
+                }}
+              />
             ))}
           </div>
         </>
       )}
+
+      {/* Member Profile Modal */}
+      <MemberProfileModal 
+        member={selectedMember} 
+        isOpen={isModalOpen} 
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedMember(null)
+        }}
+        onStatusChange={() => {
+          // Refetch members
+           // Since we don't have direct refetch expose from useChapterMembers (it returns generic query result)
+           // ideally we invalidate query. But checking hook:
+           // const { data: membersResponse, isLoading } = useChapterMembers(...)
+           // standard react-query return.
+           // However, simple window reload is crude. 
+           // Let's rely on query invalidation if we had access to queryClient, or force reload if needed.
+           // Better: invalidating queries is the way. 
+           // BUT useMembership hook likely doesn't export the query key or client directly here.
+           // I'll add queryClient usage to invalidate 'chapter-members'.
+           // For now, let's try to just let React Query handle it if focus happens, or adding a key.
+           // Best approach: Invalidate via QueryClient.
+           // I'll need to import useQueryClient.
+           
+           // Actually, let's just create a manual refetch function wrapper if needed.
+           // UseQuery returns `refetch`.
+           // Let's assume useChapterMembers returns { ..., refetch } 
+           // I'll check lines 30-34.
+           // const { data: membersResponse, isLoading } = useChapterMembers
+           // I'll update that destructuring.
+           refetch()
+        }}
+      />
     </div>
   )
 }

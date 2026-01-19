@@ -82,8 +82,13 @@ The Onboarding module manages the multi-step registration process after a user v
   chapters: Array<{
     id: string;
     name: string;
-    description: string;
+    code: string;
     country: string;
+    description: string;
+    memberCount: number;
+    requiresApproval: boolean;
+    presidentName: string;
+    adminName: string;
   }>;
 }
 ```

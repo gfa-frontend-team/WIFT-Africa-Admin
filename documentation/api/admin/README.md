@@ -14,9 +14,26 @@ The Admin module enables Super Admins to manage chapters, verify members, modera
 
 ---
 
-## 1. Chapter Management
+## 1. Member Management
 
-### 1.1 List Chapters
+### 1.1 Update Member Status
+**Method:** `PATCH`
+**Path:** `/api/v1/admin/:userId/membership-status`
+**Description:** Suspend or reinstate a user. Requires `Chapter Admin` role.
+
+#### Body
+```typescript
+{
+  status: 'APPROVED' | 'SUSPENDED';
+  reason?: string;
+}
+```
+
+---
+
+## 2. Chapter Management
+
+### 2.1 List Chapters
 **Method:** `GET`
 **Path:** `/api/v1/admin/chapters`
 **Description:** Retrieves a paginated list of chapters with filtering.
@@ -46,9 +63,7 @@ The Admin module enables Super Admins to manage chapters, verify members, modera
 }
 ```
 
----
-
-### 1.2 Create Chapter
+### 2.2 Create Chapter
 **Method:** `POST`
 **Path:** `/api/v1/admin/chapters`
 **Description:** Creates a new WIFT chapter.
@@ -66,39 +81,41 @@ The Admin module enables Super Admins to manage chapters, verify members, modera
 }
 ```
 
-#### Response (201 Created)
-Returns created chapter object.
-
----
-
-### 1.3 Update Chapter
+### 2.3 Update Chapter
 **Method:** `PATCH`
 **Path:** `/api/v1/admin/chapters/:id`
 
 #### Body
 Any field from Create Chapter (all optional).
+- `fixedMemberCount`: number (Optional) - Set a fixed number of members for public display.
 
----
-
-### 1.4 Deactivate/Reactivate Chapter
+### 2.4 Deactivate/Reactivate Chapter
 - **Deactivate**: `DELETE /api/v1/admin/chapters/:id` (Soft delete)
 - **Reactivate**: `POST /api/v1/admin/chapters/:id/reactivate`
 
----
-
-### 1.5 Manage Chapter Admins
+### 2.5 Manage Chapter Admins
 - **Add Admin**: `POST /api/v1/admin/chapters/:id/admins`
   - Body: `{ userId: string }`
 - **Remove Admin**: `DELETE /api/v1/admin/chapters/:id/admins/:userId`
 
+### 2.6 Get Chapter Countries
+**Method:** `GET`
+**Path:** `/api/v1/admin/chapters/countries`
+**Description:** List unique countries with chapters.
+
+### 2.7 Get Chapter Analytics
+**Method:** `GET`
+**Path:** `/api/v1/admin/chapters/:chapterId/analytics`
+**Description:** Detailed analytics for a specific chapter.
+
 ---
 
-## 2. Verification & Analytics
+## 3. Verification & Analytics
 
-### 2.1 Chapter Statistics
+### 3.1 Chapter Statistics
 **Method:** `GET`
 **Path:** `/api/v1/admin/chapters/statistics`
-**Description:** Aggregate stats for the platform.
+**Description:** Aggregate stats for the platform (total chapters, members, countries).
 
 #### Response (200 OK)
 ```typescript
@@ -110,15 +127,20 @@ Any field from Create Chapter (all optional).
 }
 ```
 
-### 2.2 Verification Delays
+### 3.2 Member Analytics Dashboard
+**Method:** `GET`
+**Path:** `/api/v1/admin/analytics/members`
+**Query Params:** `chapterId`, `startDate`, `endDate`.
+
+### 3.3 Verification Delays
 - **Check Delays**: `POST /api/v1/admin/verification/check-delays` (Trigger manual check)
 - **Get Stats**: `GET /api/v1/admin/verification/delayed-stats`
 
 ---
 
-## 3. Content Moderation
+## 4. Content Moderation
 
-### 3.1 Hide Post
+### 4.1 Hide Post
 **Method:** `PATCH`
 **Path:** `/api/v1/admin/posts/:postId/hide`
 **Description:** Hides a post from public view due to violations.
@@ -130,15 +152,20 @@ Any field from Create Chapter (all optional).
 }
 ```
 
-### 3.2 Unhide Post
+### 4.2 Unhide Post
 **Method:** `PATCH`
 **Path:** `/api/v1/admin/posts/:postId/unhide`
 
+### 4.3 Moderation Log
+**Method:** `GET`
+**Path:** `/api/v1/admin/posts/moderation-log`
+**Query Params:** `page`, `limit`, `action` (hidden/unhidden).
+
 ---
 
-## 4. Reports (Moderation)
+## 5. Reports (Moderation)
 
-### 4.1 List Reports
+### 5.1 List Reports
 **Method:** `GET`
 **Path:** `/api/v1/admin/reports`
 
@@ -148,12 +175,12 @@ Any field from Create Chapter (all optional).
 - `page`: number
 - `limit`: number
 
-### 4.2 Get Single Report
+### 5.2 Get Single Report
 **Method:** `GET`
 **Path:** `/api/v1/admin/reports/:reportId`
 **Description:** detailed report info including the reported content (target).
 
-### 4.3 Resolve Report
+### 5.3 Resolve Report
 **Method:** `PATCH`
 **Path:** `/api/v1/admin/reports/:reportId/resolve`
 
@@ -166,9 +193,9 @@ Any field from Create Chapter (all optional).
 
 ---
 
-## 5. System Monitoring
+## 6. System Monitoring
 
-### 5.1 Real-time Dashboard
+### 6.1 Real-time Dashboard
 **Method:** `GET`
 **Path:** `/api/v1/admin/monitoring/realtime`
 **Description:** Returns live system metrics (WebSocket connections, memory usage, etc.).

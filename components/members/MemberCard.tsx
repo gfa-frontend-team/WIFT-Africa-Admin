@@ -6,9 +6,10 @@ import { formatDate } from '@/lib/utils'
 
 interface MemberCardProps {
   member: User
+  onClick?: () => void
 }
 
-export function MemberCard({ member }: MemberCardProps) {
+export function MemberCard({ member, onClick }: MemberCardProps) {
   const getAccountTypeBadge = (accountType: string) => {
     switch (accountType) {
       case 'SUPER_ADMIN':
@@ -23,13 +24,20 @@ export function MemberCard({ member }: MemberCardProps) {
   }
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card 
+      className={`hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer hover:border-primary/50' : ''}`}
+      onClick={onClick}
+    >
       <CardContent className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full text-primary font-semibold">
-              {member.firstName?.[0]}{member.lastName?.[0]}
+            <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full text-primary font-semibold overflow-hidden">
+               {member.profilePhoto ? (
+                  <img src={member.profilePhoto} alt="" className="w-full h-full object-cover" />
+               ) : (
+                  <span>{member.firstName?.[0]}{member.lastName?.[0]}</span>
+               )}
             </div>
             <div>
               <h3 className="font-semibold text-foreground">
@@ -63,10 +71,20 @@ export function MemberCard({ member }: MemberCardProps) {
         </div>
 
         {/* Status */}
-        <div className="mt-4 pt-4 border-t border-border">
-          <Badge variant={member.membershipStatus === 'APPROVED' ? 'success' : 'warning'}>
+        <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
+          <Badge variant={
+            member.membershipStatus === 'APPROVED' ? 'success' : 
+            member.membershipStatus === 'SUSPENDED' ? 'destructive' : 
+            'warning'
+          }>
             {member.membershipStatus}
           </Badge>
+          
+          {onClick && (
+            <span className="text-xs text-primary font-medium hover:underline">
+              View Profile
+            </span>
+          )}
         </div>
       </CardContent>
     </Card>

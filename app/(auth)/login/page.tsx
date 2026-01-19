@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { useAuthStore } from '@/lib/stores'
 import { useLogin, useGoogleLogin } from '@/lib/hooks/queries/useAuth'
 import { Shield, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react'
@@ -69,8 +70,13 @@ export default function LoginPage() {
     <div className="w-full">
       {/* Logo/Header */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4">
-          <Shield className="w-8 h-8 text-primary-foreground" />
+        <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl mb-4 overflow-hidden relative">
+          <Image 
+            src="/logo.jpg" 
+            alt="WIFT Africa Logo" 
+            fill
+            className="object-contain"
+          />
         </div>
         <h1 className="text-3xl font-bold text-foreground mb-2">
           WIFT Africa Admin

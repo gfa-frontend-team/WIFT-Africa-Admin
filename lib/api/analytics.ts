@@ -10,8 +10,40 @@ import {
 export const analyticsApi = {
   // Post Analytics
   getPostSummary: async (): Promise<PostAnalyticsSummary> => {
-    const response = await apiClient.get<ApiResponse<PostAnalyticsSummary>>('/analytics/posts/summary')
-    return response.data!
+    // The backend returns a list of posts at this endpoint instead of a summary object
+    // So we need to aggregate the data client-side
+    const response = await apiClient.get<ApiResponse<{ posts: PostAnalyticsDetail[] }>>('/analytics/posts/summary')
+    const posts = response.data?.posts || []
+
+    const summary: PostAnalyticsSummary = {
+      totalImpressions: 0,
+      totalMembersReached: 0,
+      totalEngagement: 0,
+      totalProfileViews: 0,
+      topPerformingPost: null
+    }
+
+    let maxEngagement = -1
+
+    posts.forEach(post => {
+      summary.totalImpressions += post.discovery.impressions || 0
+      summary.totalMembersReached += post.discovery.membersReached || 0
+      
+      const engagement = (post.engagement.likes || 0) + 
+                        (post.engagement.comments || 0) + 
+                        (post.engagement.saves || 0) + 
+                        (post.engagement.shares || 0)
+      
+      summary.totalEngagement += engagement
+      summary.totalProfileViews += post.profileActivity?.profileViewsFromPost || 0
+
+      if (engagement > maxEngagement) {
+        maxEngagement = engagement
+        summary.topPerformingPost = post.postId
+      }
+    })
+
+    return summary
   },
 
   getPostAnalyticsList: async (page = 1, limit = 10): Promise<PaginatedResponse<PostAnalyticsDetail>> => {
@@ -43,9 +75,14 @@ export const analyticsApi = {
     return response.data!
   },
 
-  // Connection Analytics
   getTotalConnections: async (): Promise<ConnectionAnalytics> => {
     const response = await apiClient.get<ApiResponse<ConnectionAnalytics>>('/analytics/connections/total')
     return response.data!
   },
+
+  // Chapter Admin Dashboard
+  getChapterDashboardStats: async (): Promise<import('@/types').ChapterDashboardStats> => {
+    const response = await apiClient.get<ApiResponse<import('@/types').ChapterDashboardStats>>('/analytics/chapter-dashboard')
+    return response.data!
+  }
 }
