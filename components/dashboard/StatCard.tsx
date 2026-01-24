@@ -20,7 +20,7 @@ export function StatCard({ title, value, icon: Icon, trend, className, href, onC
   const content = (
     <Card 
       className={cn(
-        'transition-shadow', 
+        'transition-shadow h-full flex flex-col justify-center', 
         (href || onClick) ? 'hover:shadow-md cursor-pointer hover:border-primary/50' : '',
         className
       )}
@@ -32,19 +32,21 @@ export function StatCard({ title, value, icon: Icon, trend, className, href, onC
             <p className="text-sm font-medium text-muted-foreground mb-1">
               {title}
             </p>
-            <p className="text-3xl font-bold text-foreground">
-              {value}
-            </p>
-            {trend && (
-              <p className={cn(
-                'text-sm mt-2',
-                trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-              )}>
-                {trend.isPositive ? '↑' : '↓'} {trend.value}
+            <div className="flex items-baseline gap-2">
+              <p className="text-3xl font-bold text-foreground">
+                {value}
               </p>
-            )}
+              {trend && (
+                <p className={cn(
+                  'text-sm font-medium',
+                  trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                )}>
+                  {trend.isPositive ? '↑' : '↓'} {trend.value}
+                </p>
+              )}
+            </div>
           </div>
-          <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
+          <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg shrink-0 ml-4">
             <Icon className="w-6 h-6 text-primary" />
           </div>
         </div>
@@ -53,7 +55,7 @@ export function StatCard({ title, value, icon: Icon, trend, className, href, onC
   )
 
   if (href) {
-    return <Link href={href}>{content}</Link>
+    return <Link href={href} className="block h-full">{content}</Link>
   }
 
   return content
