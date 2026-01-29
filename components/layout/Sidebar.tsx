@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Users, 
-  UserCheck, 
+import {
+  LayoutDashboard,
+  Building2,
+  Users,
+  UserCheck,
   Settings,
   Shield,
   AlertCircle,
@@ -16,7 +16,10 @@ import {
   BarChart3,
   MessageSquarePlus,
   Radio,
-  Briefcase
+  Banknote,
+  Briefcase,
+  BookOpen,
+  GraduationCap
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/lib/stores'
@@ -25,12 +28,15 @@ const superAdminNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Chapters', href: '/dashboard/chapters', icon: Building2 },
   { name: 'Events', href: '/dashboard/events', icon: Calendar },
+  { name: 'Mentorships', href: '/dashboard/mentorships', icon: GraduationCap },
+  { name: 'Grants & Funds', href: '/dashboard/funding', icon: Banknote },
   { name: 'Jobs', href: '/dashboard/jobs', icon: Briefcase },
   { name: 'Membership Requests', href: '/dashboard/requests', icon: UserCheck },
   { name: 'Members', href: '/dashboard/members', icon: Users },
   { name: 'Verification Delays', href: '/dashboard/verification', icon: AlertCircle },
   { name: 'Reports', href: '/dashboard/reports', icon: ShieldAlert },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { name: 'Resources', href: '/dashboard/resources', icon: BookOpen },
   { name: 'Moderation', href: '/dashboard/posts', icon: Radio },
   { name: 'Broadcasts', href: '/dashboard/messages', icon: MessageSquarePlus },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
@@ -41,6 +47,8 @@ const chapterAdminNavigation = [
   { name: 'My Chapter', href: '/dashboard/my-chapter', icon: Building2 },
   { name: 'Broadcasts', href: '/dashboard/messages', icon: MessageSquarePlus },
   { name: 'Events', href: '/dashboard/events', icon: Calendar },
+  { name: 'Mentorships', href: '/dashboard/mentorships', icon: GraduationCap },
+  { name: 'Grants & Funds', href: '/dashboard/funding', icon: Banknote },
   { name: 'Jobs', href: '/dashboard/jobs', icon: Briefcase },
   { name: 'Membership Requests', href: '/dashboard/requests', icon: UserCheck },
   { name: 'Members', href: '/dashboard/members', icon: Users },
@@ -71,9 +79,9 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
         <div className="relative w-10 h-10 rounded-lg overflow-hidden">
-          <Image 
-            src="/logo.jpg" 
-            alt="WIFT Africa Logo" 
+          <Image
+            src="/logo.jpg"
+            alt="WIFT Africa Logo"
             fill
             className="object-contain"
           />
@@ -100,7 +108,7 @@ export function Sidebar() {
           const isActive = item.href === '/dashboard'
             ? pathname === '/dashboard'
             : pathname === item.href || pathname.startsWith(item.href + '/')
-          
+
           return (
             <Link
               key={item.name}

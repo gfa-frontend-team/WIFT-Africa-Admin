@@ -4,6 +4,9 @@ export * from './analytics'
 export * from './messages'
 export * from './posts'
 export * from './jobs'
+export * from './resources'
+export * from './mentorship'
+export * from './funding'
 
 
 // ============================================
@@ -176,30 +179,30 @@ export interface Chapter {
   fixedMemberCount?: number
   isActive: boolean
   adminIds: string[] | User[]
-  
+
   // Leadership
   currentPresident?: string
   presidentEmail?: string
   presidentPhone?: string
-  
+
   // Contact
   email?: string
   phone?: string
   address?: string
   website?: string
-  
+
   // Social Media
   facebookUrl?: string
   twitterHandle?: string
   instagramHandle?: string
   linkedinUrl?: string
-  
+
   // Metadata
   foundedDate?: Date
-  
+
   createdAt: Date
   updatedAt: Date
-  
+
   // Stats (only in detail view)
   stats?: ChapterDetailStats
 }
@@ -229,7 +232,7 @@ export interface MembershipRequest {
   reapplicationAllowedAt?: Date
   createdAt: Date
   updatedAt: Date
-  
+
   // Populated fields
   user?: User
   profile?: Profile
@@ -410,7 +413,7 @@ export interface CreateEventData {
   status?: EventStatus
 }
 
-export interface UpdateEventData extends Partial<CreateEventData> {}
+export interface UpdateEventData extends Partial<CreateEventData> { }
 
 export interface RSVPEventData {
   status: RSVPStatus
