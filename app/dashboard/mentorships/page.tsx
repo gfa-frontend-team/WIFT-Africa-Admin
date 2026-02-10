@@ -152,10 +152,22 @@ export default function MentorshipsPage() {
                                                     <MapPin className="w-4 h-4" />
                                                     {mentorship.mentorshipFormat}
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="w-4 h-4" />
-                                                    {mentorship.duration} • {mentorship.availability}
-                                                </div>
+                                                {mentorship.startPeriod && mentorship.endPeriod && (
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="w-4 h-4" />
+                                                        {new Date(mentorship.startPeriod).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(mentorship.endPeriod).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </div>
+                                                )}
+                                                {mentorship.days && mentorship.days.length > 0 && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium">{mentorship.days.join(', ')}</span>
+                                                    </div>
+                                                )}
+                                                {mentorship.timeFrame && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{mentorship.timeFrame}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/Button'
@@ -8,8 +8,11 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { NativeSelect } from '@/components/ui/NativeSelect'
 import { useToast } from '@/components/ui/use-toast'
-import { FundingOpportunity, FundingType, ApplicationType, FundingStatus } from '@/types'
+import { ChapterSelect } from '@/components/shared/ChapterSelect'
+import { FundingOpportunity, FundingType, ApplicationType, FundingStatus } from '@/types/funding'
 import { fundingApi } from '@/lib/api/funding'
+import { useAuthStore } from '@/lib/stores/authStore'
+import { AccountType } from '@/types'
 
 const fundingSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
@@ -20,6 +23,11 @@ const fundingSchema = z.object({
     applicationLink: z.string().url('Must be a valid URL').optional().or(z.literal('')),
     deadline: z.string().min(1, 'Deadline is required'),
     region: z.string().min(2, 'Region is required'),
+
+    // NEW OPTIONAL FIELDS
+    amount: z.string().optional(),
+    eligibility: z.string().max(500, 'Eligibility must be less than 500 characters').optional(),
+
     chapterId: z.string().optional(),
     status: z.nativeEnum(FundingStatus)
 }).refine(data => {
@@ -43,9 +51,10 @@ interface FundingFormProps {
 
 export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: FundingFormProps) {
     const { toast } = useToast()
+    const { user } = useAuthStore()
     const [isLoading, setIsLoading] = useState(false)
 
-    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FundingFormValues>({
+    const { register, handleSubmit, reset, control, watch, formState: { errors } } = useForm<FundingFormValues>({
         resolver: zodResolver(fundingSchema),
         defaultValues: {
             name: '',
@@ -56,7 +65,9 @@ export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: Funding
             applicationLink: '',
             deadline: '',
             region: '',
-            chapterId: '',
+            amount: '',
+            eligibility: '',
+            chapterId: user?.accountType === AccountType.CHAPTER_ADMIN ? user.chapterId : '',
             status: FundingStatus.OPEN
         }
     })
@@ -77,6 +88,8 @@ export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: Funding
                 applicationLink: opportunity.applicationLink || '',
                 deadline: formattedDeadline,
                 region: opportunity.region,
+                amount: opportunity.amount || '',
+                eligibility: opportunity.eligibility || '',
                 chapterId: opportunity.chapterId || '',
                 status: opportunity.status
             })
@@ -90,11 +103,13 @@ export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: Funding
                 applicationLink: '',
                 deadline: '',
                 region: '',
-                chapterId: '',
+                amount: '',
+                eligibility: '',
+                chapterId: user?.accountType === AccountType.CHAPTER_ADMIN ? user.chapterId : '',
                 status: FundingStatus.OPEN
             })
         }
-    }, [opportunity, reset, isOpen])
+    }, [opportunity, reset, isOpen, user])
 
     const onSubmit = async (data: FundingFormValues) => {
         setIsLoading(true)
@@ -103,7 +118,10 @@ export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: Funding
 
             const formattedData = {
                 ...data,
-                deadline: deadlineIso
+                deadline: deadlineIso,
+                amount: data.amount || undefined,
+                eligibility: data.eligibility || undefined,
+                chapterId: data.chapterId || undefined
             }
 
             if (opportunity) {
@@ -119,7 +137,7 @@ export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: Funding
             console.error('Failed to save opportunity:', error)
             toast({
                 title: "Error",
-                description: error.response?.data?.message || "Failed to save oppotunity",
+                description: error.response?.data?.message || "Failed to save opportunity",
                 variant: "destructive"
             })
         } finally {
@@ -129,88 +147,124 @@ export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: Funding
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{opportunity ? 'Edit Funding Opportunity' : 'Create Funding Opportunity'}</DialogTitle>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Name</label>
-                        <Input {...register('name')} placeholder="e.g. Film Grant 2024" />
-                        {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Description</label>
-                        <Textarea {...register('description')} placeholder="Detailed description..." className="h-24" />
-                        {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    {/* Basic Information Section */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-foreground/80">Basic Information</h3>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Target Role</label>
-                            <Input {...register('role')} placeholder="e.g. Director" />
+                            <label className="text-sm font-medium">Name *</label>
+                            <Input {...register('name')} placeholder="e.g. Film Production Grant 2024" />
+                            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Description *</label>
+                            <Textarea {...register('description')} placeholder="Detailed description of the funding opportunity..." className="h-24" />
+                            {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Target Role *</label>
+                            <Input {...register('role')} placeholder="e.g. Director, Producer, Writer" />
                             {errors.role && <p className="text-xs text-destructive">{errors.role.message}</p>}
                         </div>
+                    </div>
+
+                    {/* Funding Details Section */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-foreground/80">Funding Details</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Funding Type *</label>
+                                <NativeSelect {...register('fundingType')}>
+                                    <option value={FundingType.GRANT}>Grant</option>
+                                    <option value={FundingType.FUND}>Fund</option>
+                                    <option value={FundingType.LOAN}>Loan</option>
+                                    <option value={FundingType.OTHER}>Other</option>
+                                </NativeSelect>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Status *</label>
+                                <NativeSelect {...register('status')}>
+                                    <option value={FundingStatus.OPEN}>Open</option>
+                                    <option value={FundingStatus.CLOSED}>Closed</option>
+                                </NativeSelect>
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Funding Type</label>
-                            <NativeSelect {...register('fundingType')}>
-                                <option value={FundingType.GRANT}>Grant</option>
-                                <option value={FundingType.FUND}>Fund</option>
-                                <option value={FundingType.LOAN}>Loan</option>
-                                <option value={FundingType.OTHER}>Other</option>
-                            </NativeSelect>
+                            <label className="text-sm font-medium">Amount (Optional)</label>
+                            <Input {...register('amount')} placeholder="e.g. $10,000 - $50,000" />
+                            {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
+                            <p className="text-xs text-muted-foreground">Funding amount or range</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Eligibility (Optional)</label>
+                            <Textarea {...register('eligibility')} placeholder="e.g. Open to all WIFT Africa members with at least 1 completed project" className="h-20" />
+                            {errors.eligibility && <p className="text-xs text-destructive">{errors.eligibility.message}</p>}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Application Type</label>
-                            <NativeSelect {...register('applicationType')}>
-                                <option value={ApplicationType.REDIRECT}>External Link (Redirect)</option>
-                                <option value={ApplicationType.INTERNAL}>Internal Application</option>
-                            </NativeSelect>
+                    {/* Application Section */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-foreground/80">Application</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Application Type *</label>
+                                <NativeSelect {...register('applicationType')}>
+                                    <option value={ApplicationType.REDIRECT}>External Link (Redirect)</option>
+                                    <option value={ApplicationType.INTERNAL}>Internal Application</option>
+                                </NativeSelect>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Deadline *</label>
+                                <Input type="date" {...register('deadline')} />
+                                {errors.deadline && <p className="text-xs text-destructive">{errors.deadline.message}</p>}
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Status</label>
-                            <NativeSelect {...register('status')}>
-                                <option value={FundingStatus.OPEN}>Open</option>
-                                <option value={FundingStatus.CLOSED}>Closed</option>
-                            </NativeSelect>
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                        {applicationType === ApplicationType.REDIRECT && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Application Link *</label>
+                                <Input {...register('applicationLink')} placeholder="https://external.com/apply" type="url" />
+                                {errors.applicationLink && <p className="text-xs text-destructive">{errors.applicationLink.message}</p>}
+                                <p className="text-xs text-muted-foreground">Required for Redirect application type</p>
+                            </div>
+                        )}
+
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Deadline</label>
-                            <Input type="date" {...register('deadline')} />
-                            {errors.deadline && <p className="text-xs text-destructive">{errors.deadline.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Region</label>
-                            <Input {...register('region')} placeholder="e.g. West Africa" />
+                            <label className="text-sm font-medium">Region *</label>
+                            <Input {...register('region')} placeholder="e.g. West Africa, East Africa, Global" />
                             {errors.region && <p className="text-xs text-destructive">{errors.region.message}</p>}
                         </div>
                     </div>
 
-                    {applicationType === ApplicationType.REDIRECT && (
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Application Link</label>
-                            <Input {...register('applicationLink')} placeholder="https://external.com/apply" />
-                            {errors.applicationLink && <p className="text-xs text-destructive">{errors.applicationLink.message}</p>}
-                        </div>
-                    )}
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Chapter ID (Optional)</label>
-                        <Input {...register('chapterId')} placeholder="Specific Chapter ID" />
+                    {/* Settings Section */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-foreground/80">Settings</h3>
+                        <Controller
+                            name="chapterId"
+                            control={control}
+                            render={({ field }) => (
+                                <ChapterSelect
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.chapterId?.message}
+                                />
+                            )}
+                        />
                     </div>
 
                     <DialogFooter>
                         <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
                         <Button type="submit" isLoading={isLoading}>
-                            {opportunity ? 'Update' : 'Create'}
+                            {opportunity ? 'Update Opportunity' : 'Create Opportunity'}
                         </Button>
                     </DialogFooter>
                 </form>
