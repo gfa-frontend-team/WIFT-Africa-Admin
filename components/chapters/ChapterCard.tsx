@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { Building2, Users, MapPin, ExternalLink } from 'lucide-react'
+import { Users, MapPin, ExternalLink } from 'lucide-react'
 import { Chapter } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { getCountryIsoCode } from '@/lib/utils/countryMapping'
 
 interface ChapterCardProps {
   chapter: Chapter
@@ -16,9 +17,28 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
-                <Building2 className="w-6 h-6 text-primary" />
-              </div>
+              {(() => {
+                const flagCode = getCountryIsoCode(chapter.code, chapter.country)
+
+                if (flagCode === 'AFRICA') {
+                  return (
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
+                      🌍
+                    </div>
+                  )
+                }
+
+                return (
+                  <img
+                    src={`https://flagsapi.com/${flagCode}/flat/64.png`}
+                    alt={`${chapter.country} flag`}
+                    className="w-12 h-12 rounded-full object-cover border border-border/50"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none'
+                    }}
+                  />
+                )
+              })()}
               <div>
                 <h3 className="font-semibold text-foreground">{chapter.name}</h3>
                 <p className="text-sm text-muted-foreground">{chapter.code}</p>

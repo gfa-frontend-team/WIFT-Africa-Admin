@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/Button'
@@ -8,21 +8,66 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { NativeSelect } from '@/components/ui/NativeSelect'
 import { useToast } from '@/components/ui/use-toast'
-import { Mentorship, MentorshipFormat, MentorshipStatus } from '@/types'
+import { ChapterSelect } from '@/components/shared/ChapterSelect'
+import { DaysCheckboxGroup } from '@/components/shared/DaysCheckboxGroup'
+import { Mentorship, MentorshipFormat, MentorshipStatus, DayOfWeek } from '@/types/mentorship'
 import { mentorshipApi } from '@/lib/api/mentorship'
+import { useAuthStore } from '@/lib/stores/authStore'
+import { AccountType } from '@/types'
 
 const mentorshipSchema = z.object({
-    mentorName: z.string().min(2, 'Mentor name is required'),
-    mentorRole: z.string().min(2, 'Mentor role is required'),
+    mentorName: z.string().min(1, 'Mentor name is required').max(200, 'Mentor name must be less than 200 characters'),
+    mentorRole: z.string().min(1, 'Mentor role is required').max(100, 'Mentor role must be less than 100 characters'),
     areasOfExpertise: z.string().min(3, 'Areas of expertise are required (comma separated)'),
     mentorshipFormat: z.nativeEnum(MentorshipFormat),
-    availability: z.string().min(2, 'Availability is required'),
-    duration: z.string().min(2, 'Duration is required'),
-    description: z.string().min(10, 'Description must be at least 10 characters'),
-    eligibility: z.string().min(5, 'Eligibility criteria is required'),
+
+    // NEW SCHEDULE FIELDS
+    startPeriod: z.string().min(1, 'Start date is required'),
+    endPeriod: z.string().min(1, 'End date is required'),
+    days: z.array(z.nativeEnum(DayOfWeek)).min(1, 'Please select at least one day'),
+    timeFrame: z.string().min(1, 'Time frame is required (e.g., "12:30pm - 3:00pm")'),
+
+    // OPTIONAL FIELDS
+    mentorshipLink: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+    description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description must be less than 2000 characters'),
+    eligibility: z.string().max(500, 'Eligibility must be less than 500 characters').optional(),
+
+    // METADATA
     status: z.nativeEnum(MentorshipStatus),
     chapterId: z.string().optional()
-})
+}).refine(
+    (data) => {
+        const start = new Date(data.startPeriod)
+        const now = new Date()
+        return start > now
+    },
+    {
+        message: 'Start date must be in the future',
+        path: ['startPeriod']
+    }
+).refine(
+    (data) => {
+        const start = new Date(data.startPeriod)
+        const end = new Date(data.endPeriod)
+        return end > start
+    },
+    {
+        message: 'End date must be after start date',
+        path: ['endPeriod']
+    }
+).refine(
+    (data) => {
+        // Meeting link required for Virtual and Hybrid
+        if (data.mentorshipFormat !== MentorshipFormat.PHYSICAL && !data.mentorshipLink) {
+            return false
+        }
+        return true
+    },
+    {
+        message: 'Meeting link is required for Virtual and Hybrid mentorships',
+        path: ['mentorshipLink']
+    }
+)
 
 type MentorshipFormValues = z.infer<typeof mentorshipSchema>
 
@@ -35,35 +80,48 @@ interface MentorshipFormProps {
 
 export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: MentorshipFormProps) {
     const { toast } = useToast()
+    const { user } = useAuthStore()
     const [isLoading, setIsLoading] = useState(false)
 
-    const { register, handleSubmit, reset, formState: { errors }, setValue } = useForm<MentorshipFormValues>({
+    const { register, handleSubmit, reset, control, watch, formState: { errors }, setValue } = useForm<MentorshipFormValues>({
         resolver: zodResolver(mentorshipSchema),
         defaultValues: {
             mentorName: '',
             mentorRole: '',
             areasOfExpertise: '',
             mentorshipFormat: MentorshipFormat.VIRTUAL,
-            availability: '',
-            duration: '',
+            startPeriod: '',
+            endPeriod: '',
+            days: [],
+            timeFrame: '',
+            mentorshipLink: '',
             description: '',
             eligibility: '',
             status: MentorshipStatus.OPEN,
-            chapterId: ''
+            chapterId: user?.accountType === AccountType.CHAPTER_ADMIN ? user.chapterId : ''
         }
     })
 
+    const selectedFormat = watch('mentorshipFormat')
+
     useEffect(() => {
         if (mentorship) {
+            // Convert ISO dates to YYYY-MM-DD format for date inputs
+            const startDate = mentorship.startPeriod ? new Date(mentorship.startPeriod).toISOString().split('T')[0] : ''
+            const endDate = mentorship.endPeriod ? new Date(mentorship.endPeriod).toISOString().split('T')[0] : ''
+
             reset({
                 mentorName: mentorship.mentorName,
                 mentorRole: mentorship.mentorRole,
                 areasOfExpertise: mentorship.areasOfExpertise.join(', '),
                 mentorshipFormat: mentorship.mentorshipFormat,
-                availability: mentorship.availability,
-                duration: mentorship.duration,
+                startPeriod: startDate,
+                endPeriod: endDate,
+                days: mentorship.days,
+                timeFrame: mentorship.timeFrame,
+                mentorshipLink: mentorship.mentorshipLink || '',
                 description: mentorship.description,
-                eligibility: mentorship.eligibility,
+                eligibility: mentorship.eligibility || '',
                 status: mentorship.status,
                 chapterId: mentorship.chapterId || ''
             })
@@ -73,23 +131,35 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                 mentorRole: '',
                 areasOfExpertise: '',
                 mentorshipFormat: MentorshipFormat.VIRTUAL,
-                availability: '',
-                duration: '',
+                startPeriod: '',
+                endPeriod: '',
+                days: [],
+                timeFrame: '',
+                mentorshipLink: '',
                 description: '',
                 eligibility: '',
                 status: MentorshipStatus.OPEN,
-                chapterId: ''
+                chapterId: user?.accountType === AccountType.CHAPTER_ADMIN ? user.chapterId : ''
             })
         }
-    }, [mentorship, reset, isOpen])
+    }, [mentorship, reset, isOpen, user])
 
     const onSubmit = async (data: MentorshipFormValues) => {
         setIsLoading(true)
         try {
+            // Convert date inputs to ISO strings
+            const startPeriodISO = new Date(data.startPeriod).toISOString()
+            const endPeriodISO = new Date(data.endPeriod).toISOString()
+
             // Convert comma separated string to array
             const formattedData = {
                 ...data,
-                areasOfExpertise: data.areasOfExpertise.split(',').map(s => s.trim()).filter(Boolean)
+                areasOfExpertise: data.areasOfExpertise.split(',').map(s => s.trim()).filter(Boolean),
+                startPeriod: startPeriodISO,
+                endPeriod: endPeriodISO,
+                mentorshipLink: data.mentorshipLink || undefined,
+                eligibility: data.eligibility || undefined,
+                chapterId: data.chapterId || undefined
             }
 
             if (mentorship) {
@@ -115,76 +185,128 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{mentorship ? 'Edit Mentorship' : 'Create Mentorship'}</DialogTitle>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Mentor Name</label>
-                            <Input {...register('mentorName')} placeholder="e.g. John Doe" />
-                            {errors.mentorName && <p className="text-xs text-destructive">{errors.mentorName.message}</p>}
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    {/* Mentor Information Section */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-foreground/80">Mentor Information</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Mentor Name *</label>
+                                <Input {...register('mentorName')} placeholder="e.g. Jane Doe" />
+                                {errors.mentorName && <p className="text-xs text-destructive">{errors.mentorName.message}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Mentor Role *</label>
+                                <Input {...register('mentorRole')} placeholder="e.g. Award-Winning Director" />
+                                {errors.mentorRole && <p className="text-xs text-destructive">{errors.mentorRole.message}</p>}
+                            </div>
                         </div>
+
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Role</label>
-                            <Input {...register('mentorRole')} placeholder="e.g. Director" />
-                            {errors.mentorRole && <p className="text-xs text-destructive">{errors.mentorRole.message}</p>}
+                            <label className="text-sm font-medium">Areas of Expertise *</label>
+                            <Input {...register('areasOfExpertise')} placeholder="e.g. Script Development, Career Growth, Networking (comma separated)" />
+                            {errors.areasOfExpertise && <p className="text-xs text-destructive">{errors.areasOfExpertise.message}</p>}
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Areas of Expertise</label>
-                        <Input {...register('areasOfExpertise')} placeholder="e.g. Scripting, Directing (comma separated)" />
-                        {errors.areasOfExpertise && <p className="text-xs text-destructive">{errors.areasOfExpertise.message}</p>}
+                    {/* Format & Schedule Section */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-foreground/80">Format & Schedule</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Format *</label>
+                                <NativeSelect {...register('mentorshipFormat')}>
+                                    <option value={MentorshipFormat.VIRTUAL}>Virtual</option>
+                                    <option value={MentorshipFormat.PHYSICAL}>Physical</option>
+                                    <option value={MentorshipFormat.HYBRID}>Hybrid</option>
+                                </NativeSelect>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Status *</label>
+                                <NativeSelect {...register('status')}>
+                                    <option value={MentorshipStatus.OPEN}>Open</option>
+                                    <option value={MentorshipStatus.CLOSED}>Closed</option>
+                                </NativeSelect>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Start Date *</label>
+                                <Input type="date" {...register('startPeriod')} />
+                                {errors.startPeriod && <p className="text-xs text-destructive">{errors.startPeriod.message}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">End Date *</label>
+                                <Input type="date" {...register('endPeriod')} />
+                                {errors.endPeriod && <p className="text-xs text-destructive">{errors.endPeriod.message}</p>}
+                            </div>
+                        </div>
+
+                        <Controller
+                            name="days"
+                            control={control}
+                            render={({ field }) => (
+                                <DaysCheckboxGroup
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.days?.message}
+                                />
+                            )}
+                        />
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Time Frame *</label>
+                            <Input {...register('timeFrame')} placeholder="e.g. 12:30pm - 3:00pm" />
+                            {errors.timeFrame && <p className="text-xs text-destructive">{errors.timeFrame.message}</p>}
+                            <p className="text-xs text-muted-foreground">Specify the time range for sessions</p>
+                        </div>
+
+                        {(selectedFormat === MentorshipFormat.VIRTUAL || selectedFormat === MentorshipFormat.HYBRID) && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Meeting Link *</label>
+                                <Input {...register('mentorshipLink')} placeholder="https://zoom.us/j/123456789" type="url" />
+                                {errors.mentorshipLink && <p className="text-xs text-destructive">{errors.mentorshipLink.message}</p>}
+                                <p className="text-xs text-muted-foreground">Required for Virtual and Hybrid formats</p>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Details Section */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-foreground/80">Details</h3>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Format</label>
-                            <NativeSelect {...register('mentorshipFormat')}>
-                                <option value={MentorshipFormat.VIRTUAL}>Virtual</option>
-                                <option value={MentorshipFormat.PHYSICAL}>Physical</option>
-                                <option value={MentorshipFormat.HYBRID}>Hybrid</option>
-                            </NativeSelect>
+                            <label className="text-sm font-medium">Description *</label>
+                            <Textarea {...register('description')} placeholder="Detailed description of the mentorship program..." className="h-24" />
+                            {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
                         </div>
+
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Status</label>
-                            <NativeSelect {...register('status')}>
-                                <option value={MentorshipStatus.OPEN}>Open</option>
-                                <option value={MentorshipStatus.CLOSED}>Closed</option>
-                            </NativeSelect>
+                            <label className="text-sm font-medium">Eligibility (Optional)</label>
+                            <Textarea {...register('eligibility')} placeholder="e.g. Open to all WIFT Africa members with at least 1 year of experience in screenwriting" className="h-20" />
+                            {errors.eligibility && <p className="text-xs text-destructive">{errors.eligibility.message}</p>}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Availability</label>
-                            <Input {...register('availability')} placeholder="e.g. Weekly" />
-                            {errors.availability && <p className="text-xs text-destructive">{errors.availability.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Duration</label>
-                            <Input {...register('duration')} placeholder="e.g. 3 months" />
-                            {errors.duration && <p className="text-xs text-destructive">{errors.duration.message}</p>}
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Eligibility</label>
-                        <Input {...register('eligibility')} placeholder="e.g. Must have 1 short film credit" />
-                        {errors.eligibility && <p className="text-xs text-destructive">{errors.eligibility.message}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Description</label>
-                        <Textarea {...register('description')} placeholder="Detailed description of the mentorship..." className="h-24" />
-                        {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Chapter ID (Optional)</label>
-                        <Input {...register('chapterId')} placeholder="Specific Chapter ID" />
+                    {/* Settings Section */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-foreground/80">Settings</h3>
+                        <Controller
+                            name="chapterId"
+                            control={control}
+                            render={({ field }) => (
+                                <ChapterSelect
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.chapterId?.message}
+                                />
+                            )}
+                        />
                     </div>
 
                     <DialogFooter>
