@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/stores'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 
-import { useUser } from '@/lib/hooks/queries/useAuth'
+import { useAdmin } from '@/lib/hooks/queries/useAuth'
 
 export default function DashboardLayout({
   children,
@@ -14,11 +14,11 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { isAuthenticated, user, checkAuth } = useAuthStore()
+  const { isAuthenticated, admin, checkAuth } = useAuthStore() // Changed user to admin
   const [isMounted, setIsMounted] = useState(false)
-  
-  // Keep user data fresh and sync with store
-  useUser()
+
+  // Keep admin data fresh and sync with store
+  useAdmin() // Changed useUser to useAdmin
 
   useEffect(() => {
     setIsMounted(true)

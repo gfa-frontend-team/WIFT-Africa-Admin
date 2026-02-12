@@ -2,7 +2,7 @@
 
 import { useChapters } from '@/lib/hooks/queries/useChapters'
 import { useAuthStore } from '@/lib/stores/authStore'
-import { AccountType } from '@/types'
+import { AdminRole, AccountType } from '@/types' // Updated import
 
 interface ChapterSelectProps {
     value?: string
@@ -19,17 +19,18 @@ export function ChapterSelect({
     required = false,
     disabled = false
 }: ChapterSelectProps) {
-    const { user } = useAuthStore()
+    const { admin } = useAuthStore() // Changed user to admin
     const { data: chaptersData, isLoading } = useChapters({ isActive: true })
 
-    const isSuperAdmin = user?.accountType === AccountType.SUPER_ADMIN
-    const isChapterAdmin = user?.accountType === AccountType.CHAPTER_ADMIN
+    // Using AdminRole enum
+    const isSuperAdmin = admin?.role === AdminRole.SUPER_ADMIN
+    const isChapterAdmin = admin?.role === AdminRole.CHAPTER_ADMIN
 
     const chapters = chaptersData?.data || []
 
     // Chapter Admin: auto-assign their chapter, don't show field
-    if (isChapterAdmin && user?.chapterId) {
-        return <input type="hidden" value={user.chapterId} onChange={() => { }} />
+    if (isChapterAdmin && admin?.chapterId) {
+        return <input type="hidden" value={admin.chapterId} onChange={() => { }} />
     }
 
     // Super Admin: show dropdown

@@ -34,10 +34,11 @@ class ApiClient {
 
         // If 401 and we haven't tried to refresh yet
         if (error.response?.status === 401 && originalRequest && !originalRequest.headers['X-Retry']) {
-          try {
-            // Try to refresh token
-            const refreshToken = this.getRefreshToken()
-            if (refreshToken) {
+          const refreshToken = this.getRefreshToken()
+
+          if (refreshToken) {
+            try {
+              // Try to refresh token
               const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
                 refreshToken,
               })
@@ -49,23 +50,33 @@ class ApiClient {
               originalRequest.headers['Authorization'] = `Bearer ${data.tokens.accessToken}`
               originalRequest.headers['X-Retry'] = 'true'
               return this.client(originalRequest)
+            } catch (refreshError) {
+              // Refresh failed, clear tokens and redirect to login
+              this.clearTokens()
+              if (typeof window !== 'undefined') {
+                window.location.href = '/login'
+              }
+              return Promise.reject(refreshError)
             }
-          } catch (refreshError) {
-            // Refresh failed, clear tokens and redirect to login
+          } else {
+            // No refresh token available, logout immediately
             this.clearTokens()
             if (typeof window !== 'undefined') {
               window.location.href = '/login'
             }
-            return Promise.reject(refreshError)
           }
         }
 
         // Handle 403 - Forbidden (insufficient permissions)
+        // Log the error but let the calling code handle it
         if (error.response?.status === 403) {
-          if (typeof window !== 'undefined') {
-            console.error('Access denied:', error.response.data?.error || 'Insufficient permissions')
-            window.location.href = '/unauthorized'
-          }
+          console.error('403 Forbidden:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            error: error.response.data?.error || 'Insufficient permissions',
+            data: error.response.data
+          })
+          // Don't auto-redirect - let components handle 403 errors appropriately
         }
 
         return Promise.reject(error)

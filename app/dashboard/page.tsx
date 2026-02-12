@@ -11,19 +11,19 @@ import { StatCard } from '@/components/dashboard/StatCard'
 import { useState } from 'react'
 
 export default function DashboardPage() {
-  const { user } = useAuthStore()
-  
-  const isSuperAdmin = user?.accountType === 'SUPER_ADMIN'
-  const isChapterAdmin = user?.accountType === 'CHAPTER_ADMIN'
+  const { admin } = useAuthStore() // Changed user to admin
+
+  const isSuperAdmin = admin?.role === 'SUPER_ADMIN'
+  const isChapterAdmin = admin?.role === 'CHAPTER_ADMIN'
 
   // Super Admin Stats
   const { data: statistics, isLoading: isStatsLoading } = useChapterStatistics({
     enabled: isSuperAdmin
   })
-  
+
   // Chapter Admin Data (Keep for name/details)
   const { data: currentChapter, isLoading: isChapterLoading } = useChapter(
-    isChapterAdmin ? (user?.chapterId || '') : ''
+    isChapterAdmin ? (admin?.chapterId || '') : ''
   )
 
   // Analytics Data
@@ -43,8 +43,8 @@ export default function DashboardPage() {
           ])
           setAnalytics(prev => ({ ...prev, posts: postsData, connections: connectionsData }))
         } else if (isChapterAdmin) {
-           const stats = await analyticsApi.getChapterDashboardStats()
-           setAnalytics(prev => ({ ...prev, chapterStats: stats }))
+          const stats = await analyticsApi.getChapterDashboardStats()
+          setAnalytics(prev => ({ ...prev, chapterStats: stats }))
         }
       } catch (err) {
         console.error('Failed to fetch analytics', err)
@@ -52,7 +52,7 @@ export default function DashboardPage() {
     }
     fetchAnalytics()
   }, [isSuperAdmin, isChapterAdmin])
-  
+
   const isLoading = (isSuperAdmin && isStatsLoading) || (isChapterAdmin && isChapterLoading)
 
   if (isLoading) {
@@ -76,7 +76,7 @@ export default function DashboardPage() {
             Platform Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Welcome back, {user?.firstName} {user?.lastName}!
+            Welcome back, {admin?.firstName} {admin?.lastName}!
           </p>
         </div>
 
@@ -177,7 +177,7 @@ export default function DashboardPage() {
           Chapter Dashboard
         </h1>
         <p className="text-muted-foreground">
-          Welcome back, {user?.firstName} {user?.lastName}!
+          Welcome back, {admin?.firstName} {admin?.lastName}!
         </p>
         {currentChapter && (
           <p className="text-lg font-semibold text-primary mt-2">
@@ -201,8 +201,8 @@ export default function DashboardPage() {
             icon={UserCheck}
             href="/dashboard/requests"
             trend={analytics.chapterStats.pendingApprovals > 0 ? {
-                value: 'Pending',
-                isPositive: false // Red color to indicate urgency
+              value: 'Pending',
+              isPositive: false // Red color to indicate urgency
             } : undefined}
             className={analytics.chapterStats.pendingApprovals > 0 ? "border-amber-500/50" : ""}
           />
@@ -211,9 +211,9 @@ export default function DashboardPage() {
             title="Monthly Growth"
             value={`${analytics.chapterStats.growth.percentageChange}%`}
             icon={Activity}
-             trend={{
-                value: analytics.chapterStats.growth.trend === 'STABLE' ? 'Stable' : 'This Month',
-                isPositive: analytics.chapterStats.growth.trend === 'UP'
+            trend={{
+              value: analytics.chapterStats.growth.trend === 'STABLE' ? 'Stable' : 'This Month',
+              isPositive: analytics.chapterStats.growth.trend === 'UP'
             }}
           />
           <StatCard
@@ -282,11 +282,10 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  currentChapter.isActive 
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                    : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-                }`}>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${currentChapter.isActive
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
+                  }`}>
                   {currentChapter.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>

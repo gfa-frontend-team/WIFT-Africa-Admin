@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import {
@@ -14,10 +14,12 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
-import { CreateJobData, Job, UpdateJobData } from '@/types'
+import { CreateJobData, Job, UpdateJobData, AdminRole } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { useCreateJob, useUpdateJob } from '@/lib/hooks/queries/useJobs'
 import { useToast } from '@/components/ui/use-toast'
+import { useAuthStore } from '@/lib/stores/authStore'
+import { ChapterSelect } from '@/components/shared/ChapterSelect'
 
 // Zod schema
 const jobSchema = z.object({
@@ -32,6 +34,7 @@ const jobSchema = z.object({
   salaryMax: z.string().optional(),
   currency: z.string().min(1, 'Currency is required'),
   applicationLink: z.string().optional().or(z.literal('')),
+  chapterId: z.string().optional(),
 })
 
 type JobFormData = z.infer<typeof jobSchema>
@@ -47,6 +50,7 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
   const { mutateAsync: createJob, isPending: isCreating } = useCreateJob()
   const { mutateAsync: updateJob, isPending: isUpdating } = useUpdateJob()
   const { toast } = useToast()
+  const { admin } = useAuthStore()
   const isLoading = isCreating || isUpdating
 
   const {
@@ -54,13 +58,15 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
     handleSubmit,
     reset,
     setValue,
+    control,
     formState: { errors },
   } = useForm<JobFormData>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
       isRemote: false,
       currency: 'NGN',
-      employmentType: 'full-time'
+      employmentType: 'full-time',
+      chapterId: admin?.role === AdminRole.CHAPTER_ADMIN ? (admin.chapterId || '') : ''
     }
   })
 
@@ -81,11 +87,25 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
           setValue('currency', job.salaryRange.currency)
         }
         setValue('applicationLink', job.applicationLink || '')
+        setValue('chapterId', job.chapterId || '')
       } else {
-        reset()
+        reset({
+          title: '',
+          description: '',
+          role: '',
+          location: '',
+          isRemote: false,
+          employmentType: 'full-time',
+          companyName: '',
+          salaryMin: '',
+          salaryMax: '',
+          currency: 'NGN',
+          applicationLink: '',
+          chapterId: admin?.role === AdminRole.CHAPTER_ADMIN ? (admin.chapterId || '') : ''
+        })
       }
     }
-  }, [isOpen, job, setValue, reset])
+  }, [isOpen, job, setValue, reset, admin])
 
   const onSubmit = async (data: JobFormData) => {
     try {
@@ -98,6 +118,7 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
         employmentType: data.employmentType,
         companyName: data.companyName,
         applicationLink: data.applicationLink || undefined,
+        chapterId: data.chapterId || undefined,
         salaryRange: (data.salaryMin && data.salaryMax) ? {
           min: Number(data.salaryMin),
           max: Number(data.salaryMax),
@@ -115,10 +136,10 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
       onClose()
     } catch (error: any) {
       console.error('Failed to save job:', error)
-      toast({ 
-        title: 'Error', 
-        description: error?.response?.data?.message || 'Failed to save job details', 
-        variant: 'destructive' 
+      toast({
+        title: 'Error',
+        description: error?.response?.data?.message || 'Failed to save job details',
+        variant: 'destructive'
       })
     }
   }
@@ -149,10 +170,10 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea 
-              id="description" 
-              {...register('description')} 
-              placeholder="Detailed job description..." 
+            <Textarea
+              id="description"
+              {...register('description')}
+              placeholder="Detailed job description..."
               className="h-32"
             />
             {errors.description && <p className="text-red-500 text-xs">{errors.description.message}</p>}
@@ -166,8 +187,8 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
             </div>
             <div className="space-y-2">
               <Label htmlFor="employmentType">Employment Type</Label>
-              <select 
-                id="employmentType" 
+              <select
+                id="employmentType"
                 {...register('employmentType')}
                 className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-sm"
               >
@@ -187,9 +208,9 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
               {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
             </div>
             <div className="flex items-center space-x-2 pt-8">
-              <input 
-                type="checkbox" 
-                id="isRemote" 
+              <input
+                type="checkbox"
+                id="isRemote"
                 {...register('isRemote')}
                 className="h-4 w-4 rounded border-gray-300"
               />
@@ -218,7 +239,24 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
             <p className="text-xs text-muted-foreground">Leave empty if you want users to apply within the platform.</p>
             {errors.applicationLink && <p className="text-red-500 text-xs">{errors.applicationLink.message}</p>}
           </div>
-          
+
+          {/* Chapter Selection */}
+          <div className="space-y-2">
+            <Label>Post to Chapter (Optional)</Label>
+            <Controller
+              name="chapterId"
+              control={control}
+              render={({ field }) => (
+                <ChapterSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={undefined} // Optional field
+                />
+              )}
+            />
+            <p className="text-xs text-muted-foreground">Leave empty for Global/HQ post</p>
+          </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit" disabled={isLoading}>

@@ -13,13 +13,13 @@ import { ChapterEditModal } from '@/components/chapters/ChapterEditModal'
 
 export default function MyChapterPage() {
   const router = useRouter()
-  const { user } = useAuthStore()
+  const { admin } = useAuthStore() // Changed user to admin
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  
+
   // Fetch chapter details using the safe endpoint (defaults to isAdminView: false)
   const { data: currentChapter, isLoading } = useChapter(
-    (user?.chapterId) ? user.chapterId : '',
-    { enabled: !!user?.chapterId }
+    (admin?.chapterId) ? admin.chapterId : '',
+    { enabled: !!admin?.chapterId }
   )
 
   if (isLoading) {
@@ -35,20 +35,20 @@ export default function MyChapterPage() {
 
   // If after loading we still don't have a chapter (and not loading), show empty state
   if (!currentChapter) {
-      return (
-        <div className="text-center py-12">
-            <h1 className="text-2xl font-bold mb-4">No Chapter Assigned</h1>
-            <p className="text-muted-foreground">You are not currently assigned to manage any chapter.</p>
-        </div>
-      )
+    return (
+      <div className="text-center py-12">
+        <h1 className="text-2xl font-bold mb-4">No Chapter Assigned</h1>
+        <p className="text-muted-foreground">You are not currently assigned to manage any chapter.</p>
+      </div>
+    )
   }
 
   return (
     <div>
-      <ChapterEditModal 
-        chapter={currentChapter} 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
+      <ChapterEditModal
+        chapter={currentChapter}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
       />
 
       {/* Header */}
@@ -188,8 +188,8 @@ export default function MyChapterPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Public Display Count</p>
                   <p className="text-foreground font-medium">
-                    {currentChapter.fixedMemberCount && currentChapter.fixedMemberCount > 0 
-                      ? currentChapter.fixedMemberCount 
+                    {currentChapter.fixedMemberCount && currentChapter.fixedMemberCount > 0
+                      ? currentChapter.fixedMemberCount
                       : <span className="text-muted-foreground italic">Not Set (Uses System Count)</span>
                     }
                   </p>

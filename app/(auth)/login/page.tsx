@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useAuthStore } from '@/lib/stores'
-import { useLogin, useGoogleLogin } from '@/lib/hooks/queries/useAuth'
+import { useLogin } from '@/lib/hooks/queries/useAuth'
 import { Shield, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react'
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 
 export default function LoginPage() {
   const router = useRouter()
   const { error, isAuthenticated, clearError } = useAuthStore()
-  
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -28,12 +27,7 @@ export default function LoginPage() {
     return () => clearError()
   }, [clearError])
 
-  useEffect(() => {
-    return () => clearError()
-  }, [clearError])
-
   const { mutate: login, isPending: isLoading, error: loginError } = useLogin()
-  const { mutate: googleLogin, isPending: isGoogleLoading } = useGoogleLogin()
 
   // Use the error from query, or fall back to store error if any (though store shouldn't have much now)
   const errorMessage = loginError?.message || error
@@ -48,32 +42,20 @@ export default function LoginPage() {
       { email, password },
       {
         onSuccess: () => {
-             router.push('/dashboard')
+          router.push('/dashboard')
         },
       }
     )
   }
-
-  const handleGoogleSuccess = (credentialResponse: any) => {
-    if (credentialResponse.credential) {
-      googleLogin(credentialResponse.credential, {
-        onSuccess: () => {
-          router.push('/dashboard')
-        },
-      })
-    }
-  }
-
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
   return (
     <div className="w-full">
       {/* Logo/Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl mb-4 overflow-hidden relative">
-          <Image 
-            src="/logo.jpg" 
-            alt="WIFT Africa Logo" 
+          <Image
+            src="/logo.jpg"
+            alt="WIFT Africa Logo"
             fill
             className="object-contain"
           />
@@ -201,38 +183,6 @@ export default function LoginPage() {
               </>
             )}
           </button>
-
-
-          {/* Google Login */}
-          {googleClientId && (
-            <>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-card text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-center">
-                <GoogleOAuthProvider clientId={googleClientId}>
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => {
-                      console.error('Google Login Failed')
-                    }}
-                    useOneTap
-                    theme="outline"
-                    shape="circle"
-                    width="100%"
-                  />
-                </GoogleOAuthProvider>
-              </div>
-            </>
-          )}
         </form>
 
         {/* Divider */}

@@ -3,9 +3,9 @@ import { membershipApi, MembershipFilters } from '@/lib/api/membership'
 
 export const MEMBERSHIP_KEYS = {
   all: ['membership'] as const,
-  requests: (chapterId: string, filters: MembershipFilters = {}) => 
+  requests: (chapterId: string, filters: MembershipFilters = {}) =>
     [...MEMBERSHIP_KEYS.all, 'requests', chapterId, filters] as const,
-  members: (chapterId: string, page: number = 1, limit: number = 20) => 
+  members: (chapterId: string, page: number = 1, limit: number = 20) =>
     [...MEMBERSHIP_KEYS.all, 'members', chapterId, page, limit] as const,
 }
 
@@ -14,6 +14,14 @@ export function useMembershipRequests(chapterId: string, filters: MembershipFilt
     queryKey: MEMBERSHIP_KEYS.requests(chapterId, filters),
     queryFn: () => membershipApi.getRequests(chapterId, filters),
     enabled: !!chapterId,
+  })
+}
+
+export function useMemberDetails(userId: string) {
+  return useQuery({
+    queryKey: [...MEMBERSHIP_KEYS.all, 'details', userId],
+    queryFn: () => membershipApi.getMemberDetails(userId),
+    enabled: !!userId,
   })
 }
 
@@ -43,16 +51,16 @@ export function useRejectRequest() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ 
-      chapterId, 
-      requestId, 
-      reason, 
-      canReapply 
-    }: { 
-      chapterId: string; 
-      requestId: string; 
-      reason: string; 
-      canReapply?: boolean 
+    mutationFn: ({
+      chapterId,
+      requestId,
+      reason,
+      canReapply
+    }: {
+      chapterId: string;
+      requestId: string;
+      reason: string;
+      canReapply?: boolean
     }) => membershipApi.rejectRequest(chapterId, requestId, reason, canReapply),
     onSuccess: (_, { chapterId }) => {
       queryClient.invalidateQueries({ queryKey: [...MEMBERSHIP_KEYS.all, 'requests', chapterId] })

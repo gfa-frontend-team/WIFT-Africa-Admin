@@ -5,17 +5,20 @@ import { Plus, Search, Filter } from 'lucide-react'
 import Link from 'next/link'
 import { useEvents } from '@/lib/hooks/queries/useEvents'
 import { EventStatus, EventType } from '@/types'
+import { usePermissions } from '@/lib/hooks/usePermissions'
 
 export default function EventsPage() {
+  const { isChapterAdmin, userChapterId } = usePermissions()
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<EventStatus | ''>('')
   const [typeFilter, setTypeFilter] = useState<EventType | ''>('')
-  
+
   const { data, isLoading, error } = useEvents({
     page,
     limit: 10,
     status: statusFilter as EventStatus || undefined,
     type: typeFilter as EventType || undefined,
+    chapterId: isChapterAdmin && userChapterId ? userChapterId : undefined, // Filter by chapter for Chapter Admins
   })
 
   return (
@@ -26,9 +29,9 @@ export default function EventsPage() {
           <h1 className="text-2xl font-bold text-foreground">Events</h1>
           <p className="text-muted-foreground">Manage ongoing and upcoming events</p>
         </div>
-        
-        <Link 
-          href="/dashboard/events/create" 
+
+        <Link
+          href="/dashboard/events/create"
           className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -42,7 +45,7 @@ export default function EventsPage() {
           <Filter className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium">Filters:</span>
         </div>
-        
+
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as EventStatus | '')}
@@ -77,8 +80,8 @@ export default function EventsPage() {
             <p className="text-lg font-medium mb-2">No events found</p>
             <p className="text-muted-foreground mb-4">Get started by creating your first event.</p>
             {!statusFilter && !typeFilter && (
-              <Link 
-                href="/dashboard/events/create" 
+              <Link
+                href="/dashboard/events/create"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
               >
                 <Plus className="w-4 h-4" />
@@ -121,7 +124,7 @@ export default function EventsPage() {
                       {event.currentAttendees} / {event.capacity || '∞'}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link 
+                      <Link
                         href={`/dashboard/events/${event.id}`}
                         className="text-primary hover:underline font-medium"
                       >

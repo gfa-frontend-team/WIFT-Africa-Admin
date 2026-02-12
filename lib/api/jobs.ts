@@ -1,9 +1,9 @@
 import { apiClient } from './client'
-import { 
-  ApiResponse, 
-  PaginatedResponse, 
-  Job, 
-  CreateJobData, 
+import {
+  ApiResponse,
+  PaginatedResponse,
+  Job,
+  CreateJobData,
   UpdateJobData,
   JobFilters,
   JobApplication,
@@ -42,9 +42,10 @@ export const jobsApi = {
     if (filters.location) params.append('location', filters.location)
     if (filters.role) params.append('role', filters.role)
     if (filters.remote !== undefined) params.append('remote', filters.remote.toString())
+    if (filters.chapterId) params.append('chapterId', filters.chapterId)
 
     const response = await apiClient.get<any>(`/jobs?${params.toString()}`)
-    
+
     return {
       data: (response.data || []).map(mapJob),
       pagination: {
@@ -84,7 +85,7 @@ export const jobsApi = {
     if (filters.status) params.append('status', filters.status)
 
     const response = await apiClient.get<any>(`/job-applications/admin/jobs/${jobId}/applications?${params.toString()}`)
-    
+
     return {
       data: (response.applications || []).map(mapApplication),
       pagination: {

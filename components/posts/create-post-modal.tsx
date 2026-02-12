@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
 } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Label } from '@/components/ui/Label'
@@ -28,23 +28,23 @@ interface CreatePostModalProps {
 export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalProps) {
   const { toast } = useToast()
   const router = useRouter()
-  const { user } = useAuthStore()
-  
+  const { admin } = useAuthStore() // Changed user to admin
+
   const { mutateAsync: createPost, isPending: loading } = useCreatePost()
-  
+
   const [content, setContent] = useState('')
   const [targetType, setTargetType] = useState<'ALL' | 'CHAPTER'>('ALL')
   const [targetChapterId, setTargetChapterId] = useState('')
-  
-  const { data: chaptersData } = useChapters({}, { enabled: isOpen && user?.accountType === 'SUPER_ADMIN' })
+
+  const { data: chaptersData } = useChapters({}, { enabled: isOpen && admin?.role === 'SUPER_ADMIN' })
   const chapters = chaptersData?.data || []
 
   // Check Permissions
-  const isSuperAdmin = user?.accountType === 'SUPER_ADMIN'
+  const isSuperAdmin = admin?.role === 'SUPER_ADMIN'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!content.trim()) {
       toast({ title: 'Error', description: 'Content is required', variant: 'destructive' })
       return
@@ -63,10 +63,10 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
       onSuccess()
       onClose()
     } catch (error: any) {
-      toast({ 
-        title: 'Error', 
-        description: error?.response?.data?.message || 'Failed to create post', 
-        variant: 'destructive' 
+      toast({
+        title: 'Error',
+        description: error?.response?.data?.message || 'Failed to create post',
+        variant: 'destructive'
       })
     }
   }
@@ -80,15 +80,15 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-             <Label htmlFor="content">Content</Label>
-             <Textarea
-               id="content"
-               placeholder="What do you want to announce?"
-               className="min-h-[150px]"
-               value={content}
-               onChange={(e) => setContent(e.target.value)}
-               disabled={loading}
-             />
+            <Label htmlFor="content">Content</Label>
+            <Textarea
+              id="content"
+              placeholder="What do you want to announce?"
+              className="min-h-[150px]"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              disabled={loading}
+            />
           </div>
 
           <div className="space-y-2">
@@ -96,7 +96,7 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
             <NativeSelect
               value={targetType}
               onChange={(e) => setTargetType(e.target.value as 'ALL' | 'CHAPTER')}
-              disabled={loading || !isSuperAdmin} 
+              disabled={loading || !isSuperAdmin}
             >
               <option value="ALL">Global (All Members)</option>
               <option value="CHAPTER">Specific Chapter</option>
@@ -104,21 +104,21 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
           </div>
 
           {targetType === 'CHAPTER' && isSuperAdmin && (
-             <div className="space-y-2">
-               <Label>Select Chapter</Label>
-               <NativeSelect
-                 value={targetChapterId}
-                 onChange={(e) => setTargetChapterId(e.target.value)}
-                 disabled={loading}
-               >
-                 <option value="">Select a chapter...</option>
-                 {chapters.map((chapter) => (
-                   <option key={chapter.id} value={chapter.id}>
-                     {chapter.name}
-                   </option>
-                 ))}
-               </NativeSelect>
-             </div>
+            <div className="space-y-2">
+              <Label>Select Chapter</Label>
+              <NativeSelect
+                value={targetChapterId}
+                onChange={(e) => setTargetChapterId(e.target.value)}
+                disabled={loading}
+              >
+                <option value="">Select a chapter...</option>
+                {chapters.map((chapter) => (
+                  <option key={chapter.id} value={chapter.id}>
+                    {chapter.name}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
           )}
 
           <div className="text-xs text-muted-foreground">

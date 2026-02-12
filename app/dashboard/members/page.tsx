@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuthStore } from '@/lib/stores'
 import { useChapters, useChapter } from '@/lib/hooks/queries/useChapters'
 import { useChapterMembers } from '@/lib/hooks/queries/useMembership'
 import { User } from '@/types'
@@ -14,7 +13,7 @@ import { Permission } from '@/lib/constants/permissions'
 
 export default function MembersPage() {
   const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions()
-  
+
   // Auto-scope to user's chapter for Chapter Admins
   const [selectedChapter, setSelectedChapter] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -30,7 +29,7 @@ export default function MembersPage() {
 
   // Fetch members
   const { data: membersResponse, isLoading, refetch } = useChapterMembers(
-    selectedChapter, 
+    selectedChapter,
     1, // page
     100 // limit
   )
@@ -45,7 +44,7 @@ export default function MembersPage() {
   }, [isChapterAdmin, userChapterId])
 
   // Filter members by search term
-  const filteredMembers = members.filter(member => {
+  const filteredMembers = members.filter((member: User) => {
     if (!searchTerm) return true
     const search = searchTerm.toLowerCase()
     return (
@@ -80,7 +79,7 @@ export default function MembersPage() {
                 Viewing Your Chapter Only
               </p>
               <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
-                You are viewing members for <strong>{currentChapter.name}</strong> only. 
+                You are viewing members for <strong>{currentChapter.name}</strong> only.
                 You cannot access members from other chapters.
               </p>
             </div>
@@ -169,10 +168,10 @@ export default function MembersPage() {
 
           {/* Members Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMembers.map((member) => (
-              <MemberCard 
-                key={member.id} 
-                member={member} 
+            {filteredMembers.map((member: User) => (
+              <MemberCard
+                key={member.id}
+                member={member}
                 onClick={() => {
                   setSelectedMember(member)
                   setIsModalOpen(true)
@@ -184,35 +183,35 @@ export default function MembersPage() {
       )}
 
       {/* Member Profile Modal */}
-      <MemberProfileModal 
-        member={selectedMember} 
-        isOpen={isModalOpen} 
+      <MemberProfileModal
+        member={selectedMember}
+        isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false)
           setSelectedMember(null)
         }}
         onStatusChange={() => {
           // Refetch members
-           // Since we don't have direct refetch expose from useChapterMembers (it returns generic query result)
-           // ideally we invalidate query. But checking hook:
-           // const { data: membersResponse, isLoading } = useChapterMembers(...)
-           // standard react-query return.
-           // However, simple window reload is crude. 
-           // Let's rely on query invalidation if we had access to queryClient, or force reload if needed.
-           // Better: invalidating queries is the way. 
-           // BUT useMembership hook likely doesn't export the query key or client directly here.
-           // I'll add queryClient usage to invalidate 'chapter-members'.
-           // For now, let's try to just let React Query handle it if focus happens, or adding a key.
-           // Best approach: Invalidate via QueryClient.
-           // I'll need to import useQueryClient.
-           
-           // Actually, let's just create a manual refetch function wrapper if needed.
-           // UseQuery returns `refetch`.
-           // Let's assume useChapterMembers returns { ..., refetch } 
-           // I'll check lines 30-34.
-           // const { data: membersResponse, isLoading } = useChapterMembers
-           // I'll update that destructuring.
-           refetch()
+          // Since we don't have direct refetch expose from useChapterMembers (it returns generic query result)
+          // ideally we invalidate query. But checking hook:
+          // const { data: membersResponse, isLoading } = useChapterMembers(...)
+          // standard react-query return.
+          // However, simple window reload is crude. 
+          // Let's rely on query invalidation if we had access to queryClient, or force reload if needed.
+          // Better: invalidating queries is the way. 
+          // BUT useMembership hook likely doesn't export the query key or client directly here.
+          // I'll add queryClient usage to invalidate 'chapter-members'.
+          // For now, let's try to just let React Query handle it if focus happens, or adding a key.
+          // Best approach: Invalidate via QueryClient.
+          // I'll need to import useQueryClient.
+
+          // Actually, let's just create a manual refetch function wrapper if needed.
+          // UseQuery returns `refetch`.
+          // Let's assume useChapterMembers returns { ..., refetch } 
+          // I'll check lines 30-34.
+          // const { data: membersResponse, isLoading } = useChapterMembers
+          // I'll update that destructuring.
+          refetch()
         }}
       />
     </div>

@@ -13,6 +13,8 @@ export * from './funding'
 // USER & AUTH TYPES
 // ============================================
 
+export * from './admin'
+
 export enum AccountType {
   CHAPTER_MEMBER = 'CHAPTER_MEMBER',
   HQ_MEMBER = 'HQ_MEMBER',
@@ -85,7 +87,11 @@ export interface User {
   termsAccepted: boolean
   termsAcceptedAt?: Date
   chapterId?: string
+  chapter?: Chapter // Populated
   memberType?: MemberType
+  phoneNumber?: string
+  cvFileUrl?: string
+  cvFileName?: string
   lastLoginAt?: Date
   createdAt: Date
   updatedAt: Date

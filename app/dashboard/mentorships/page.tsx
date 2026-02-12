@@ -29,7 +29,10 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/AlertDialog'
 
+import { usePermissions } from '@/lib/hooks/usePermissions'
+
 export default function MentorshipsPage() {
+    const { isChapterAdmin, userChapterId } = usePermissions()
     const [page, setPage] = useState(1)
     const [search, setSearch] = useState('')
     const debouncedSearch = useDebounce(search, 500)
@@ -41,11 +44,12 @@ export default function MentorshipsPage() {
     const { toast } = useToast()
 
     const { data, isLoading } = useQuery({
-        queryKey: ['mentorships', page, debouncedSearch],
+        queryKey: ['mentorships', page, debouncedSearch, isChapterAdmin, userChapterId],
         queryFn: () => mentorshipApi.getAllMentorships({
             page,
             limit: 10,
-            search: debouncedSearch
+            search: debouncedSearch,
+            chapterId: isChapterAdmin ? userChapterId || undefined : undefined
         })
     })
 

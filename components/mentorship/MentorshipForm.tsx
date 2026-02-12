@@ -13,7 +13,7 @@ import { DaysCheckboxGroup } from '@/components/shared/DaysCheckboxGroup'
 import { Mentorship, MentorshipFormat, MentorshipStatus, DayOfWeek } from '@/types/mentorship'
 import { mentorshipApi } from '@/lib/api/mentorship'
 import { useAuthStore } from '@/lib/stores/authStore'
-import { AccountType } from '@/types'
+import { AdminRole, AccountType } from '@/types'
 
 const mentorshipSchema = z.object({
     mentorName: z.string().min(1, 'Mentor name is required').max(200, 'Mentor name must be less than 200 characters'),
@@ -80,7 +80,7 @@ interface MentorshipFormProps {
 
 export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: MentorshipFormProps) {
     const { toast } = useToast()
-    const { user } = useAuthStore()
+    const { admin } = useAuthStore() // Changed user to admin
     const [isLoading, setIsLoading] = useState(false)
 
     const { register, handleSubmit, reset, control, watch, formState: { errors }, setValue } = useForm<MentorshipFormValues>({
@@ -98,7 +98,7 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
             description: '',
             eligibility: '',
             status: MentorshipStatus.OPEN,
-            chapterId: user?.accountType === AccountType.CHAPTER_ADMIN ? user.chapterId : ''
+            chapterId: admin?.role === AdminRole.CHAPTER_ADMIN ? (admin.chapterId || '') : ''
         }
     })
 
@@ -139,10 +139,10 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                 description: '',
                 eligibility: '',
                 status: MentorshipStatus.OPEN,
-                chapterId: user?.accountType === AccountType.CHAPTER_ADMIN ? user.chapterId : ''
+                chapterId: admin?.role === AdminRole.CHAPTER_ADMIN ? (admin.chapterId || '') : ''
             })
         }
-    }, [mentorship, reset, isOpen, user])
+    }, [mentorship, reset, isOpen, admin])
 
     const onSubmit = async (data: MentorshipFormValues) => {
         setIsLoading(true)
@@ -172,10 +172,22 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
             onSuccess()
             onClose()
         } catch (error: any) {
-            console.error('Failed to save mentorship:', error)
+            console.error('Failed to save mentorship:', {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                error: error.response?.data?.error,
+                message: error.response?.data?.message,
+                data: error.response?.data,
+                fullError: error
+            })
+            
+            const errorMessage = error.response?.data?.error || 
+                                error.response?.data?.message || 
+                                "Failed to save mentorship"
+            
             toast({
                 title: "Error",
-                description: error.response?.data?.message || "Failed to save mentorship",
+                description: errorMessage,
                 variant: "destructive"
             })
         } finally {

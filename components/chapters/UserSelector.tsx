@@ -16,7 +16,7 @@ interface UserSelectorProps {
 export function UserSelector({ chapterId, onSelect, excludeIds = [] }: UserSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm, 500)
-  
+
   // Always fetch members for local filtering since the API might not support search query directly
   // or if we rely on client-side filtering as seen in MembersPage
   const { data: membersResponse, isLoading } = useChapterMembers(
@@ -26,18 +26,18 @@ export function UserSelector({ chapterId, onSelect, excludeIds = [] }: UserSelec
   )
 
   const members = membersResponse?.data || []
-  
-  const filteredMembers = members.filter(member => {
+
+  const filteredMembers = members.filter((member: User) => {
     // Exclude already selected/excluded IDs
     if (excludeIds.includes(member.id)) return false
-    
+
     // Only show APPROVED members for admin promotion
     // Note: The API /chapters/:id/members ONLY returns approved members, 
     // and the response object does not include the membershipStatus field.
     // So we don't need to filter explicitly.
 
     if (!debouncedSearch) return true
-    
+
     const search = debouncedSearch.toLowerCase()
     return (
       member.firstName?.toLowerCase().includes(search) ||
@@ -69,7 +69,7 @@ export function UserSelector({ chapterId, onSelect, excludeIds = [] }: UserSelec
             {searchTerm ? 'No matching members found' : 'No eligible members found'}
           </div>
         ) : (
-          filteredMembers.map((member) => (
+          filteredMembers.map((member: User) => (
             <button
               key={member.id}
               onClick={() => onSelect(member)}
