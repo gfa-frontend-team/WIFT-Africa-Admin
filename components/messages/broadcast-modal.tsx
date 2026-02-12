@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
 } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Label } from '@/components/ui/Label'
@@ -29,7 +29,7 @@ interface BroadcastModalProps {
 export function BroadcastModal({ isOpen, onClose, onSuccess }: BroadcastModalProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const { user } = useAuthStore()
+  const { admin } = useAuthStore() // Changed user to admin
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,18 +40,18 @@ export function BroadcastModal({ isOpen, onClose, onSuccess }: BroadcastModalPro
   const [chapterId, setChapterId] = useState('')
 
   // Fetch chapters for selection
-  const { data: chaptersData } = useChapters({}, { enabled: isOpen && user?.accountType === 'SUPER_ADMIN' })
+  const { data: chaptersData } = useChapters({}, { enabled: isOpen && admin?.role === 'SUPER_ADMIN' })
   const chapters = chaptersData?.data || []
 
   // Check Permissions
-  const isSuperAdmin = user?.accountType === 'SUPER_ADMIN'
-  const isChapterAdmin = user?.accountType === 'CHAPTER_ADMIN'
+  const isSuperAdmin = admin?.role === 'SUPER_ADMIN'
+  const isChapterAdmin = admin?.role === 'CHAPTER_ADMIN'
 
   // Set default target for Chapter Admin
   useState(() => {
-    if (isChapterAdmin && user?.chapterId) {
+    if (isChapterAdmin && admin?.chapterId) {
       setRecipientType(MessageRecipientType.CHAPTER)
-      setChapterId(user.chapterId)
+      setChapterId(admin.chapterId)
     }
   })
 
@@ -137,21 +137,21 @@ export function BroadcastModal({ isOpen, onClose, onSuccess }: BroadcastModalPro
           </div>
 
           {recipientType === MessageRecipientType.CHAPTER && isSuperAdmin && (
-             <div className="space-y-2">
-               <Label>Select Chapter</Label>
-               <NativeSelect
-                 value={chapterId}
-                 onChange={(e) => setChapterId(e.target.value)}
-                 disabled={loading}
-               >
-                 <option value="">Select a chapter...</option>
-                 {chapters.map((chapter) => (
-                   <option key={chapter.id} value={chapter.id}>
-                     {chapter.name}
-                   </option>
-                 ))}
-               </NativeSelect>
-             </div>
+            <div className="space-y-2">
+              <Label>Select Chapter</Label>
+              <NativeSelect
+                value={chapterId}
+                onChange={(e) => setChapterId(e.target.value)}
+                disabled={loading}
+              >
+                <option value="">Select a chapter...</option>
+                {chapters.map((chapter) => (
+                  <option key={chapter.id} value={chapter.id}>
+                    {chapter.name}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
           )}
 
           <div className="space-y-2">

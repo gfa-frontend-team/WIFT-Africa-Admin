@@ -30,7 +30,10 @@ import {
 } from '@/components/ui/AlertDialog'
 import { format } from 'date-fns'
 
+import { usePermissions } from '@/lib/hooks/usePermissions'
+
 export default function FundingPage() {
+    const { isChapterAdmin, userChapterId } = usePermissions()
     const [page, setPage] = useState(1)
     const [search, setSearch] = useState('')
     const debouncedSearch = useDebounce(search, 500)
@@ -42,11 +45,12 @@ export default function FundingPage() {
     const { toast } = useToast()
 
     const { data, isLoading } = useQuery({
-        queryKey: ['funding', page, debouncedSearch],
+        queryKey: ['funding', page, debouncedSearch, isChapterAdmin, userChapterId],
         queryFn: () => fundingApi.getAllOpportunities({
             page,
             limit: 10,
-            search: debouncedSearch
+            search: debouncedSearch,
+            chapterId: isChapterAdmin ? userChapterId || undefined : undefined
         })
     })
 

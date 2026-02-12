@@ -5,14 +5,14 @@ import { useAuthStore } from '@/lib/stores'
 import { useRouter } from 'next/navigation'
 
 export const AUTH_KEYS = {
-  user: ['auth', 'user'] as const,
+  admin: ['auth', 'admin'] as const,
 }
 
-export function useUser() {
-  const { isAuthenticated, setUser } = useAuthStore()
+export function useAdmin() {
+  const { isAuthenticated, setAdmin } = useAuthStore()
 
   const query = useQuery({
-    queryKey: AUTH_KEYS.user,
+    queryKey: AUTH_KEYS.admin,
     queryFn: authApi.getCurrentUser,
     enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -22,9 +22,9 @@ export function useUser() {
   // Sync with store
   useEffect(() => {
     if (query.data) {
-      setUser(query.data)
+      setAdmin(query.data)
     }
-  }, [query.data, setUser])
+  }, [query.data, setAdmin])
 
   return query
 }
@@ -34,33 +34,19 @@ export function useLogin() {
   const { login: storeLogin } = useAuthStore()
 
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => 
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
       authApi.login(email, password),
     onSuccess: (data) => {
       // Update store state
-      storeLogin(data.user)
-      
+      storeLogin(data.admin)
+
       // Update query cache
-      queryClient.setQueryData(AUTH_KEYS.user, data.user)
+      queryClient.setQueryData(AUTH_KEYS.admin, data.admin)
     },
   })
 }
 
-export function useGoogleLogin() {
-  const queryClient = useQueryClient()
-  const { login: storeLogin } = useAuthStore()
-
-  return useMutation({
-    mutationFn: (idToken: string) => authApi.googleLogin(idToken),
-    onSuccess: (data) => {
-      // Update store state
-      storeLogin(data.user)
-      
-      // Update query cache
-      queryClient.setQueryData(AUTH_KEYS.user, data.user)
-    },
-  })
-}
+// Google Login removed as per Admin Migration Logic
 
 export function useLogout() {
   const queryClient = useQueryClient()
@@ -68,11 +54,13 @@ export function useLogout() {
   const router = useRouter()
 
   return useMutation({
-    mutationFn: authApi.logout,
+    mutationFn: async () => {
+      await authApi.logout()
+    },
     onSettled: () => {
       // Always cleanup local state even if server logout fails
       storeLogout()
-      queryClient.removeQueries({ queryKey: AUTH_KEYS.user })
+      queryClient.removeQueries({ queryKey: AUTH_KEYS.admin })
       queryClient.clear() // Clear all cache on logout
       router.push('/login')
     },

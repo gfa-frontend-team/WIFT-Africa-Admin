@@ -12,7 +12,7 @@ import { ChapterSelect } from '@/components/shared/ChapterSelect'
 import { FundingOpportunity, FundingType, ApplicationType, FundingStatus } from '@/types/funding'
 import { fundingApi } from '@/lib/api/funding'
 import { useAuthStore } from '@/lib/stores/authStore'
-import { AccountType } from '@/types'
+import { AdminRole, AccountType } from '@/types'
 
 const fundingSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
@@ -51,7 +51,7 @@ interface FundingFormProps {
 
 export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: FundingFormProps) {
     const { toast } = useToast()
-    const { user } = useAuthStore()
+    const { admin } = useAuthStore() // Changed user to admin
     const [isLoading, setIsLoading] = useState(false)
 
     const { register, handleSubmit, reset, control, watch, formState: { errors } } = useForm<FundingFormValues>({
@@ -67,7 +67,7 @@ export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: Funding
             region: '',
             amount: '',
             eligibility: '',
-            chapterId: user?.accountType === AccountType.CHAPTER_ADMIN ? user.chapterId : '',
+            chapterId: admin?.role === AdminRole.CHAPTER_ADMIN ? (admin.chapterId || '') : '',
             status: FundingStatus.OPEN
         }
     })
@@ -105,11 +105,11 @@ export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: Funding
                 region: '',
                 amount: '',
                 eligibility: '',
-                chapterId: user?.accountType === AccountType.CHAPTER_ADMIN ? user.chapterId : '',
+                chapterId: admin?.role === AdminRole.CHAPTER_ADMIN ? (admin.chapterId || '') : '',
                 status: FundingStatus.OPEN
             })
         }
-    }, [opportunity, reset, isOpen, user])
+    }, [opportunity, reset, isOpen, admin])
 
     const onSubmit = async (data: FundingFormValues) => {
         setIsLoading(true)

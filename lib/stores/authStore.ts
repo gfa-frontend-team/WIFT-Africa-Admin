@@ -1,32 +1,32 @@
 import { create } from 'zustand'
 import { authApi } from '../api'
-import type { User } from '@/types'
+import type { Admin } from '@/types'
 
 interface AuthState {
-  user: User | null
+  admin: Admin | null
   isLoading: boolean
   error: string | null
   isAuthenticated: boolean
-  
+
   // Actions
-  login: (user: User) => void
+  login: (admin: Admin) => void
   logout: () => void
   checkAuth: () => void
   refreshUser: () => Promise<void>
-  setUser: (user: User | null) => void
+  setAdmin: (admin: Admin | null) => void
   clearError: () => void
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: authApi.getStoredUser(),
+  admin: authApi.getStoredUser(), // authApi.getStoredUser() now returns Admin | null
   isAuthenticated: authApi.isAuthenticated(),
-  isLoading: false, // Keep for backward compatibility mostly, or remove if fully migrated
+  isLoading: false,
   error: null,
 
   // Synchronous actions only
-  login: (user: User) => {
+  login: (admin: Admin) => {
     set({
-      user,
+      admin,
       isAuthenticated: true,
       error: null,
     })
@@ -34,22 +34,21 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     set({
-      user: null,
+      admin: null,
       isAuthenticated: false,
       error: null,
     })
   },
 
-  setUser: (user: User | null) => {
-    set({ user, isAuthenticated: !!user })
+  setAdmin: (admin: Admin | null) => {
+    set({ admin, isAuthenticated: !!admin })
   },
-  
-  // Deprecated/No-op actions to prevent breaking other components immediately
+
   checkAuth: () => {
-     const isAuth = authApi.isAuthenticated()
-     const user = authApi.getStoredUser()
-     set({ isAuthenticated: isAuth, user })
+    const isAuth = authApi.isAuthenticated()
+    const admin = authApi.getStoredUser()
+    set({ isAuthenticated: isAuth, admin })
   },
-  refreshUser: async () => {}, 
+  refreshUser: async () => { }, // Kept stub for now, maybe remove or implement refreshAdmin later
   clearError: () => set({ error: null }),
 }))

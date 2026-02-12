@@ -1,120 +1,100 @@
 import { apiClient } from './client'
-import type { AuthResponse, AuthTokens, User } from '@/types'
+import type { Admin, AdminAuthResponse, AuthTokens } from '@/types'
 
-// Helper function to transform MongoDB _id to id
-const transformUser = (user: any): User => {
-  // Extract chapterId from various possible locations
-  let chapterId = user.chapterId;
-  
-  // If chapterId is missing but chapter object exists
-  if (!chapterId && user.chapter) {
-    if (typeof user.chapter === 'object') {
-      chapterId = user.chapter._id || user.chapter.id;
-    } else if (typeof user.chapter === 'string') {
-      chapterId = user.chapter;
-    }
-  }
-
+// Helper function to transform Admin response if needed
+// The backend returns an 'admin' object which should match our interface
+const transformAdmin = (admin: any): Admin => {
   return {
-    ...user,
-    id: user._id || user.id,
-    chapterId,
+    ...admin,
+    id: admin._id || admin.id || admin.adminId,
+    // Add any other transformations if the backend response differs slightly
   }
 }
 
 export const authApi = {
-  // Login - Fetches full user data including accountType after getting tokens
-  login: async (email: string, password: string): Promise<AuthResponse> => {
-    // Step 1: Get tokens from login endpoint
-    const response = await apiClient.post<{ user: any; tokens: AuthTokens }>('/auth/login', {
+  // Admin Login
+  login: async (email: string, password: string): Promise<AdminAuthResponse> => {
+    // Step 1: Get tokens from admin login endpoint
+    const response = await apiClient.post<AdminAuthResponse>('/auth/admin/login', {
       email,
       password,
     })
-    
-    // Backend returns {message, user, tokens} directly, not wrapped in {success, data}
-    if (response.user && response.tokens) {
-      // Step 2: Store tokens first (needed for subsequent API calls)
-      apiClient.setTokens(response.tokens.accessToken, response.tokens.refreshToken)
-      
-      // Step 3: Fetch full user data (includes accountType, membershipStatus, etc.)
-      // The login endpoint doesn't return accountType, so we need to fetch it
-      const fullUser = await authApi.getCurrentUser()
-      
-      // Step 4: Store complete user data
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(fullUser))
-      }
-      
-      return {
-        user: fullUser, // Now includes accountType for RBAC
-        tokens: response.tokens,
-      }
-    }
-    
-    throw new Error('Login failed')
-  },
 
-  // Google Login
-  googleLogin: async (idToken: string): Promise<AuthResponse> => {
-    // Step 1: Get tokens from google login endpoint
-    const response = await apiClient.post<{ user: any; tokens: AuthTokens }>('/auth/google', {
-      idToken,
-    })
+    // The response structure from doc: { status: "success", token: "...", admin: { ... } }
+    // However, the interface usually expects { success: boolean, data: ... } or direct data depending on client setup.
+    // Let's assume apiClient returns the data directly as configured in most axios interceptors,
+    // or we handle the specific response structure here.
 
-    if (response.user && response.tokens) {
+    // Based on admin_api_reference.md:
+    // Response (200 OK):
+    // {
+    //   "status": "success",
+    //   "token": "...",
+    //   "admin": { ... }
+    // }
+
+    if (response.token && response.admin) {
       // Step 2: Store tokens
-      apiClient.setTokens(response.tokens.accessToken, response.tokens.refreshToken)
+      // Admin login returns a single token - use it for both access and refresh
+      // This ensures token refresh logic works properly
+      apiClient.setTokens(response.token, response.token)
 
-      // Step 3: Fetch full user data
-      const fullUser = await authApi.getCurrentUser()
+      // Step 3: Store admin data
+      const admin = transformAdmin(response.admin)
 
-      // Step 4: Store complete user data
       if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(fullUser))
+        localStorage.setItem('admin', JSON.stringify(admin))
+        // Store token in localStorage as well if apiClient doesn't persist it automatically across reloads
+        // (client.ts likely handles this, but good to be sure)
       }
 
       return {
-        user: fullUser,
-        tokens: response.tokens,
+        status: response.status,
+        token: response.token,
+        admin,
       }
     }
 
-    throw new Error('Google login failed')
+    throw new Error('Login failed')
   },
 
   // Logout
   logout: async (): Promise<void> => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken')
-      await apiClient.post('/auth/logout', { refreshToken })
+      // Admin might not have a logout endpoint or it might be client-side only clearing
+      // If there is one, call it. For now, clear tokens.
+      apiClient.clearTokens()
     } finally {
       apiClient.clearTokens()
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('admin')
+      }
     }
   },
 
-  // Get current user
-  getCurrentUser: async (): Promise<User> => {
-    const response = await apiClient.get<{ user: any }>('/users/me')
-    if (response.user) {
-      return transformUser(response.user)
+  // Get current admin
+  getCurrentUser: async (): Promise<Admin> => {
+    const response = await apiClient.get<{ admin: any }>('/admin/me')
+    if (response.admin) {
+      return transformAdmin(response.admin)
     }
-    throw new Error('Failed to get current user')
+    throw new Error('Failed to get current admin')
   },
 
-  // Check if user is authenticated
+  // Check if admin is authenticated
   isAuthenticated: (): boolean => {
     if (typeof window === 'undefined') return false
-    const token = localStorage.getItem('accessToken')
+    const token = localStorage.getItem('accessToken') // client.ts key
     return !!token
   },
 
-  // Get stored user
-  getStoredUser: (): User | null => {
+  // Get stored admin
+  getStoredUser: (): Admin | null => {
     if (typeof window === 'undefined') return null
-    const userStr = localStorage.getItem('user')
-    if (!userStr) return null
+    const adminStr = localStorage.getItem('admin')
+    if (!adminStr) return null
     try {
-      return JSON.parse(userStr)
+      return JSON.parse(adminStr)
     } catch {
       return null
     }

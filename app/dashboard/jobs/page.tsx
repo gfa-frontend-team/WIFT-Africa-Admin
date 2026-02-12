@@ -14,13 +14,14 @@ import { Badge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/use-toast'
 
 export default function JobsPage() {
-  const { isChapterAdmin, isSuperAdmin } = usePermissions()
+  const { isChapterAdmin, isSuperAdmin, userChapterId } = usePermissions()
   const canManage = isChapterAdmin || isSuperAdmin
   const { toast } = useToast()
 
   const [filters, setFilters] = useState<JobFilters>({
     page: 1,
-    limit: 10
+    limit: 10,
+    chapterId: isChapterAdmin ? userChapterId || undefined : undefined
   })
 
   // Data Fetching
@@ -40,10 +41,10 @@ export default function JobsPage() {
         await deleteJob(id)
         toast({ title: 'Success', description: 'Job deleted successfully' })
       } catch (error: any) {
-        toast({ 
-          title: 'Error', 
-          description: error?.response?.data?.message || 'Failed to delete job', 
-          variant: 'destructive' 
+        toast({
+          title: 'Error',
+          description: error?.response?.data?.message || 'Failed to delete job',
+          variant: 'destructive'
         })
       }
     }
@@ -77,14 +78,14 @@ export default function JobsPage() {
 
       {/* Filters (MVP: Just search) */}
       <div className="bg-card p-4 rounded-lg border flex gap-4">
-         <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input 
-              className="w-full bg-background border px-9 py-2 rounded-md" 
-              placeholder="Search by role or location..." 
-              onChange={(e) => setFilters(prev => ({ ...prev, role: e.target.value }))} 
-            />
-         </div>
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            className="w-full bg-background border px-9 py-2 rounded-md"
+            placeholder="Search by role or location..."
+            onChange={(e) => setFilters(prev => ({ ...prev, role: e.target.value }))}
+          />
+        </div>
       </div>
 
       {isLoading ? (
@@ -96,64 +97,64 @@ export default function JobsPage() {
           {jobs.map((job) => (
             <Card key={job.id}>
               <CardHeader>
-                 <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-xl text-primary">{job.title}</CardTitle>
-                      <h3 className="font-semibold text-lg">{job.companyName}</h3>
-                    </div>
-                    <Badge variant={job.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                      {job.status}
-                    </Badge>
-                 </div>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-xl text-primary">{job.title}</CardTitle>
+                    <h3 className="font-semibold text-lg">{job.companyName}</h3>
+                  </div>
+                  <Badge variant={job.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                    {job.status}
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Briefcase className="h-4 w-4" /> <span className="capitalize">{job.employmentType}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" /> {job.location} {job.isRemote && '(Remote)'}
+                  </div>
+                  {job.salaryRange && (
                     <div className="flex items-center gap-1">
-                      <Briefcase className="h-4 w-4" /> <span className="capitalize">{job.employmentType}</span>
+                      <DollarSign className="h-4 w-4" />
+                      {job.salaryRange.currency} {job.salaryRange.min.toLocaleString()} - {job.salaryRange.max.toLocaleString()}
                     </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" /> {job.location} {job.isRemote && '(Remote)'}
-                    </div>
-                    {job.salaryRange && (
-                      <div className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4" /> 
-                        {job.salaryRange.currency} {job.salaryRange.min.toLocaleString()} - {job.salaryRange.max.toLocaleString()}
-                      </div>
-                    )}
-                 </div>
-                 <p className="line-clamp-2 text-sm">{job.description}</p>
+                  )}
+                </div>
+                <p className="line-clamp-2 text-sm">{job.description}</p>
               </CardContent>
               <CardFooter className="flex justify-between border-t pt-4">
-                 <div className="text-xs text-muted-foreground flex items-center gap-2">
-                    <Calendar className="h-3 w-3" /> Posted: {new Date(job.createdAt).toLocaleDateString()}
-                 </div>
-                 <div className="flex gap-2">
-                    {canManage && (
-                      <>
-                        <Button size="sm" variant="outline" onClick={() => handleEdit(job)}>
-                          <Edit className="h-4 w-4 mr-1" /> Edit
+                <div className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Calendar className="h-3 w-3" /> Posted: {new Date(job.createdAt).toLocaleDateString()}
+                </div>
+                <div className="flex gap-2">
+                  {canManage && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => handleEdit(job)}>
+                        <Edit className="h-4 w-4 mr-1" /> Edit
+                      </Button>
+                      <Link href={`/dashboard/jobs/${job.id}/applications`}>
+                        <Button size="sm" variant="secondary">
+                          <Eye className="h-4 w-4 mr-1" /> Applications
                         </Button>
-                        <Link href={`/dashboard/jobs/${job.id}/applications`}>
-                          <Button size="sm" variant="secondary">
-                            <Eye className="h-4 w-4 mr-1" /> Applications
-                          </Button>
-                        </Link>
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete(job.id)}>
-                           <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                 </div>
+                      </Link>
+                      <Button size="sm" variant="destructive" onClick={() => handleDelete(job.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardFooter>
             </Card>
           ))}
         </div>
       )}
 
-      <JobFormModal 
+      <JobFormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        onSuccess={() => {}} // Query invalidation handles refresh
+        onSuccess={() => { }} // Query invalidation handles refresh
         job={selectedJob}
       />
     </div>

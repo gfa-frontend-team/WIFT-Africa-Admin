@@ -37,10 +37,10 @@ export interface CreateChapterData {
 const transformChapter = (chapter: any): Chapter => ({
   ...chapter,
   id: chapter._id || chapter.id,
-  adminIds: Array.isArray(chapter.adminIds) 
-    ? chapter.adminIds.map((admin: any) => 
-        typeof admin === 'object' ? { ...admin, id: admin._id || admin.id } : admin
-      )
+  adminIds: Array.isArray(chapter.adminIds)
+    ? chapter.adminIds.map((admin: any) =>
+      typeof admin === 'object' ? { ...admin, id: admin._id || admin.id } : admin
+    )
     : chapter.adminIds,
 })
 
@@ -59,7 +59,7 @@ export const chaptersApi = {
     const response = await apiClient.get<{ chapters: any[]; pagination: any }>(
       `/admin/chapters?${params.toString()}`
     )
-    
+
     // Backend returns {chapters, pagination} with pagination.pages instead of totalPages
     // Transform _id to id for all chapters
     return {
@@ -98,14 +98,14 @@ export const chaptersApi = {
     // Docs for /chapters/:id say:
     // { "id": "...", "name": "...", ... }
     // It seems to be the root object.
-    
+
     // SAFEGUARDS:
     // If response has "id", it's the chapter.
     // If response has "chapter", use that.
-    
+
     const data = response as any
     const chapterData = data.chapter || data
-    
+
     return transformChapter(chapterData)
   },
 
@@ -133,11 +133,11 @@ export const chaptersApi = {
     // Backend ignores restricted fields if sent? Or errors? Docs say "Restricted Fields... cannot be changed".
     // Usually means 400 if tried, or silent ignore. Best to send partial.
     const response = await apiClient.patch<{ id: string }>(`/chapters/${id}`, data)
-    
+
     // Same response assumption as getChapterDetails
     const resData = response as any
     const chapterData = resData.chapter || resData
-    
+
     return transformChapter(chapterData)
   },
 
@@ -169,7 +169,33 @@ export const chaptersApi = {
 
   // Get platform statistics
   getStatistics: async (): Promise<PlatformStatistics> => {
-    const response = await apiClient.get<PlatformStatistics>('/admin/chapters/statistics')
-    return response
+    try {
+      const response = await apiClient.get<PlatformStatistics>('/admin/chapters/statistics')
+      return response
+    } catch (error) {
+      console.warn('Failed to fetch chapter statistics, falling back to client-side aggregation', error)
+
+      // Fallback: Aggregate from chapters list
+      // We fetch up to 1000 chapters to aggregate stats
+      const { data: chapters, pagination } = await chaptersApi.getChapters({ limit: 1000 })
+      const countries = await chaptersApi.getCountries()
+
+      // Calculate stats
+      const totalChapters = pagination.total
+      const activeChapters = chapters.filter(c => c.isActive).length
+      // If total > limit, we might underestimate specific counts, but it's a fallback.
+      // Better approximation for inactive:
+      const inactiveChapters = totalChapters - activeChapters
+
+      const totalMembers = chapters.reduce((sum, chapter) => sum + (chapter.memberCount || 0), 0)
+
+      return {
+        totalChapters,
+        activeChapters,
+        inactiveChapters,
+        totalMembers,
+        totalCountries: countries.length
+      }
+    }
   },
 }

@@ -12,7 +12,6 @@ import { Permission } from '@/lib/constants/permissions'
 import { getCountryIsoCode } from '@/lib/utils/countryMapping'
 
 export default function ChaptersPage() {
-  const { user } = useAuthStore()
   const [search, setSearch] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('')
   const [activeFilter, setActiveFilter] = useState<boolean | undefined>(undefined)

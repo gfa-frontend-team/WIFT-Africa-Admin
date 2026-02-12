@@ -14,14 +14,13 @@ import { PermissionGuard } from '@/lib/guards/PermissionGuard'
 import { Permission } from '@/lib/constants/permissions'
 
 export default function RequestsPage() {
-  const { user } = useAuthStore()
   const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions()
-  
+
   // Auto-scope to user's chapter for Chapter Admins
   const [selectedChapter, setSelectedChapter] = useState<string>('')
   const [memberTypeFilter, setMemberTypeFilter] = useState<'NEW' | 'EXISTING' | ''>('')
   const [searchTerm, setSearchTerm] = useState('')
-  
+
   const [approveModalRequest, setApproveModalRequest] = useState<MembershipRequest | null>(null)
   const [rejectModalRequest, setRejectModalRequest] = useState<MembershipRequest | null>(null)
 
@@ -37,8 +36,8 @@ export default function RequestsPage() {
   const { data: requestsResponse, isLoading } = useMembershipRequests(
     selectedChapter,
     {
-       status: 'PENDING',
-       memberType: memberTypeFilter || undefined
+      status: 'PENDING',
+      memberType: memberTypeFilter || undefined
     }
   )
 
@@ -47,7 +46,7 @@ export default function RequestsPage() {
   // Mutations
   const { mutateAsync: approveRequest, isPending: isApproving } = useApproveRequest()
   const { mutateAsync: rejectRequest, isPending: isRejecting } = useRejectRequest()
-  
+
   const actionLoading = isApproving || isRejecting
 
   // Auto-select chapter for Chapter Admin
@@ -59,12 +58,12 @@ export default function RequestsPage() {
 
   const handleApprove = async (notes?: string) => {
     if (!approveModalRequest || !selectedChapter) return
-    
+
     try {
       await approveRequest({
-          chapterId: selectedChapter,
-          requestId: approveModalRequest.id,
-          notes
+        chapterId: selectedChapter,
+        requestId: approveModalRequest.id,
+        notes
       })
       setApproveModalRequest(null)
     } catch (error) {
@@ -74,13 +73,13 @@ export default function RequestsPage() {
 
   const handleReject = async (reason: string, canReapply: boolean) => {
     if (!rejectModalRequest || !selectedChapter) return
-    
+
     try {
       await rejectRequest({
-          chapterId: selectedChapter,
-          requestId: rejectModalRequest.id,
-          reason,
-          canReapply
+        chapterId: selectedChapter,
+        requestId: rejectModalRequest.id,
+        reason,
+        canReapply
       })
       setRejectModalRequest(null)
     } catch (error) {
@@ -125,7 +124,7 @@ export default function RequestsPage() {
                 Viewing Your Chapter Only
               </p>
               <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
-                You are viewing membership requests for <strong>{currentChapter.name}</strong> only. 
+                You are viewing membership requests for <strong>{currentChapter.name}</strong> only.
                 You cannot access requests for other chapters.
               </p>
             </div>

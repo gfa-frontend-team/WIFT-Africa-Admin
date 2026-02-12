@@ -23,10 +23,10 @@ interface EventFormProps {
 
 export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFormProps) {
   const { isSuperAdmin, userChapterId } = usePermissions()
-  
+
   // Only fetch chapters if Super Admin
   const { data: chaptersData } = useChapters(
-    { page: 1, limit: 100 }, 
+    { page: 1, limit: 100 },
     { enabled: isSuperAdmin }
   )
 
@@ -47,9 +47,9 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
       location: {
         type: LocationType.PHYSICAL,
       },
-      // Pre-fill chapterId for Chapter Admin if not provided
-      chapterId: initialData?.chapterId || (!isSuperAdmin ? userChapterId : ''),
       ...initialData,
+      // Pre-fill chapterId for Chapter Admin if not provided
+      chapterId: initialData?.chapterId || (!isSuperAdmin ? (userChapterId || '') : ''),
     }
   })
 
@@ -60,7 +60,7 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
   const handleAddTag = (e: React.KeyboardEvent | React.MouseEvent) => {
     if (e.type === 'keydown' && (e as React.KeyboardEvent).key !== 'Enter') return
     e.preventDefault()
-    
+
     const val = tagInput.trim()
     if (!val) return
 
@@ -83,18 +83,18 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
         ...data,
         capacity: (data.capacity === null || Number.isNaN(data.capacity)) ? undefined : data.capacity,
         // Ensure chapterId is set for Chapter Admins
-        chapterId: !isSuperAdmin ? userChapterId : data.chapterId,
+        chapterId: (!isSuperAdmin ? userChapterId : data.chapterId) || undefined,
         // Transform dates to strict ISO string for backend
         startDate: new Date(data.startDate).toISOString(),
         endDate: new Date(data.endDate).toISOString(),
       }
       return onSubmit(cleanData)
     })} className="space-y-8 max-w-5xl mx-auto pb-20">
-      
+
       {/* 1. Basic Information */}
       <div className="bg-card border border-border rounded-lg p-6 space-y-6">
         <h2 className="text-xl font-semibold border-b border-border pb-2">Basic Information</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2 col-span-2">
             <label className="text-sm font-medium">Event Title <span className="text-destructive">*</span></label>
@@ -114,7 +114,7 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
               className="w-full px-3 py-2 bg-background border border-input rounded-md focus:ring-2 focus:ring-ring resize-y"
               placeholder="Detailed description of the event..."
             />
-             {errors.description && <p className="text-destructive text-xs">{errors.description.message}</p>}
+            {errors.description && <p className="text-destructive text-xs">{errors.description.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -123,9 +123,9 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
               {...register('type')}
               className="w-full px-3 py-2 bg-background border border-input rounded-md"
             >
-               {Object.values(EventType).map((t: string) => (
-                 <option key={t} value={t}>{t.replace('_', ' ')}</option>
-               ))}
+              {Object.values(EventType).map((t: string) => (
+                <option key={t} value={t}>{t.replace('_', ' ')}</option>
+              ))}
             </select>
             {errors.type && <p className="text-destructive text-xs">{errors.type.message}</p>}
           </div>
@@ -153,20 +153,20 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
               )}
             </select>
           </div>
-          
-           <div className="space-y-2">
+
+          <div className="space-y-2">
             <label className="text-sm font-medium">Status</label>
             <select
               {...register('status')}
               className="w-full px-3 py-2 bg-background border border-input rounded-md"
             >
-               {Object.values(EventStatus).map((s: string) => (
-                 <option key={s} value={s}>{s}</option>
-               ))}
+              {Object.values(EventStatus).map((s: string) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
             </select>
           </div>
 
-            <div className="space-y-2">
+          <div className="space-y-2">
             <label className="text-sm font-medium">Cover Image</label>
             <Controller
               name="coverImage"
@@ -187,8 +187,8 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
       {/* 2. Date & Time */}
       <div className="bg-card border border-border rounded-lg p-6 space-y-6">
         <div className="flex items-center gap-2 border-b border-border pb-2">
-           <Calendar className="w-5 h-5 text-muted-foreground" />
-           <h2 className="text-xl font-semibold">Date & Time</h2>
+          <Calendar className="w-5 h-5 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Date & Time</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -199,7 +199,7 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
               {...register('startDate')}
               className="w-full px-3 py-2 bg-background border border-input rounded-md"
             />
-             {errors.startDate && <p className="text-destructive text-xs">{errors.startDate.message}</p>}
+            {errors.startDate && <p className="text-destructive text-xs">{errors.startDate.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -209,7 +209,7 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
               {...register('endDate')}
               className="w-full px-3 py-2 bg-background border border-input rounded-md"
             />
-             {errors.endDate && <p className="text-destructive text-xs">{errors.endDate.message}</p>}
+            {errors.endDate && <p className="text-destructive text-xs">{errors.endDate.message}</p>}
           </div>
 
           <div className="space-y-2 md:col-span-2">
@@ -218,31 +218,31 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
               {...register('timezone')}
               className="w-full px-3 py-2 bg-background border border-input rounded-md"
             />
-             {errors.timezone && <p className="text-destructive text-xs">{errors.timezone.message}</p>}
+            {errors.timezone && <p className="text-destructive text-xs">{errors.timezone.message}</p>}
           </div>
         </div>
       </div>
 
-       {/* 3. Location */}
+      {/* 3. Location */}
       <div className="bg-card border border-border rounded-lg p-6 space-y-6">
         <div className="flex items-center gap-2 border-b border-border pb-2">
-           <MapPin className="w-5 h-5 text-muted-foreground" />
-           <h2 className="text-xl font-semibold">Location</h2>
+          <MapPin className="w-5 h-5 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Location</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           <div className="space-y-2 md:col-span-2">
+          <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium">Location Type <span className="text-destructive">*</span></label>
             <select
               {...register('location.type')}
               className="w-full px-3 py-2 bg-background border border-input rounded-md"
             >
-               {Object.values(LocationType).map((t: string) => (
-                 <option key={t} value={t}>{t}</option>
-               ))}
+              {Object.values(LocationType).map((t: string) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
             </select>
           </div>
-          
+
           {(locationType === LocationType.PHYSICAL || locationType === LocationType.HYBRID) && (
             <>
               <div className="space-y-2 md:col-span-2">
@@ -257,33 +257,33 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Country <span className="text-destructive">*</span></label>
-                 <input {...register('location.country')} className="w-full px-3 py-2 bg-background border border-input rounded-md" />
+                <input {...register('location.country')} className="w-full px-3 py-2 bg-background border border-input rounded-md" />
                 {errors.location?.country && <p className="text-destructive text-xs">{errors.location.country.message}</p>}
               </div>
             </>
           )}
 
           {(locationType === LocationType.VIRTUAL || locationType === LocationType.HYBRID) && (
-             <>
-               <div className="space-y-2 md:col-span-2">
+            <>
+              <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium">Virtual URL <span className="text-destructive">*</span></label>
                 <input {...register('location.virtualUrl')} className="w-full px-3 py-2 bg-background border border-input rounded-md" placeholder="https://zoom.us/..." />
                 {errors.location?.virtualUrl && <p className="text-destructive text-xs">{errors.location.virtualUrl.message}</p>}
               </div>
-               <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium">Platform</label>
                 <input {...register('location.virtualPlatform')} className="w-full px-3 py-2 bg-background border border-input rounded-md" placeholder="Zoom, Google Meet, etc." />
               </div>
-             </>
+            </>
           )}
         </div>
       </div>
 
-       {/* 4. Capacity & Tags */}
-       <div className="bg-card border border-border rounded-lg p-6 space-y-6">
+      {/* 4. Capacity & Tags */}
+      <div className="bg-card border border-border rounded-lg p-6 space-y-6">
         <h2 className="text-xl font-semibold border-b border-border pb-2">Additional Details</h2>
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
             <label className="text-sm font-medium">Capacity (Optional)</label>
             <input
               type="number"
@@ -293,8 +293,8 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
             />
             {errors.capacity && <p className="text-destructive text-xs">{errors.capacity.message}</p>}
           </div>
-          
-           <div className="space-y-2">
+
+          <div className="space-y-2">
             <label className="text-sm font-medium">Tags</label>
             <div className="flex gap-2">
               <input
@@ -304,9 +304,9 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
                 className="flex-1 px-3 py-2 bg-background border border-input rounded-md"
                 placeholder="Type and press Enter"
               />
-              <button type="button" onClick={handleAddTag} className="px-3 py-2 bg-secondary rounded-md" ><Plus className="w-4 h-4"/></button>
+              <button type="button" onClick={handleAddTag} className="px-3 py-2 bg-secondary rounded-md" ><Plus className="w-4 h-4" /></button>
             </div>
-             <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               {watch('tags').map(tag => (
                 <span key={tag} className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded text-sm">
                   {tag}
@@ -315,14 +315,14 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
               ))}
             </div>
           </div>
-         </div>
-       </div>
-      
+        </div>
+      </div>
+
       {/* Actions */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border flex justify-end gap-3 z-10 md:pl-72">
         <Link href="/dashboard/events" className="px-4 py-2 border rounded-md hover:bg-muted font-medium">Cancel</Link>
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={isSubmitting}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium disabled:opacity-50 inline-flex items-center gap-2"
         >

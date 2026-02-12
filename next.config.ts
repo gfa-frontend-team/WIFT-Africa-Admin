@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
         hostname: 'flagsapi.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'wiftstorage.blob.core.windows.net',
+        pathname: '/**',
+      },
     ],
   },
 };

@@ -96,6 +96,14 @@ export function RequestCard({ request, onApprove, onReject }: RequestCardProps) 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-4 border-t border-border">
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.href = `/dashboard/requests/${request.user?.id}`}
+            className="flex-1"
+          >
+            View Details
+          </Button>
+          <Button
             variant="primary"
             size="sm"
             onClick={() => onApprove(request)}

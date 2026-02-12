@@ -25,9 +25,12 @@ export interface Job {
   expiresAt?: string
   createdAt: string
   updatedAt: string
-  
+
   // Stats (if available from backend)
   applicationCount?: number
+
+  // Metadata
+  chapterId?: string
 }
 
 export interface CreateJobData {
@@ -40,6 +43,7 @@ export interface CreateJobData {
   companyName: string
   salaryRange?: SalaryRange
   applicationLink?: string
+  chapterId?: string
 }
 
 export interface UpdateJobData extends Partial<CreateJobData> {
@@ -56,7 +60,7 @@ export interface JobApplication {
   updatedAt: string
   jobId: string
   userId: string
-  
+
   // Expanded data
   user?: User
   job?: Job
@@ -69,6 +73,7 @@ export interface JobFilters {
   location?: string
   role?: string
   remote?: boolean
+  chapterId?: string
 }
 
 export interface ApplicationFilters {

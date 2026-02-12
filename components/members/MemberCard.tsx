@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { User } from '@/types'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -24,20 +25,21 @@ export function MemberCard({ member, onClick }: MemberCardProps) {
   }
 
   return (
-    <Card 
+    <Card
       className={`hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer hover:border-primary/50' : ''}`}
       onClick={onClick}
     >
-      <CardContent className="p-6">
+      <Link href={`/dashboard/members/${member.id}`} className="absolute inset-0 z-10" />
+      <CardContent className="p-6 relative">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full text-primary font-semibold overflow-hidden">
-               {member.profilePhoto ? (
-                  <img src={member.profilePhoto} alt="" className="w-full h-full object-cover" />
-               ) : (
-                  <span>{member.firstName?.[0]}{member.lastName?.[0]}</span>
-               )}
+              {member.profilePhoto ? (
+                <img src={member.profilePhoto} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span>{member.firstName?.[0]}{member.lastName?.[0]}</span>
+              )}
             </div>
             <div>
               <h3 className="font-semibold text-foreground">
@@ -73,13 +75,13 @@ export function MemberCard({ member, onClick }: MemberCardProps) {
         {/* Status */}
         <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
           <Badge variant={
-            member.membershipStatus === 'APPROVED' ? 'success' : 
-            member.membershipStatus === 'SUSPENDED' ? 'destructive' : 
-            'warning'
+            member.membershipStatus === 'APPROVED' ? 'success' :
+              member.membershipStatus === 'SUSPENDED' ? 'destructive' :
+                'warning'
           }>
             {member.membershipStatus}
           </Badge>
-          
+
           {onClick && (
             <span className="text-xs text-primary font-medium hover:underline">
               View Profile
