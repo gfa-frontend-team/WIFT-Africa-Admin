@@ -26,6 +26,8 @@ export default function MemberProfilePage() {
     const [suspendReason, setSuspendReason] = useState('')
     const [isUpdating, setIsUpdating] = useState(false)
 
+    console.log(member,"member1")
+
     useEffect(() => {
         async function fetchMember() {
             try {

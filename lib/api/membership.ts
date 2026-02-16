@@ -163,6 +163,7 @@ export const membershipApi = {
   getMemberDetails: async (userId: string): Promise<{ user: User, profile: any }> => {
     // We use the admin/members endpoint which should return user details
     const response = await apiClient.get<any>(`/admin/members/${userId}`)
+    console.log(response,"response")
     return {
       user: transformUser(response.user || response), // Handle if response is just user or {user}
       profile: response.profile || {}

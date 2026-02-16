@@ -54,6 +54,8 @@ export default function MembersPage() {
     )
   })
 
+  // console.log(selectedMember,"members",filteredMembers.length,)
+
   return (
     <div>
       {/* Header */}
@@ -174,7 +176,7 @@ export default function MembersPage() {
                 member={member}
                 onClick={() => {
                   setSelectedMember(member)
-                  setIsModalOpen(true)
+                  // setIsModalOpen(true)
                 }}
               />
             ))}

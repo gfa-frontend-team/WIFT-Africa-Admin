@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
+import { ThemeProvider } from "./ThemeProvider";
 
 export const metadata: Metadata = {
   title: "WIFT Africa Admin",
-  description: "Admin dashboard for WIFT Africa - Manage chapters, members, and membership requests",
+  description:
+    "Admin dashboard for WIFT Africa - Manage chapters, members, and membership requests",
   icons: {
-    icon: '/fav.png',
-    shortcut: '/fav.png',
-    apple: '/fav.png',
-  }
+    icon: "/fav.png",
+    shortcut: "/fav.png",
+    apple: "/fav.png",
+  },
 };
 
 export default function RootLayout({
@@ -20,7 +22,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

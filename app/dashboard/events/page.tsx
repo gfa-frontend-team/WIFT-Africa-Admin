@@ -21,7 +21,6 @@ export default function EventsPage() {
     chapterId: isChapterAdmin && userChapterId ? userChapterId : undefined, // Filter by chapter for Chapter Admins
   })
 
-  console.log(data,"data",statusFilter)
 
   // Your filtered events logic
 const filteredEvents = data?.events?.filter(event => {
@@ -33,7 +32,6 @@ const filteredEvents = data?.events?.filter(event => {
 }) || []
 
 // Use filteredEvents instead of data.events
-console.log(filteredEvents, "filtered events")
 
   return (
     <div className="p-6 space-y-6">

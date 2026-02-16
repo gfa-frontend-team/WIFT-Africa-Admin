@@ -85,6 +85,8 @@ export default function MentorshipsPage() {
         }
     }
 
+    console.log(data,"data")
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">

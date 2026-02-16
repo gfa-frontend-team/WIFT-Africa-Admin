@@ -28,6 +28,8 @@ export default function JobsPage() {
   const { data: jobsResponse, isLoading } = useJobs(filters)
   const jobs = jobsResponse?.data || []
 
+  console.log(jobs,'jobs')
+
   // Mutations
   const { mutateAsync: deleteJob } = useDeleteJob()
 

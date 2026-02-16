@@ -247,7 +247,7 @@ export function FundingForm({ opportunity, isOpen, onClose, onSuccess }: Funding
 
                     {/* Settings Section */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-semibold text-foreground/80">Settings</h3>
+                        {/* <h3 className="text-sm font-semibold text-foreground/80">Settings</h3> */}
                         <Controller
                             name="chapterId"
                             control={control}
