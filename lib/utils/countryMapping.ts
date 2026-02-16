@@ -110,7 +110,7 @@ export function getCountryIsoCode(code?: string, name?: string): string {
     }
 
     // Fallback to unknown
-    return 'ZZ'
+    return 'AFRICA'
 }
 
 /**

@@ -21,6 +21,20 @@ export default function EventsPage() {
     chapterId: isChapterAdmin && userChapterId ? userChapterId : undefined, // Filter by chapter for Chapter Admins
   })
 
+  console.log(data,"data",statusFilter)
+
+  // Your filtered events logic
+const filteredEvents = data?.events?.filter(event => {
+  // If no filters are selected, show all events
+  const matchesStatus = !statusFilter || event.status === statusFilter
+  const matchesType = !typeFilter || event.type === typeFilter
+  
+  return matchesStatus && matchesType
+}) || []
+
+// Use filteredEvents instead of data.events
+console.log(filteredEvents, "filtered events")
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -46,17 +60,19 @@ export default function EventsPage() {
           <span className="text-sm font-medium">Filters:</span>
         </div>
 
+    {/* STATUS  */}
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as EventStatus | '')}
           className="px-3 py-1.5 bg-background border border-input rounded-md text-sm"
-        >
+          >
           <option value="">All Statuses</option>
           {Object.values(EventStatus).map((status) => (
             <option key={status} value={status}>{status}</option>
           ))}
         </select>
 
+          {/* TYPE  */}
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as EventType | '')}
@@ -75,7 +91,7 @@ export default function EventsPage() {
           <div className="p-8 text-center text-muted-foreground">Loading events...</div>
         ) : error ? (
           <div className="p-8 text-center text-destructive">Error loading events: {(error as Error).message}</div>
-        ) : !data?.events?.length ? (
+        ) : !filteredEvents?.length ? (
           <div className="p-12 text-center">
             <p className="text-lg font-medium mb-2">No events found</p>
             <p className="text-muted-foreground mb-4">Get started by creating your first event.</p>
@@ -103,7 +119,7 @@ export default function EventsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {data.events.map((event) => (
+                {filteredEvents.map((event) => (
                   <tr key={event.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-foreground">{event.title}</div>

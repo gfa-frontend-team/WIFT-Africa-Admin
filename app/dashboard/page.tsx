@@ -1,37 +1,54 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { Building2, Users, UserCheck, Globe, ArrowUp, ArrowDown, Minus, Activity } from 'lucide-react'
-import { useAuthStore } from '@/lib/stores'
-import { useChapterStatistics, useChapter } from '@/lib/hooks/queries/useChapters'
-import { useVerificationStats } from '@/lib/hooks/queries/useVerification'
-import { analyticsApi } from '@/lib/api/analytics'
-import { PostAnalyticsSummary, ConnectionAnalytics, ChapterDashboardStats } from '@/types'
-import { StatCard } from '@/components/dashboard/StatCard'
-import { useState } from 'react'
+import { useEffect } from "react";
+import {
+  Building2,
+  Users,
+  UserCheck,
+  Globe,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+  Activity,
+} from "lucide-react";
+import { useAuthStore } from "@/lib/stores";
+import {
+  useChapterStatistics,
+  useChapter,
+} from "@/lib/hooks/queries/useChapters";
+import { useVerificationStats } from "@/lib/hooks/queries/useVerification";
+import { analyticsApi } from "@/lib/api/analytics";
+import {
+  PostAnalyticsSummary,
+  ConnectionAnalytics,
+  ChapterDashboardStats,
+} from "@/types";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { useState } from "react";
+import Link from "next/link";
 
 export default function DashboardPage() {
-  const { admin } = useAuthStore() // Changed user to admin
+  const { admin } = useAuthStore(); // Changed user to admin
 
-  const isSuperAdmin = admin?.role === 'SUPER_ADMIN'
-  const isChapterAdmin = admin?.role === 'CHAPTER_ADMIN'
+  const isSuperAdmin = admin?.role === "SUPER_ADMIN";
+  const isChapterAdmin = admin?.role === "CHAPTER_ADMIN";
 
   // Super Admin Stats
   const { data: statistics, isLoading: isStatsLoading } = useChapterStatistics({
-    enabled: isSuperAdmin
-  })
+    enabled: isSuperAdmin,
+  });
 
   // Chapter Admin Data (Keep for name/details)
   const { data: currentChapter, isLoading: isChapterLoading } = useChapter(
-    isChapterAdmin ? (admin?.chapterId || '') : ''
-  )
+    isChapterAdmin ? admin?.chapterId || "" : "",
+  );
 
   // Analytics Data
   const [analytics, setAnalytics] = useState<{
-    posts: PostAnalyticsSummary | null
-    connections: ConnectionAnalytics | null
-    chapterStats: ChapterDashboardStats | null
-  }>({ posts: null, connections: null, chapterStats: null })
+    posts: PostAnalyticsSummary | null;
+    connections: ConnectionAnalytics | null;
+    chapterStats: ChapterDashboardStats | null;
+  }>({ posts: null, connections: null, chapterStats: null });
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -39,21 +56,26 @@ export default function DashboardPage() {
         if (isSuperAdmin) {
           const [postsData, connectionsData] = await Promise.all([
             analyticsApi.getPostSummary(),
-            analyticsApi.getTotalConnections()
-          ])
-          setAnalytics(prev => ({ ...prev, posts: postsData, connections: connectionsData }))
+            analyticsApi.getTotalConnections(),
+          ]);
+          setAnalytics((prev) => ({
+            ...prev,
+            posts: postsData,
+            connections: connectionsData,
+          }));
         } else if (isChapterAdmin) {
-          const stats = await analyticsApi.getChapterDashboardStats()
-          setAnalytics(prev => ({ ...prev, chapterStats: stats }))
+          const stats = await analyticsApi.getChapterDashboardStats();
+          setAnalytics((prev) => ({ ...prev, chapterStats: stats }));
         }
       } catch (err) {
-        console.error('Failed to fetch analytics', err)
+        console.error("Failed to fetch analytics", err);
       }
     }
-    fetchAnalytics()
-  }, [isSuperAdmin, isChapterAdmin])
+    fetchAnalytics();
+  }, [isSuperAdmin, isChapterAdmin]);
 
-  const isLoading = (isSuperAdmin && isStatsLoading) || (isChapterAdmin && isChapterLoading)
+  const isLoading =
+    (isSuperAdmin && isStatsLoading) || (isChapterAdmin && isChapterLoading);
 
   if (isLoading) {
     return (
@@ -63,10 +85,11 @@ export default function DashboardPage() {
           <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Super Admin Dashboard
+  // if (false) {
   if (isSuperAdmin) {
     return (
       <div>
@@ -113,26 +136,34 @@ export default function DashboardPage() {
               Quick Actions
             </h2>
             <div className="space-y-3">
-              <a
-                href="/dashboard/chapters/new"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
-              >
-                <Building2 className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">Create New Chapter</p>
-                  <p className="text-sm text-muted-foreground">Add a new regional chapter</p>
-                </div>
-              </a>
-              <a
-                href="/dashboard/requests"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
-              >
-                <UserCheck className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">Review Requests</p>
-                  <p className="text-sm text-muted-foreground">Approve or reject membership requests</p>
-                </div>
-              </a>
+              {[
+                {
+                  href: "/dashboard/chapters/new",
+                  icon: Building2,
+                  title: "Create New Chapter",
+                  description: "Add a new regional chapter",
+                },
+                {
+                  href: "/dashboard/requests",
+                  icon: UserCheck,
+                  title: "Review Requests",
+                  description: "Approve or reject membership requests",
+                },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+                >
+                  <item.icon className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="font-medium text-foreground">{item.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -142,21 +173,26 @@ export default function DashboardPage() {
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Active Chapters</span>
+                <span className="text-sm text-muted-foreground">
+                  Active Chapters
+                </span>
                 <span className="text-sm font-medium text-foreground">
-                  {statistics?.activeChapters || 0} / {statistics?.totalChapters || 0}
+                  {statistics?.activeChapters || 0} /{" "}
+                  {statistics?.totalChapters || 0}
                 </span>
               </div>
               <div className="w-full bg-secondary rounded-full h-2">
                 <div
                   className="bg-primary h-2 rounded-full transition-all"
                   style={{
-                    width: `${statistics?.totalChapters ? (statistics.activeChapters / statistics.totalChapters) * 100 : 0}%`
+                    width: `${statistics?.totalChapters ? (statistics.activeChapters / statistics.totalChapters) * 100 : 0}%`,
                   }}
                 />
               </div>
               <div className="flex items-center justify-between pt-2">
-                <span className="text-sm text-muted-foreground">Inactive Chapters</span>
+                <span className="text-sm text-muted-foreground">
+                  Inactive Chapters
+                </span>
                 <span className="text-sm font-medium text-foreground">
                   {statistics?.inactiveChapters || 0}
                 </span>
@@ -165,7 +201,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Chapter Admin Dashboard
@@ -200,11 +236,19 @@ export default function DashboardPage() {
             value={analytics.chapterStats.pendingApprovals}
             icon={UserCheck}
             href="/dashboard/requests"
-            trend={analytics.chapterStats.pendingApprovals > 0 ? {
-              value: 'Pending',
-              isPositive: false // Red color to indicate urgency
-            } : undefined}
-            className={analytics.chapterStats.pendingApprovals > 0 ? "border-amber-500/50" : ""}
+            trend={
+              analytics.chapterStats.pendingApprovals > 0
+                ? {
+                    value: "Pending",
+                    isPositive: false, // Red color to indicate urgency
+                  }
+                : undefined
+            }
+            className={
+              analytics.chapterStats.pendingApprovals > 0
+                ? "border-amber-500/50"
+                : ""
+            }
           />
           {/* Growth Metrics Card */}
           <StatCard
@@ -212,12 +256,15 @@ export default function DashboardPage() {
             value={`${analytics.chapterStats.growth.percentageChange}%`}
             icon={Activity}
             trend={{
-              value: analytics.chapterStats.growth.trend === 'STABLE' ? 'Stable' : 'This Month',
-              isPositive: analytics.chapterStats.growth.trend === 'UP'
+              value:
+                analytics.chapterStats.growth.trend === "STABLE"
+                  ? "Stable"
+                  : "This Month",
+              isPositive: analytics.chapterStats.growth.trend === "UP",
             }}
           />
           <StatCard
-            title="Network Reach"
+            title="Chapter Profile View"
             value={analytics.chapterStats.networkConnections}
             icon={Globe}
           />
@@ -231,36 +278,40 @@ export default function DashboardPage() {
             Quick Actions
           </h2>
           <div className="space-y-3">
-            <a
-              href="/dashboard/requests"
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
-            >
-              <UserCheck className="w-5 h-5 text-primary" />
-              <div>
-                <p className="font-medium text-foreground">Review Requests</p>
-                <p className="text-sm text-muted-foreground">Approve or reject membership requests</p>
-              </div>
-            </a>
-            <a
-              href="/dashboard/members"
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
-            >
-              <Users className="w-5 h-5 text-primary" />
-              <div>
-                <p className="font-medium text-foreground">View Members</p>
-                <p className="text-sm text-muted-foreground">See all approved chapter members</p>
-              </div>
-            </a>
-            <a
-              href="/dashboard/my-chapter"
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
-            >
-              <Building2 className="w-5 h-5 text-primary" />
-              <div>
-                <p className="font-medium text-foreground">View Chapter Details</p>
-                <p className="text-sm text-muted-foreground">See your chapter information</p>
-              </div>
-            </a>
+            {[
+              {
+                href: "/dashboard/requests",
+                icon: UserCheck,
+                title: "Review Requests",
+                description: "Approve or reject membership requests",
+              },
+              {
+                href: "/dashboard/members",
+                icon: Users,
+                title: "View Members",
+                description: "See all approved chapter members",
+              },
+              {
+                href: "/dashboard/my-chapter",
+                icon: Building2,
+                title: "View Chapter Details",
+                description: "See your chapter information",
+              },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+              >
+                <item.icon className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-medium text-foreground">{item.title}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -272,29 +323,37 @@ export default function DashboardPage() {
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-muted-foreground">Chapter Name</p>
-                <p className="font-medium text-foreground">{currentChapter.name}</p>
+                <p className="font-medium text-foreground">
+                  {currentChapter.name}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Location</p>
                 <p className="font-medium text-foreground">
-                  {currentChapter.city ? `${currentChapter.city}, ` : ''}{currentChapter.country}
+                  {currentChapter.city ? `${currentChapter.city}, ` : ""}
+                  {currentChapter.country}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${currentChapter.isActive
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-                  }`}>
-                  {currentChapter.isActive ? 'Active' : 'Inactive'}
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    currentChapter.isActive
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                      : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+                  }`}
+                >
+                  {currentChapter.isActive ? "Active" : "Inactive"}
                 </span>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Loading chapter information...</p>
+            <p className="text-sm text-muted-foreground">
+              Loading chapter information...
+            </p>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }
