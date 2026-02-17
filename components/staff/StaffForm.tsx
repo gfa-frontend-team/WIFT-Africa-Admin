@@ -89,97 +89,108 @@ export function StaffForm({ initialData, onSubmit, isSubmitting, mode, onCancel 
     }
 
     return (
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                    label="First Name"
-                    {...register('firstName')}
-                    error={errors.firstName?.message}
-                    placeholder="Jane"
-                />
-                <Input
-                    label="Last Name"
-                    {...register('lastName')}
-                    error={errors.lastName?.message}
-                    placeholder="Doe"
-                />
-            </div>
+     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input
+            label="First Name"
+            {...register('firstName')}
+            error={errors.firstName?.message}
+            placeholder="Jane"
+        />
+        <Input
+            label="Last Name"
+            {...register('lastName')}
+            error={errors.lastName?.message}
+            placeholder="Doe"
+        />
+    </div>
 
-            <Input
-                label="Email Address"
-                type="email"
-                {...register('email')}
-                error={errors.email?.message}
-                placeholder="jane@wiftafrica.org"
-                disabled={mode === 'edit'} // Email usually not editable for identity reasons
-            />
+    <Input
+        label="Email Address"
+        type="email"
+        {...register('email')}
+        error={errors.email?.message}
+        placeholder="jane@wiftafrica.org"
+        disabled={mode === 'edit'} // Email usually not editable for identity reasons
+    />
 
-            <Input
-                label={mode === 'create' ? "Password (Optional)" : "New Password (Optional)"}
-                type="password"
-                {...register('password')}
-                error={errors.password?.message}
-                placeholder={mode === 'create' ? "Leave blank to auto-generate" : "Leave blank to keep current"}
-            />
+    <Input
+        label={mode === 'create' ? "Password (Optional)" : "New Password (Optional)"}
+        type="password"
+        {...register('password')}
+        error={errors.password?.message}
+        placeholder={mode === 'create' ? "Leave blank to auto-generate" : "Leave blank to keep current"}
+    />
 
-            {/* Role Selection - Restricted for Chapter Admins */}
-            <div className="space-y-2">
-                <label className="text-sm font-medium">Role</label>
-                <NativeSelect
-                    {...register('role')}
-                    disabled={isChapterAdmin || mode === 'edit'} // Lock role on edit or for CA
-                >
-                    {isSuperAdmin && (
-                        <>
-                            <option value={AdminRole.SUPER_ADMIN}>Super Admin</option>
-                            <option value={AdminRole.HQ_STAFF}>HQ Staff</option>
-                            <option value={AdminRole.CHAPTER_ADMIN}>Chapter Admin</option>
-                        </>
-                    )}
-                    <option value={AdminRole.CHAPTER_STAFF}>Chapter Staff</option>
-                </NativeSelect>
-                {errors.role && <p className="text-sm text-destructive mt-1">{errors.role.message}</p>}
-            </div>
-
-            {/* Chapter Selection - Only if Role requires it AND user is Super Admin */}
-            {isChapterRole && isSuperAdmin && (
-                <div className="space-y-2">
-                    <label className="text-sm font-medium">Chapter</label>
-                    <NativeSelect
-                        {...register('chapterId')}
-                    >
-                        <option value="">Select a Chapter</option>
-                        {chapters.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                    </NativeSelect>
-                    {errors.chapterId && <p className="text-sm text-destructive mt-1">{errors.chapterId.message}</p>}
-                </div>
+    {/* Role Selection - Restricted for Chapter Admins */}
+    <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700">Role</label>
+        <NativeSelect
+            {...register('role')}
+            disabled={isChapterAdmin || mode === 'edit'} // Lock role on edit or for CA
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        >
+            {isSuperAdmin && (
+                <>
+                    <option value={AdminRole.SUPER_ADMIN}>Super Admin</option>
+                    <option value={AdminRole.HQ_STAFF}>HQ Staff</option>
+                    <option value={AdminRole.CHAPTER_ADMIN}>Chapter Admin</option>
+                </>
             )}
+            <option value={AdminRole.CHAPTER_STAFF}>Chapter Staff</option>
+        </NativeSelect>
+        {errors.role && <p className="text-sm text-red-600 mt-1">{errors.role.message}</p>}
+    </div>
 
-            {mode === 'edit' && (
-                <div className="flex items-center space-x-2">
-                    <input
-                        type="checkbox"
-                        id="isActive"
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        {...register('isActive')}
-                    />
-                    <label htmlFor="isActive" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Active Account
-                    </label>
-                </div>
-            )}
+    {/* Chapter Selection - Only if Role requires it AND user is Super Admin */}
+    {isChapterRole && isSuperAdmin && (
+        <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Chapter</label>
+            <NativeSelect
+                {...register('chapterId')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+                <option value="">Select a Chapter</option>
+                {chapters.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+            </NativeSelect>
+            {errors.chapterId && <p className="text-sm text-red-600 mt-1">{errors.chapterId.message}</p>}
+        </div>
+    )}
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-border mt-6">
-                <Button type="button" variant="outline" onClick={onCancel}>
-                    Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {mode === 'create' ? 'Create Staff' : 'Save Changes'}
-                </Button>
-            </div>
-        </form>
+    {mode === 'edit' && (
+        <div className="flex items-center space-x-2">
+            <input
+                type="checkbox"
+                id="isActive"
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition duration-150 ease-in-out"
+                {...register('isActive')}
+            />
+            <label htmlFor="isActive" className="text-sm font-medium text-gray-700 select-none">
+                Active Account
+            </label>
+        </div>
+    )}
+
+    <div className="flex justify-end gap-3 pt-6 border-t border-gray-200 mt-8">
+        <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+        >
+            Cancel
+        </Button>
+        <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 inline-flex items-center"
+        >
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {mode === 'create' ? 'Create Staff' : 'Save Changes'}
+        </Button>
+    </div>
+</form>
     )
 }

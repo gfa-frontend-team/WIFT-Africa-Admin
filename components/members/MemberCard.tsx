@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Mail, Calendar, Shield } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
 
 interface MemberCardProps {
   member: User
@@ -24,10 +25,19 @@ export function MemberCard({ member, onClick }: MemberCardProps) {
     }
   }
 
+  const router = useRouter()
+
+  const handleCardClick = (e: React.MouseEvent) => {
+  
+    onClick();
+      router.push(`/dashboard/members/${member.id}`)
+    
+  }
+
   return (
     <Card
-      className={`hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer hover:border-primary/50' : ''}`}
-      onClick={onClick}
+      className={`relative hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer hover:border-primary/50' : ''}`}
+      onClick={handleCardClick}
     >
       <Link href={`/dashboard/members/${member.id}`} className="absolute inset-0 z-10" />
       <CardContent className="p-6 relative">

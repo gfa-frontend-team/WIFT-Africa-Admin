@@ -14,9 +14,13 @@ const BASE_URL = '/events'
 const ADMIN_BASE_URL = '/events/admin/events'
 
 interface GetEventsResponse {
-  events: Event[]
-  total: number
-  pages: number
+
+  data:{
+
+    events: Event[]
+    total: number
+  }
+  // pages: number
 }
 
 interface CreateEventResponse {
@@ -60,10 +64,11 @@ export const eventsApi = {
   // Public/Shared Endpoints
   getEvents: async (params?: EventFilters) => {
     const data = await apiClient.get<GetEventsResponse>(BASE_URL, { params })
-    if (data.events) {
-      data.events = data.events.map(transformEvent)
+
+    if (data.data.events) {
+      data.data.events = data.data.events.map(transformEvent)
     }
-    return data
+    return data.data
   },
 
   getEvent: async (id: string) => {

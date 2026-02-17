@@ -26,6 +26,8 @@ export default function MemberProfilePage() {
     const [suspendReason, setSuspendReason] = useState('')
     const [isUpdating, setIsUpdating] = useState(false)
 
+    console.log(member,"member1")
+
     useEffect(() => {
         async function fetchMember() {
             try {
@@ -114,7 +116,7 @@ export default function MemberProfilePage() {
     const profile = (member as any).profile
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
             {/* Back Button */}
             <Button
                 variant="ghost"

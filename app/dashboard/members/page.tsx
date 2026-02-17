@@ -1,58 +1,71 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useChapters, useChapter } from '@/lib/hooks/queries/useChapters'
-import { useChapterMembers } from '@/lib/hooks/queries/useMembership'
-import { User } from '@/types'
-import { MemberCard } from '@/components/members/MemberCard'
-import { MemberProfileModal } from '@/components/members/MemberProfileModal'
-import { Search, Users as UsersIcon, Info } from 'lucide-react'
-import { usePermissions } from '@/lib/hooks/usePermissions'
-import { PermissionGuard } from '@/lib/guards/PermissionGuard'
-import { Permission } from '@/lib/constants/permissions'
+import { useEffect, useState } from "react";
+import { useChapters, useChapter } from "@/lib/hooks/queries/useChapters";
+import { useChapterMembers } from "@/lib/hooks/queries/useMembership";
+import { User } from "@/types";
+import { MemberCard } from "@/components/members/MemberCard";
+import { MemberProfileModal } from "@/components/members/MemberProfileModal";
+import { Search, Users as UsersIcon, Info } from "lucide-react";
+import { usePermissions } from "@/lib/hooks/usePermissions";
+import { PermissionGuard } from "@/lib/guards/PermissionGuard";
+import { Permission } from "@/lib/constants/permissions";
+import Image from "next/image";
+import { getCountryIsoCode, getFlagEmoji } from "@/lib/utils/countryMapping";
 
 export default function MembersPage() {
-  const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions()
+  const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions();
 
   // Auto-scope to user's chapter for Chapter Admins
-  const [selectedChapter, setSelectedChapter] = useState<string>('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedMember, setSelectedMember] = useState<User | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedChapter, setSelectedChapter] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMember, setSelectedMember] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch all chapters for dropdown (Super Admin)
-  const { data: chaptersResponse } = useChapters({ isActive: true }, { enabled: isSuperAdmin })
-  const chapters = chaptersResponse?.data || []
+  const { data: chaptersResponse } = useChapters(
+    { isActive: true },
+    { enabled: isSuperAdmin },
+  );
+  const chapters = chaptersResponse?.data || [];
 
   // Fetch current chapter details if selected (for display name, etc.)
-  const { data: currentChapter } = useChapter(selectedChapter, { enabled: isSuperAdmin })
+  const { data: currentChapter } = useChapter(selectedChapter, {
+    enabled: isSuperAdmin,
+  });
 
   // Fetch members
-  const { data: membersResponse, isLoading, refetch } = useChapterMembers(
+  const {
+    data: membersResponse,
+    isLoading,
+    refetch,
+  } = useChapterMembers(
     selectedChapter,
     1, // page
-    100 // limit
-  )
+    100, // limit
+  );
 
-  const members = membersResponse?.data || []
+  const members = membersResponse?.data || [];
 
   // Auto-select chapter for Chapter Admin
   useEffect(() => {
     if (isChapterAdmin && userChapterId) {
-      setSelectedChapter(userChapterId)
+      setSelectedChapter(userChapterId);
     }
-  }, [isChapterAdmin, userChapterId])
+  }, [isChapterAdmin, userChapterId]);
 
   // Filter members by search term
   const filteredMembers = members.filter((member: User) => {
-    if (!searchTerm) return true
-    const search = searchTerm.toLowerCase()
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
     return (
       member.firstName?.toLowerCase().includes(search) ||
       member.lastName?.toLowerCase().includes(search) ||
       member.email?.toLowerCase().includes(search)
-    )
-  })
+    );
+  });
+
+  // console.log(chapters,"chapters")
 
   return (
     <div>
@@ -64,9 +77,7 @@ export default function MembersPage() {
             <span className="text-primary"> - {currentChapter.name}</span>
           )}
         </h1>
-        <p className="text-muted-foreground">
-          View and manage chapter members
-        </p>
+        <p className="text-muted-foreground">View and manage chapter members</p>
       </div>
 
       {/* Chapter Admin Scope Banner */}
@@ -79,8 +90,9 @@ export default function MembersPage() {
                 Viewing Your Chapter Only
               </p>
               <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
-                You are viewing members for <strong>{currentChapter.name}</strong> only.
-                You cannot access members from other chapters.
+                You are viewing members for{" "}
+                <strong>{currentChapter.name}</strong> only. You cannot access
+                members from other chapters.
               </p>
             </div>
           </div>
@@ -104,7 +116,13 @@ export default function MembersPage() {
                 <option value="">Select a chapter</option>
                 {chapters.map((chapter) => (
                   <option key={chapter.id} value={chapter.id}>
-                    {chapter.name}
+                    {(() => {
+                      const flagEmoji = getFlagEmoji(chapter?.code);
+
+                      // Return a template literal string with a space
+                      // This creates the visual separation you need
+                      return `${flagEmoji}   ${chapter.name}`;
+                    })()}
                   </option>
                 ))}
               </select>
@@ -148,9 +166,7 @@ export default function MembersPage() {
       ) : filteredMembers.length === 0 ? (
         <div className="bg-card rounded-lg border border-border p-12 text-center">
           <UsersIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">
-            No members found
-          </p>
+          <p className="text-muted-foreground">No members found</p>
           {searchTerm && (
             <p className="text-sm text-muted-foreground mt-2">
               Try adjusting your search
@@ -162,7 +178,8 @@ export default function MembersPage() {
           {/* Stats */}
           <div className="mb-4">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredMembers.length} member{filteredMembers.length !== 1 ? 's' : ''}
+              Showing {filteredMembers.length} member
+              {filteredMembers.length !== 1 ? "s" : ""}
             </p>
           </div>
 
@@ -173,8 +190,8 @@ export default function MembersPage() {
                 key={member.id}
                 member={member}
                 onClick={() => {
-                  setSelectedMember(member)
-                  setIsModalOpen(true)
+                  setSelectedMember(member);
+                  // setIsModalOpen(true)
                 }}
               />
             ))}
@@ -187,8 +204,8 @@ export default function MembersPage() {
         member={selectedMember}
         isOpen={isModalOpen}
         onClose={() => {
-          setIsModalOpen(false)
-          setSelectedMember(null)
+          setIsModalOpen(false);
+          setSelectedMember(null);
         }}
         onStatusChange={() => {
           // Refetch members
@@ -196,9 +213,9 @@ export default function MembersPage() {
           // ideally we invalidate query. But checking hook:
           // const { data: membersResponse, isLoading } = useChapterMembers(...)
           // standard react-query return.
-          // However, simple window reload is crude. 
+          // However, simple window reload is crude.
           // Let's rely on query invalidation if we had access to queryClient, or force reload if needed.
-          // Better: invalidating queries is the way. 
+          // Better: invalidating queries is the way.
           // BUT useMembership hook likely doesn't export the query key or client directly here.
           // I'll add queryClient usage to invalidate 'chapter-members'.
           // For now, let's try to just let React Query handle it if focus happens, or adding a key.
@@ -207,13 +224,13 @@ export default function MembersPage() {
 
           // Actually, let's just create a manual refetch function wrapper if needed.
           // UseQuery returns `refetch`.
-          // Let's assume useChapterMembers returns { ..., refetch } 
+          // Let's assume useChapterMembers returns { ..., refetch }
           // I'll check lines 30-34.
           // const { data: membersResponse, isLoading } = useChapterMembers
           // I'll update that destructuring.
-          refetch()
+          refetch();
         }}
       />
     </div>
-  )
+  );
 }
