@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { chaptersApi, ChapterFilters, CreateChapterData } from '@/lib/api/chapters'
+import { API_BASE_URL } from '@/lib/env'
 
 export const CHAPTER_KEYS = {
   all: ['chapters'] as const,
@@ -129,3 +130,72 @@ export function useRemoveChapterAdmin() {
     },
   })
 }
+
+
+export function useMemberTrend(){
+  return useQuery({
+    queryKey: ["member-trend"],
+    queryFn: ()=>fetchMemberTrend(),
+    // enabled: !!chapterId,
+  })
+}
+
+
+async function fetchMemberTrend(){
+  try {
+    
+    const res = await fetch(`${API_BASE_URL}/analytics/member-trend`,{
+      method: "Get",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    })
+
+    if(!res.ok) throw new Error("Network Issues")
+
+      const data = res.json()
+
+      return data
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+async function getViewCount(
+  chapterId: string,
+  lastMonth = false
+) {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/chapters/${chapterId}/view-count?lastMonth=${lastMonth}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch chapter view count");
+
+    const data = await res.json();
+
+    return data 
+  } catch (error) {
+    console.error("Get view count error:", error);
+    throw error;
+  }
+}
+
+
+export const useChapterViewCount = (
+  chapterId: string | undefined ,
+  lastMonth = false,
+) => {
+
+  return useQuery({
+    queryKey: ["chapterView", chapterId, lastMonth],
+    queryFn: () => getViewCount(chapterId!,lastMonth),
+    enabled: !!chapterId,
+  });
+};

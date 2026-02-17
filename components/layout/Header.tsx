@@ -8,6 +8,7 @@ import { useLogout } from "@/lib/hooks/queries/useAuth";
 import { useChapter } from "@/lib/hooks/queries/useChapters";
 import { getCountryIsoCode } from "@/lib/utils/countryMapping";
 import Image from "next/image";
+import { ModeToggle } from "../shared/ModeToggle";
 
 export function Header() {
   const { admin } = useAuthStore(); // Changed user to admin
@@ -101,6 +102,8 @@ export function Header() {
           <Bell className="w-5 h-5" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
         </button>
+
+        <ModeToggle/>
 
         {/* Logout */}
         <Button

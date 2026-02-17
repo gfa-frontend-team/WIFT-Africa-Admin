@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Building2,
   Users,
@@ -10,11 +10,13 @@ import {
   ArrowDown,
   Minus,
   Activity,
+  TrendingUp,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/stores";
 import {
   useChapterStatistics,
   useChapter,
+  useMemberTrend,
 } from "@/lib/hooks/queries/useChapters";
 import { useVerificationStats } from "@/lib/hooks/queries/useVerification";
 import { analyticsApi } from "@/lib/api/analytics";
@@ -26,9 +28,13 @@ import {
 import { StatCard } from "@/components/dashboard/StatCard";
 import { useState } from "react";
 import Link from "next/link";
+import { useProfileCountContext } from "@/lib/hooks/useDetails";
+import { StatCardSkeleton } from "@/components/StatCardSkeleton";
 
 export default function DashboardPage() {
   const { admin } = useAuthStore(); // Changed user to admin
+
+  // const {chapterId,role} = useProfileCountContext()
 
   const isSuperAdmin = admin?.role === "SUPER_ADMIN";
   const isChapterAdmin = admin?.role === "CHAPTER_ADMIN";
@@ -49,6 +55,29 @@ export default function DashboardPage() {
     connections: ConnectionAnalytics | null;
     chapterStats: ChapterDashboardStats | null;
   }>({ posts: null, connections: null, chapterStats: null });
+
+  const { data, isLoading: isTrending } = useMemberTrend();
+
+  const { viewCount, dataLoading } = useProfileCountContext();
+
+  // console.log(viewCount,"viewCount")
+
+  const memberStats = useMemo(() => {
+    // Accessing the nested data from your response structure
+    const stats = data?.data?.trend;
+
+    if (!stats) return { current: 0, trend: null };
+
+    return {
+      current: stats.newThisMonth || 0,
+      trend: {
+        // Formatting 3700 to "3,700%" or just "3700%"
+        value: `${stats.growthPercentage.toLocaleString()}%`,
+        // It's positive if growth is >= 0
+        isPositive: stats.growthPercentage >= 0,
+      },
+    };
+  }, [data]);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -75,7 +104,9 @@ export default function DashboardPage() {
   }, [isSuperAdmin, isChapterAdmin]);
 
   const isLoading =
-    (isSuperAdmin && isStatsLoading) || (isChapterAdmin && isChapterLoading);
+    (isSuperAdmin && isStatsLoading) ||
+    (isChapterAdmin && isChapterLoading) ||
+    dataLoading;
 
   if (isLoading) {
     return (
@@ -105,28 +136,41 @@ export default function DashboardPage() {
 
         {/* Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Chapters"
-            value={statistics?.totalChapters || 0}
-            icon={Building2}
-            href="/dashboard/chapters"
-          />
-          <StatCard
-            title="Total Members"
-            value={statistics?.totalMembers || 0}
-            icon={Users}
-            href="/dashboard/members"
-          />
-          <StatCard
-            title="Network Connections"
-            value={analytics.connections?.totalConnections || 0}
-            icon={Globe}
-          />
-          <StatCard
-            title="Total Impressions"
-            value={analytics.posts?.totalImpressions.toLocaleString() || 0}
-            icon={Globe}
-          />
+          {isLoading || isTrending ? (
+            // Render 4 skeletons while loading
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <StatCard
+                title="Total Chapters"
+                value={statistics?.totalChapters || 0}
+                icon={Building2}
+                href="/dashboard/chapters"
+              />
+              <StatCard
+                title="Total Members"
+                value={statistics?.totalMembers || 0}
+                icon={Users}
+                href="/dashboard/members"
+              />
+              <StatCard
+                title="Member Growth"
+                value={memberStats.current}
+                trend={memberStats.trend || undefined}
+                icon={TrendingUp}
+              />
+              <StatCard
+                title="Total Impressions"
+                value={analytics.posts?.totalImpressions.toLocaleString() || 0}
+                icon={Globe}
+              />
+            </>
+          )}
         </div>
 
         {/* Quick Actions */}
@@ -265,7 +309,7 @@ export default function DashboardPage() {
           />
           <StatCard
             title="Chapter Profile View"
-            value={analytics.chapterStats.networkConnections}
+            value={viewCount.count || 0}
             icon={Globe}
           />
         </div>

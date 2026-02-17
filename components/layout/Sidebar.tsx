@@ -41,7 +41,7 @@ const superAdminNavigation = [
   { name: 'Resources', href: '/dashboard/resources', icon: BookOpen },
   { name: 'Moderation', href: '/dashboard/posts', icon: Radio },
   { name: 'Broadcasts', href: '/dashboard/messages', icon: MessageSquarePlus },
-  { name: 'Staff Management', href: '/dashboard/staff', icon: Users },
+  // { name: 'Staff Management', href: '/dashboard/staff', icon: Users },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
@@ -55,7 +55,7 @@ const chapterAdminNavigation = [
   { name: 'Jobs', href: '/dashboard/jobs', icon: Briefcase },
   { name: 'Membership Requests', href: '/dashboard/requests', icon: UserCheck },
   { name: 'Members', href: '/dashboard/members', icon: Users },
-  { name: 'Staff Management', href: '/dashboard/staff', icon: Users },
+  // { name: 'Staff Management', href: '/dashboard/staff', icon: Users },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
@@ -100,13 +100,13 @@ export function Sidebar() {
       </div>
 
       {/* Role Badge */}
-      {roleBadge && (
+      {/* {roleBadge && (
         <div className="px-6 py-3">
           <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', roleBadge.color)}>
             {roleBadge.text}
           </span>
         </div>
-      )}
+      )} */}
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -123,7 +123,7 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-primary text-white/70'
                   : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               )}
             >

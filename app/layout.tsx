@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { ThemeProvider } from "./ThemeProvider";
+import { ProfileProvider } from "@/lib/hooks/useDetails";
 
 export const metadata: Metadata = {
   title: "WIFT Africa Admin",
@@ -29,7 +30,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <ProfileProvider>
+
             {children}
+            </ProfileProvider>
           </ThemeProvider>
         </QueryProvider>
       </body>
