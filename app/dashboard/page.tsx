@@ -309,7 +309,7 @@ export default function DashboardPage() {
           />
           <StatCard
             title="Chapter Profile View"
-            value={viewCount.count || 0}
+            value={viewCount?.count || 0}
             icon={Globe}
           />
         </div>

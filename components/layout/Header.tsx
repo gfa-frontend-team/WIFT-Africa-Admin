@@ -1,6 +1,12 @@
 "use client";
 
-import { LogOut, Bell, Shield } from "lucide-react";
+import {
+  LogOut,
+  Bell,
+  Shield,
+  PanelLeftOpen,
+  PanelLeftClose,
+} from "lucide-react";
 import { useAuthStore } from "@/lib/stores";
 import { Button } from "@/components/ui/Button";
 import { usePermissions } from "@/lib/hooks/usePermissions";
@@ -9,8 +15,15 @@ import { useChapter } from "@/lib/hooks/queries/useChapters";
 import { getCountryIsoCode } from "@/lib/utils/countryMapping";
 import Image from "next/image";
 import { ModeToggle } from "../shared/ModeToggle";
+import { cn } from "@/lib/utils";
 
-export function Header() {
+export function Header({
+  toggleSidebar,
+  isCollapsed,
+}: {
+  toggleSidebar: () => void;
+  isCollapsed: boolean;
+}) {
   const { admin } = useAuthStore(); // Changed user to admin
   const { isSuperAdmin, isChapterAdmin } = usePermissions();
 
@@ -27,10 +40,24 @@ export function Header() {
   };
 
   return (
-    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 fixed top-0 right-0 left-64 z-10">
+   <header className={cn(
+  "h-16 bg-card border-b border-border flex items-center justify-between px-6 fixed top-0 right-0 z-2 transition-all duration-300",
+  isCollapsed ? "left-20" : "left-64"
+)}>
       <div className="flex-1">
         {/* User Info with Role Badge */}
         <div className="flex items-center gap-3">
+          <button
+            onClick={toggleSidebar}
+            className="hidden lg:flex p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500 "
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen size={20} />
+            ) : (
+              <PanelLeftClose size={20} />
+            )}
+          </button>
+
           <div className="flex items-center gap-2">
             {(() => {
               const flagCode = getCountryIsoCode(
@@ -103,7 +130,7 @@ export function Header() {
           <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
         </button>
 
-        <ModeToggle/>
+        <ModeToggle />
 
         {/* Logout */}
         <Button

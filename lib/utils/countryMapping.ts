@@ -113,6 +113,15 @@ export function getCountryIsoCode(code?: string, name?: string): string {
     return 'AFRICA'
 }
 
+export const getFlagEmoji = (countryCode:string) => {
+  if (countryCode === "AFRICA") return "🌍";
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, (char) => 
+      String.fromCodePoint(char.charCodeAt(0) + 127397)
+    );
+};
+
 /**
  * Generate a flag URL from FlagsAPI.com or return 'AFRICA' for HQ chapters
  * 
