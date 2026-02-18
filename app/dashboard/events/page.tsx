@@ -21,6 +21,8 @@ export default function EventsPage() {
     chapterId: isChapterAdmin && userChapterId ? userChapterId : undefined, // Filter by chapter for Chapter Admins
   })
 
+  console.log(data,"data")
+
 
   // Your filtered events logic
 const filteredEvents = data?.events?.filter(event => {
@@ -154,7 +156,7 @@ const filteredEvents = data?.events?.filter(event => {
       </div>
 
       {/* Pagination (Basic) */}
-      {data && data.pages > 1 && (
+      {/* {data && data.pages > 1 && (
         <div className="flex justify-center gap-2">
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -172,7 +174,7 @@ const filteredEvents = data?.events?.filter(event => {
             Next
           </button>
         </div>
-      )}
+      )} */}
     </div>
   )
 }
