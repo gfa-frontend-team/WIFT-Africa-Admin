@@ -29,7 +29,7 @@ export function MemberCard({ member, onClick }: MemberCardProps) {
 
   const handleCardClick = (e: React.MouseEvent) => {
   
-    onClick();
+    onClick?.();
       router.push(`/dashboard/members/${member.id}`)
     
   }
