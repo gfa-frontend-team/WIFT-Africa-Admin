@@ -60,7 +60,7 @@ export default function VerificationPage() {
         <CardHeader>
           <CardTitle>Manual Delay Check</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className='px-5 pb-5'>
           <p className="text-sm text-muted-foreground mb-4">
             Manually trigger the verification delay checker. This will send notification emails
             to users whose membership requests have been pending for more than 7 days.
@@ -97,7 +97,7 @@ export default function VerificationPage() {
         <CardHeader>
           <CardTitle>About Verification Delays</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
+        <CardContent className="space-y-3 text-sm text-muted-foreground px-5 pb-5">
           <p>
             Membership requests are expected to be reviewed within 7 days. When a request
             exceeds this timeframe, it's marked as delayed.

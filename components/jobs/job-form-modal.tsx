@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
 import { CreateJobData, Job, UpdateJobData, AdminRole } from '@/types'
-import { Loader2 } from 'lucide-react'
+import { Briefcase, DollarSign, Loader2, MapPin } from 'lucide-react'
 import { useCreateJob, useUpdateJob } from '@/lib/hooks/queries/useJobs'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuthStore } from '@/lib/stores/authStore'
@@ -145,127 +145,225 @@ export function JobFormModal({ isOpen, onClose, onSuccess, job }: JobFormModalPr
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{job ? 'Edit Job' : 'Post a Job'}</DialogTitle>
-          <DialogDescription>
-            Fill in the details below to {job ? 'update the' : 'create a new'} job posting.
-          </DialogDescription>
-        </DialogHeader>
+  <Dialog open={isOpen} onOpenChange={onClose}>
+<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card text-card-foreground p-0 border border-border shadow-xl transition-colors">
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Job Title</Label>
-              <Input id="title" {...register('title')} placeholder="e.g. Senior Frontend Engineer" />
-              {errors.title && <p className="text-red-500 text-xs">{errors.title.message}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name</Label>
-              <Input id="companyName" {...register('companyName')} placeholder="e.g. Acme Corp" />
-              {errors.companyName && <p className="text-red-500 text-xs">{errors.companyName.message}</p>}
-            </div>
-          </div>
+  {/* HEADER */}
+  <div className="bg-primary/10 backdrop-blur p-6 border-b border-border">
+    <DialogHeader>
+      <DialogTitle >
+        {job ? "Edit Job Posting" : "Post a New Job"}
+      </DialogTitle>
+      <DialogDescription className="text-muted-foreground pt-1">
+        Provide the details for the position. Your posting will be visible to all members.
+      </DialogDescription>
+    </DialogHeader>
+  </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              {...register('description')}
-              placeholder="Detailed job description..."
-              className="h-32"
+  <form
+    onSubmit={handleSubmit(onSubmit)}
+    className="p-6 space-y-8 bg-background transition-colors"
+  >
+    {/* SECTION 1 */}
+    <div className="space-y-4">
+      <h4 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+        <Briefcase className="w-3 h-3" />
+        General Information
+      </h4>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="title" className="text-sm font-semibold">
+            Job Title
+          </Label>
+          <Input
+            id="title"
+            {...register("title")}
+            placeholder="e.g. Senior Frontend Engineer"
+            className="bg-background border-border focus-visible:ring-ring transition-colors"
+          />
+          {errors.title && (
+            <p className="text-destructive text-xs font-medium">
+              {errors.title.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="companyName" className="text-sm font-semibold">
+            Company Name
+          </Label>
+          <Input
+            id="companyName"
+            {...register("companyName")}
+            placeholder="e.g. Acme Corp"
+            className="bg-background border-border focus-visible:ring-ring transition-colors"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description" className="text-sm font-semibold">
+          Description
+        </Label>
+        <Textarea
+          id="description"
+          {...register("description")}
+          placeholder="What does this role entail?"
+          className="h-32 bg-background border-border resize-none focus-visible:ring-ring transition-colors"
+        />
+      </div>
+    </div>
+
+    {/* SECTION 2 */}
+    <div className="space-y-4 pt-4 border-t border-border">
+      <h4 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+        <MapPin className="w-3 h-3" />
+        Logistics & Type
+      </h4>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="role" className="text-sm font-semibold">
+            Role / Category
+          </Label>
+          <Input
+            id="role"
+            {...register("role")}
+            placeholder="e.g. Engineering"
+            className="bg-background border-border focus-visible:ring-ring transition-colors"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="employmentType" className="text-sm font-semibold">
+            Employment Type
+          </Label>
+          <select
+            id="employmentType"
+            {...register("employmentType")}
+            className="w-full h-10 px-3 py-2 rounded-md border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+          >
+            <option value="full-time">Full Time</option>
+            <option value="part-time">Part Time</option>
+            <option value="contract">Contract</option>
+            <option value="internship">Internship</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        <div className="space-y-2">
+          <Label htmlFor="location" className="text-sm font-semibold">
+            Location
+          </Label>
+          <Input
+            id="location"
+            {...register("location")}
+            placeholder="e.g. Lagos, Nigeria"
+            className="bg-background border-border focus-visible:ring-ring transition-colors"
+          />
+        </div>
+
+        <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/40 border border-border">
+          <input
+            type="checkbox"
+            id="isRemote"
+            {...register("isRemote")}
+            className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-ring"
+          />
+          <Label
+            htmlFor="isRemote"
+            className="text-sm font-medium cursor-pointer"
+          >
+            This is a Remote Position
+          </Label>
+        </div>
+      </div>
+    </div>
+
+    {/* SECTION 3 */}
+    <div className="space-y-4 pt-4 border-t border-border">
+      <h4 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+        <DollarSign className="w-3 h-3" />
+        Compensation & Reach
+      </h4>
+
+      <div className="grid grid-cols-3 gap-4">
+        <Input
+          placeholder="Currency (NGN)"
+          {...register("currency")}
+          className="bg-background border-border focus-visible:ring-ring transition-colors"
+        />
+        <Input
+          type="number"
+          placeholder="Min Salary"
+          {...register("salaryMin")}
+          className="bg-background border-border focus-visible:ring-ring transition-colors"
+        />
+        <Input
+          type="number"
+          placeholder="Max Salary"
+          {...register("salaryMax")}
+          className="bg-background border-border focus-visible:ring-ring transition-colors"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-semibold">
+          External Application Link
+        </Label>
+        <Input
+          {...register("applicationLink")}
+          placeholder="https://company.com/careers/apply"
+          className="bg-background border-border focus-visible:ring-ring transition-colors"
+        />
+        <p className="text-xs text-muted-foreground">
+          Leave empty to accept applications via platform
+        </p>
+      </div>
+
+      <div className="space-y-2 pt-2">
+        <Label className="text-sm font-semibold">
+          Assign to Chapter
+        </Label>
+        <Controller
+          name="chapterId"
+          control={control}
+          render={({ field }) => (
+            <ChapterSelect
+              value={field.value}
+              onChange={field.onChange}
             />
-            {errors.description && <p className="text-red-500 text-xs">{errors.description.message}</p>}
-          </div>
+          )}
+        />
+      </div>
+    </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="role">Role / Category</Label>
-              <Input id="role" {...register('role')} placeholder="e.g. Engineering" />
-              {errors.role && <p className="text-red-500 text-xs">{errors.role.message}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="employmentType">Employment Type</Label>
-              <select
-                id="employmentType"
-                {...register('employmentType')}
-                className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-sm"
-              >
-                <option value="full-time">Full Time</option>
-                <option value="part-time">Part Time</option>
-                <option value="contract">Contract</option>
-                <option value="internship">Internship</option>
-                <option value="volunteer">Volunteer</option>
-              </select>
-            </div>
-          </div>
+    {/* FOOTER */}
+    <DialogFooter className="pt-6 mt-4 border-t border-border flex gap-3">
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={onClose}
+      >
+        Cancel
+      </Button>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input id="location" {...register('location')} placeholder="e.g. Lagos, Nigeria" />
-              {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
-            </div>
-            <div className="flex items-center space-x-2 pt-8">
-              <input
-                type="checkbox"
-                id="isRemote"
-                {...register('isRemote')}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="isRemote">Remote Position?</Label>
-            </div>
-          </div>
+      <Button
+        type="submit"
+        disabled={isLoading}
+        className="px-8 shadow-md shadow-primary/20"
+      >
+        {isLoading && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
+        {job ? "Save Changes" : "Publish Job Post"}
+      </Button>
+    </DialogFooter>
+  </form>
+</DialogContent>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
-              <Input id="currency" {...register('currency')} placeholder="NGN" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="salaryMin">Min Salary</Label>
-              <Input id="salaryMin" type="number" {...register('salaryMin')} placeholder="0" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="salaryMax">Max Salary</Label>
-              <Input id="salaryMax" type="number" {...register('salaryMax')} placeholder="0" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="applicationLink">External Application Link (Optional)</Label>
-            <Input id="applicationLink" {...register('applicationLink')} placeholder="https://..." />
-            <p className="text-xs text-muted-foreground">Leave empty if you want users to apply within the platform.</p>
-            {errors.applicationLink && <p className="text-red-500 text-xs">{errors.applicationLink.message}</p>}
-          </div>
-
-          {/* Chapter Selection */}
-          <div className="space-y-2">
-            <Label>Post to Chapter (Optional)</Label>
-            <Controller
-              name="chapterId"
-              control={control}
-              render={({ field }) => (
-                <ChapterSelect
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={undefined} // Optional field
-                />
-              )}
-            />
-            <p className="text-xs text-muted-foreground">Leave empty for Global/HQ post</p>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {job ? 'Update Job' : 'Post Job'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+</Dialog>
   )
 }

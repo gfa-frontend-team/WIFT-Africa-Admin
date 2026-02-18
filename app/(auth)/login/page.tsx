@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useAuthStore } from '@/lib/stores'
 import { useLogin } from '@/lib/hooks/queries/useAuth'
 import { Shield, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -165,11 +166,11 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Submit Button */}
-          <button
+          {/* Button Button */}
+          <Button
             type="submit"
             disabled={isLoading || !email || !password}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
           >
             {isLoading ? (
               <>
@@ -182,7 +183,7 @@ export default function LoginPage() {
                 <span>Sign In</span>
               </>
             )}
-          </button>
+          </Button>
         </form>
 
         {/* Divider */}

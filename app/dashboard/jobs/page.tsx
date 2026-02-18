@@ -72,7 +72,7 @@ export default function JobsPage() {
           <p className="text-muted-foreground">Manage job postings and opportunities.</p>
         </div>
         {canManage && (
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className='text-white'>
             <Plus className="mr-2 h-4 w-4" /> Post a Job
           </Button>
         )}
@@ -109,7 +109,7 @@ export default function JobsPage() {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-5">
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Briefcase className="h-4 w-4" /> <span className="capitalize">{job.employmentType}</span>

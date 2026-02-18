@@ -59,7 +59,7 @@ export default function DashboardLayout({
           isCollapsed={isCollapsed}
         />
         <main
-          className={`pt-20 p-6 py-4`}
+          className={`pt-20 p-6 py-8`}
         >
           {children}
         </main>
