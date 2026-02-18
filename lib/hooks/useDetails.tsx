@@ -15,8 +15,8 @@ interface ProfileContextType {
 //   setTimeframe: (val: "30days" | "90days") => void;
 //   user: any;
 //   isAuthenticated: boolean;
-chapterId:string | undefined,
-role:AdminRole
+chapterId: string | null | undefined; // Add null here
+  role: AdminRole | null | undefined;
 } 
 
 // 2. Initial State
