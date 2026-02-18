@@ -84,7 +84,7 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
         <CardHeader>
           <CardTitle>Basic Information</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Chapter Name"
@@ -187,7 +187,7 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
         <CardHeader>
           <CardTitle>Leadership</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-5">
           <Input
             label="Current President"
             value={formData.currentPresident}
@@ -218,7 +218,7 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
         <CardHeader>
           <CardTitle>Contact Information</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Chapter Email"
@@ -259,7 +259,7 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
         <CardHeader>
           <CardTitle>Social Media</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-5">
           <Input
             label="Facebook URL"
             type="url"

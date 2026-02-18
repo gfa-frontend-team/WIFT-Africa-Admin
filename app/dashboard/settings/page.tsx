@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import StaffPage from '@/components/StaffManagement'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { Label } from "@/components/ui/Label"
-import { Briefcase, Palette, Sun, Moon, Monitor, Check } from 'lucide-react'
+import { Briefcase, Palette, Sun, Moon, Monitor } from 'lucide-react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 export default function SettingsPage() {
@@ -14,7 +14,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<string>("staff")
   
   // State for primary color selection
-  const [primaryColor, setPrimaryColor] = useState('blue')
+  // const [primaryColor, setPrimaryColor] = useState('blue')
 
   // Prevent hydration mismatch
   useEffect(() => setMounted(true), [])
@@ -24,14 +24,14 @@ export default function SettingsPage() {
     theme: "Customize the look and feel and primary brand colors of your dashboard."
   }
 
-  const colorOptions = [
-    { name: 'Blue', value: 'blue', class: 'bg-blue-600' },
-    { name: 'Indigo', value: 'indigo', class: 'bg-indigo-600' },
-    { name: 'Violet', value: 'violet', class: 'bg-violet-600' },
-    { name: 'Emerald', value: 'emerald', class: 'bg-emerald-600' },
-    { name: 'Rose', value: 'rose', class: 'bg-rose-600' },
-    { name: 'Amber', value: 'amber', class: 'bg-amber-600' },
-  ]
+  // const colorOptions = [
+  //   { name: 'Blue', value: 'blue', class: 'bg-blue-600' },
+  //   { name: 'Indigo', value: 'indigo', class: 'bg-indigo-600' },
+  //   { name: 'Violet', value: 'violet', class: 'bg-violet-600' },
+  //   { name: 'Emerald', value: 'emerald', class: 'bg-emerald-600' },
+  //   { name: 'Rose', value: 'rose', class: 'bg-rose-600' },
+  //   { name: 'Amber', value: 'amber', class: 'bg-amber-600' },
+  // ]
 
   if (!mounted) return null
 

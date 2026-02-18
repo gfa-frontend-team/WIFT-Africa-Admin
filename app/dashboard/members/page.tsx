@@ -12,6 +12,13 @@ import { PermissionGuard } from "@/lib/guards/PermissionGuard";
 import { Permission } from "@/lib/constants/permissions";
 import Image from "next/image";
 import { getCountryIsoCode, getFlagEmoji } from "@/lib/utils/countryMapping";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function MembersPage() {
   const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions();
@@ -108,24 +115,66 @@ export default function MembersPage() {
               <label className="block text-sm font-medium text-foreground mb-2">
                 Chapter
               </label>
-              <select
-                value={selectedChapter}
-                onChange={(e) => setSelectedChapter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+              <Select
+                value={selectedChapter || "all"}
+                onValueChange={(value) =>
+                  setSelectedChapter(value === "all" ? "" : value)
+                }
               >
-                <option value="">Select a chapter</option>
-                {chapters.map((chapter) => (
-                  <option key={chapter.id} value={chapter.id}>
-                    {(() => {
-                      const flagEmoji = getFlagEmoji(chapter?.code);
+                <SelectTrigger className="w-full px-3 py-2 border border-input rounded-lg bg-background h-11">
+                  <SelectValue placeholder="Select a chapter" />
+                </SelectTrigger>
 
-                      // Return a template literal string with a space
-                      // This creates the visual separation you need
-                      return `${flagEmoji}   ${chapter.name}`;
-                    })()}
-                  </option>
-                ))}
-              </select>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <div className="flex items-center gap-2">
+                      {/* <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-lg shrink-0">
+                        🌍
+                      </div> */}
+                      <span>Select a Chapter</span>
+                    </div>
+                  </SelectItem>
+
+                  {chapters.map((chapter) => (
+                    <SelectItem key={chapter.id} value={chapter.id}>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const flagCode = getCountryIsoCode(
+                            chapter?.code,
+                            chapter?.name,
+                          );
+
+                          if (flagCode === "AFRICA") {
+                            return (
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-lg shrink-0">
+                                🌍
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div className="relative w-8 h-8 shrink-0 overflow-hidden rounded-full border border-border/50">
+                              <Image
+                                src={`https://flagsapi.com/${flagCode}/flat/64.png`}
+                                alt={`${chapter?.name} flag`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src =
+                                    "https://flagsapi.com/ZZ/flat/64.png"; // Fallback to unknown flag
+                                }}
+                                fill
+                                sizes="32px"
+                              />
+                            </div>
+                          );
+                        })()}
+                        <span>{chapter.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </PermissionGuard>
 

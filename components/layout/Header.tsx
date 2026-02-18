@@ -10,7 +10,7 @@ import {
 import { useAuthStore } from "@/lib/stores";
 import { Button } from "@/components/ui/Button";
 import { usePermissions } from "@/lib/hooks/usePermissions";
-import { useLogout } from "@/lib/hooks/queries/useAuth";
+import {  useLogout } from "@/lib/hooks/queries/useAuth";
 import { useChapter } from "@/lib/hooks/queries/useChapters";
 import { getCountryIsoCode } from "@/lib/utils/countryMapping";
 import Image from "next/image";
@@ -25,7 +25,9 @@ export function Header({
   isCollapsed: boolean;
 }) {
   const { admin } = useAuthStore(); // Changed user to admin
+
   const { isSuperAdmin, isChapterAdmin } = usePermissions();
+
 
   // Fetch chapter details if user is Chapter Admin
   const { data: chapter } = useChapter(admin?.chapterId || "", {
@@ -39,6 +41,8 @@ export function Header({
     logoutMutation.mutate();
   };
 
+
+console.log("data",admin)
   return (
    <header className={cn(
   "h-16 bg-card border-b border-border flex items-center justify-between px-6 fixed top-0 right-0 z-2 transition-all duration-300",
@@ -92,11 +96,11 @@ export function Header({
               );
             })()}
             {/* Fallback initials (hidden by default, shown if flag fails) */}
-            {/* {isChapterAdmin && chapter && (
+            {isChapterAdmin && chapter && (
               <div className="hidden items-center justify-center w-8 h-8 bg-primary/10 rounded-full text-primary font-semibold text-sm">
                 {admin?.firstName?.[0]}{admin?.lastName?.[0]}
               </div>
-            )} */}
+            )}
             <div>
               <p className="text-sm font-medium text-foreground">
                 {isChapterAdmin && chapter
