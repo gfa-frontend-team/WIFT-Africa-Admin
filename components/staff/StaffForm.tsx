@@ -192,7 +192,7 @@ export function StaffForm({
               <option value={AdminRole.CHAPTER_ADMIN}>Chapter Admin</option>
             </>
           )}
-          <option value={AdminRole.CHAPTER_STAFF}>Chapter Staff</option>
+          {/* <option value={AdminRole.CHAPTER_STAFF}>Chapter Staff</option> */}
         </NativeSelect>
         {errors.role && (
           <p className="text-sm text-destructive mt-1">{errors.role.message}</p>

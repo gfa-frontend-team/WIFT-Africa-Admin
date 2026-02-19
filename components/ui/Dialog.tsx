@@ -26,12 +26,12 @@ export function Dialog({ open, onOpenChange, children, className }: DialogProps)
 
   if (!open) return null
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200"
       onClick={() => onOpenChange?.(false)}
     >
-      <div 
-        className={cn("relative w-full max-w-lg rounded-lg bg-background shadow-lg animate-in zoom-in-95 duration-200", className)} 
+      <div
+        className={cn("relative w-full max-w-lg rounded-lg border border-border bg-card text-card-foreground shadow-lg animate-in zoom-in-95 duration-200", className)}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

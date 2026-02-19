@@ -12,6 +12,10 @@ export interface MembershipFilters {
 const transformUser = (user: any): User => ({
   ...user,
   id: user._id || user.id,
+  chapter: user.chapter && typeof user.chapter === 'object' ? {
+    ...user.chapter,
+    id: user.chapter._id || user.chapter.id
+  } : user.chapter,
 })
 
 const transformRequest = (request: any): MembershipRequest => ({
@@ -163,7 +167,7 @@ export const membershipApi = {
   getMemberDetails: async (userId: string): Promise<{ user: User, profile: any }> => {
     // We use the admin/members endpoint which should return user details
     const response = await apiClient.get<any>(`/admin/members/${userId}`)
-    console.log(response,"response")
+    console.log(response, "response")
     return {
       user: transformUser(response.user || response), // Handle if response is just user or {user}
       profile: response.profile || {}
