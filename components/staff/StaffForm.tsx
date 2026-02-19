@@ -11,22 +11,22 @@ import { useChapters } from "@/lib/hooks/queries/useChapters";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { NativeSelect } from "@/components/ui/NativeSelect";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import { getCountryIsoCode } from "@/lib/utils/countryMapping";
-import Image from "next/image";
+// import {
+//   Form,
+//   FormControl,
+//   FormField,
+//   FormItem,
+//   FormMessage,
+// } from "@/components/ui/form";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "../../components/ui/select";
+// import { getCountryIsoCode } from "@/lib/utils/countryMapping";
+// import Image from "next/image";
 
 // Schema
 const staffSchema = z
@@ -205,7 +205,7 @@ export function StaffForm({
           <label className="text-sm font-medium text-foreground/80">
             Chapter
           </label>
-          {/* <NativeSelect
+          <NativeSelect
         {...register("chapterId")}
         className="w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:ring-2 focus:ring-ring text-foreground"
       >
@@ -215,9 +215,9 @@ export function StaffForm({
             {c.name}
           </option>
         ))}
-      </NativeSelect> */}
+      </NativeSelect>
 
-          <Form {...form}>
+          {/* <Form {...form}>
             <form onSubmit={form.handleSubmit((data) => console.log(data))}>
               <FormField
                 control={control} // 'control' comes from useForm()
@@ -283,7 +283,7 @@ export function StaffForm({
               />
 
             </form>
-          </Form>
+          </Form> */}
           {errors.chapterId && (
             <p className="text-sm text-destructive mt-1">
               {errors.chapterId.message}
