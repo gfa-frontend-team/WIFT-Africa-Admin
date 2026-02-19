@@ -24,7 +24,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../components/ui/select";
 import { getCountryIsoCode } from "@/lib/utils/countryMapping";
 import Image from "next/image";
 

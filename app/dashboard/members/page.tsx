@@ -19,7 +19,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../../components/ui/select";
 
 export default function MembersPage() {
   const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions();
