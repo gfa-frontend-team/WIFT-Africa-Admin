@@ -10,16 +10,16 @@ import { Search, Users as UsersIcon, Info } from "lucide-react";
 import { usePermissions } from "@/lib/hooks/usePermissions";
 import { PermissionGuard } from "@/lib/guards/PermissionGuard";
 import { Permission } from "@/lib/constants/permissions";
-import Image from "next/image";
-import { getCountryIsoCode } from "@/lib/utils/countryMapping";
-// import { Select } from "@/components/ui/select";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
+// import Image from "next/image";
+// import { getCountryIsoCode } from "@/lib/utils/countryMapping";
+// // import { Select } from "@/components/ui/select";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "../../../components/ui/select";
 
 export default function MembersPage() {
   const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions();
@@ -72,6 +72,16 @@ export default function MembersPage() {
       member.email?.toLowerCase().includes(search)
     );
   });
+  const getEmojiFlag = (countryCode:string) => {
+  if (!countryCode || countryCode === 'AFRICA') return '🌍';
+  
+  // Convert ISO code (NG) to regional indicators
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, (char) => 
+      String.fromCodePoint(char.charCodeAt(0) + 127397)
+    );
+};
 
   // console.log(chapters,"chapters")
 
@@ -116,66 +126,19 @@ export default function MembersPage() {
               <label className="block text-sm font-medium text-foreground mb-2">
                 Chapter
               </label>
-              <Select
-                value={selectedChapter || "all"}
-                onValueChange={(value) =>
-                  setSelectedChapter(value === "all" ? "" : value)
-                }
-              >
-                <SelectTrigger className="w-full px-3 py-2 border border-input rounded-lg bg-background h-11">
-                  <SelectValue placeholder="Select a chapter" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="all">
-                    <div className="flex items-center gap-2">
-                      {/* <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-lg shrink-0">
-                        🌍
-                      </div> */}
-                      <span>Select a Chapter</span>
-                    </div>
-                  </SelectItem>
-
-                  {chapters.map((chapter) => (
-                    <SelectItem key={chapter.id} value={chapter.id}>
-                      <div className="flex items-center gap-2">
-                        {(() => {
-                          const flagCode = getCountryIsoCode(
-                            chapter?.code,
-                            chapter?.name,
-                          );
-
-                          if (flagCode === "AFRICA") {
-                            return (
-                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-lg shrink-0">
-                                🌍
-                              </div>
-                            );
-                          }
-
-                          return (
-                            <div className="relative w-8 h-8 shrink-0 overflow-hidden rounded-full border border-border/50">
-                              <Image
-                                src={`https://flagsapi.com/${flagCode}/flat/64.png`}
-                                alt={`${chapter?.name} flag`}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src =
-                                    "https://flagsapi.com/ZZ/flat/64.png"; // Fallback to unknown flag
-                                }}
-                                fill
-                                sizes="32px"
-                              />
-                            </div>
-                          );
-                        })()}
-                        <span>{chapter.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <select
+  value={selectedChapter || "all"}
+  onChange={(e) => setSelectedChapter(e.target.value === "all" ? "" : e.target.value)}
+  className="w-full px-3 py-2 border border-input rounded-lg bg-background h-11"
+>
+  <option value="all">🌍 Select a Chapter</option>
+  {chapters.map((chapter) => (
+    <option key={chapter.id} value={chapter.id}>
+      {/* Note: You would need a mapping function for emoji flags */}
+      {getEmojiFlag(chapter.code)} {chapter.name}
+    </option>
+  ))}
+</select>
             </div>
           </PermissionGuard>
 
