@@ -23,4 +23,8 @@ export interface AdminAuthResponse {
     status: string
     token: string
     admin: Admin
+    tokens?: {
+        accessToken: string
+        refreshToken: string
+    }
 }

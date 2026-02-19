@@ -1,7 +1,7 @@
 import { HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {}
+interface CardProps extends HTMLAttributes<HTMLDivElement> { }
 
 export function Card({ className, ...props }: CardProps) {
   return (
@@ -45,7 +45,7 @@ export function CardDescription({ className, ...props }: CardProps) {
 export function CardContent({ className, ...props }: CardProps) {
   return (
     <div
-      className={cn('', className)}
+      className={cn('p-6 pt-0', className)}
       {...props}
     />
   )

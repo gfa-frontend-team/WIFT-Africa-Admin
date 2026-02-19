@@ -28,15 +28,15 @@ export function MemberCard({ member, onClick }: MemberCardProps) {
   const router = useRouter()
 
   const handleCardClick = (e: React.MouseEvent) => {
-  
+
     onClick?.();
-      router.push(`/dashboard/members/${member.id}`)
-    
+    router.push(`/dashboard/members/${member.id}`)
+
   }
 
   return (
     <Card
-      className={`relative hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer hover:border-primary/50' : ''}`}
+      className={`h-full relative hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer hover:border-primary/50' : ''}`}
       onClick={handleCardClick}
     >
       <Link href={`/dashboard/members/${member.id}`} className="absolute inset-0 z-10" />

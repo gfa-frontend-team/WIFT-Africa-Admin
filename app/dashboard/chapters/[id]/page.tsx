@@ -164,7 +164,7 @@ export default function ChapterDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Basic Information */}
-          <Card>
+          <Card className="h-full">
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
             </CardHeader>
@@ -225,7 +225,7 @@ export default function ChapterDetailPage() {
           </Card>
 
           {/* Contact Information */}
-          <Card>
+          <Card className="h-full">
             <CardHeader>
               <CardTitle>Contact Information</CardTitle>
             </CardHeader>
@@ -285,9 +285,11 @@ export default function ChapterDetailPage() {
           </Card>
 
           {/* Admin Management - Super Admin Only */}
-          <PermissionGuard permission={Permission.MANAGE_CHAPTER_ADMINS}>
-            <AdminManagement chapter={currentChapter} />
-          </PermissionGuard>
+          <div className="lg:col-span-2">
+            <PermissionGuard permission={Permission.MANAGE_CHAPTER_ADMINS}>
+              <AdminManagement chapter={currentChapter} />
+            </PermissionGuard>
+          </div>
         </div>
       </div>
     </RoleGuard>

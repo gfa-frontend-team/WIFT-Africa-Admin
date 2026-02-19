@@ -29,28 +29,32 @@ export const authApi = {
     // Response (200 OK):
     // {
     //   "status": "success",
-    //   "token": "...",
-    //   "admin": { ... }
+    //   "token": "...", // Legacy? Or just access token alias?
+    //   "admin": { ... },
+    //   "tokens": {
+    //     "accessToken": "...",
+    //     "refreshToken": "..."
+    //   }
     // }
 
-    if (response.token && response.admin) {
+    // Check for "tokens" object first (new format), fallback to "token" (old format)
+    const accessToken = response.tokens?.accessToken || response.token;
+    const refreshToken = response.tokens?.refreshToken || response.token; // Fallback to same if only one exists (legacy behavior)
+
+    if (accessToken && response.admin) {
       // Step 2: Store tokens
-      // Admin login returns a single token - use it for both access and refresh
-      // This ensures token refresh logic works properly
-      apiClient.setTokens(response.token, response.token)
+      apiClient.setTokens(accessToken, refreshToken)
 
       // Step 3: Store admin data
       const admin = transformAdmin(response.admin)
 
       if (typeof window !== 'undefined') {
         localStorage.setItem('admin', JSON.stringify(admin))
-        // Store token in localStorage as well if apiClient doesn't persist it automatically across reloads
-        // (client.ts likely handles this, but good to be sure)
       }
 
       return {
         status: response.status,
-        token: response.token,
+        token: accessToken,
         admin,
       }
     }

@@ -193,7 +193,7 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Start Date <span className="text-destructive">*</span></label>
+            <label className="text-sm font-medium">Start Date & Time <span className="text-destructive">*</span></label>
             <input
               type="datetime-local"
               {...register('startDate')}
@@ -203,7 +203,7 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">End Date <span className="text-destructive">*</span></label>
+            <label className="text-sm font-medium">End Date & Time <span className="text-destructive">*</span></label>
             <input
               type="datetime-local"
               {...register('endDate')}

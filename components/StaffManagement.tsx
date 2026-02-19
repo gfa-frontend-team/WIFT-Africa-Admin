@@ -182,22 +182,24 @@ export default function StaffPage() {
             <option value={AdminRole.SUPER_ADMIN}>Super Admin</option>
             <option value={AdminRole.CHAPTER_ADMIN}>Chapter Admin</option>
             <option value={AdminRole.HQ_STAFF}>HQ Staff</option>
-            <option value={AdminRole.CHAPTER_STAFF}>Chapter Staff</option>
+            {/* <option value={AdminRole.CHAPTER_STAFF}>Chapter Staff</option> */}
           </select>
         )}
 
         <div className="ml-auto">
-          <Button
-            onClick={() => {
-              setEditingStaff(undefined);
-              setIsModalOpen(true);
-            }}
-
-            className="text-white"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Staff
-          </Button>
+          {/* Chapter Admins can only add Chapter Staff, so if that's archived, hide the button */}
+          {!isChapterAdmin && (
+            <Button
+              onClick={() => {
+                setEditingStaff(undefined);
+                setIsModalOpen(true);
+              }}
+              className="text-white"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Staff
+            </Button>
+          )}
         </div>
       </div>
 
@@ -305,14 +307,14 @@ export default function StaffPage() {
 
           {/* Form Container */}
           <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto bg-background text-foreground">
-  <StaffForm
-    mode={editingStaff ? "edit" : "create"}
-    initialData={editingStaff}
-    onSubmit={editingStaff ? handleUpdate : handleCreate}
-    isSubmitting={isSubmitting}
-    onCancel={() => setIsModalOpen(false)}
-  />
-</div>
+            <StaffForm
+              mode={editingStaff ? "edit" : "create"}
+              initialData={editingStaff}
+              onSubmit={editingStaff ? handleUpdate : handleCreate}
+              isSubmitting={isSubmitting}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </div>
         </div>
       </Dialog>
 

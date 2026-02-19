@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { membershipApi, MembershipFilters } from '@/lib/api/membership'
+import { membershipApi, MembershipFilters, AdminMembershipFilters } from '@/lib/api/membership'
 
 export const MEMBERSHIP_KEYS = {
   all: ['membership'] as const,
   requests: (chapterId: string, filters: MembershipFilters = {}) =>
     [...MEMBERSHIP_KEYS.all, 'requests', chapterId, filters] as const,
+  adminRequests: (filters: AdminMembershipFilters = {}) =>
+    [...MEMBERSHIP_KEYS.all, 'adminRequests', filters] as const,
   members: (chapterId: string, page: number = 1, limit: number = 20) =>
     [...MEMBERSHIP_KEYS.all, 'members', chapterId, page, limit] as const,
 }
@@ -14,6 +16,13 @@ export function useMembershipRequests(chapterId: string, filters: MembershipFilt
     queryKey: MEMBERSHIP_KEYS.requests(chapterId, filters),
     queryFn: () => membershipApi.getRequests(chapterId, filters),
     enabled: !!chapterId,
+  })
+}
+
+export function useAdminMembershipRequests(filters: AdminMembershipFilters = {}) {
+  return useQuery({
+    queryKey: MEMBERSHIP_KEYS.adminRequests(filters),
+    queryFn: () => membershipApi.getAdminRequests(filters),
   })
 }
 

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useMemberDetails, useApproveRequest, useRejectRequest } from '@/lib/hooks/queries/useMembership'
+import { useMemberDetails, useApproveRequest, useRejectRequest, useMembershipRequests } from '@/lib/hooks/queries/useMembership'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { Loader2, ArrowLeft, Download, ExternalLink, Mail, Phone, MapPin, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -72,16 +72,32 @@ export default function RequestDetailsPage() {
         // ... fill other required props with mocks/defaults for the modal display
     } as any : null
 
+    // Fetch pending requests to find the correct requestId
+    // We fetch a larger limit to ensure we find the user's request if pagination is active
+    const { data: requestsData } = useMembershipRequests(
+        user?.chapter?.id || userChapterId || '',
+        { status: 'PENDING', limit: 100 }
+    )
+
+    const targetRequest = requestsData?.data?.find((r: MembershipRequest) => r.user?.id === userId)
+
     const handleApprove = async () => {
-        if (!user || (!user.chapter && !userChapterId)) return
+        const chapterId = user?.chapter?.id || user?.chapterId || userChapterId || ''
+
+        if (!user || !chapterId) {
+            console.error('Missing user or chapter ID', { user, chapterId })
+            return
+        }
+
+        // If we found the specific request object, use its ID. 
+        // Fallback to userId only if we really can't find it (though this likely fails as seen before)
+        const requestId = targetRequest?.id || userId
+
         try {
-            // Updated API call structure to match ADMIN_FLOW
-            // We need to implement `updateMembershipStatus` or change `approveRequest`
-            // Let's temporarily call the mutation with userId as requestId, but we need to fix the API function first.
             await approveRequest({
-                chapterId: user.chapter?.id || userChapterId || '',
-                requestId: userId, // Passing userId as requestId for the new endpoint logic
-                notes: undefined // No notes for new flow
+                chapterId: chapterId,
+                requestId: requestId,
+                notes: undefined
             })
             router.push('/dashboard/requests')
         } catch (err) {
@@ -90,11 +106,19 @@ export default function RequestDetailsPage() {
     }
 
     const handleReject = async (reason: string, canReapply: boolean) => {
-        if (!user || (!user.chapter && !userChapterId)) return
+        const chapterId = user?.chapter?.id || user?.chapterId || userChapterId || ''
+
+        if (!user || !chapterId) {
+            console.error('Missing user or chapter ID', { user, chapterId })
+            return
+        }
+
+        const requestId = targetRequest?.id || userId
+
         try {
             await rejectRequest({
-                chapterId: user.chapter?.id || userChapterId || '',
-                requestId: userId,
+                chapterId: chapterId,
+                requestId: requestId,
                 reason,
                 canReapply
             })
