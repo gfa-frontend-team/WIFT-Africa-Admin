@@ -1,9 +1,18 @@
 import { apiClient } from './client'
 import type { MembershipRequest, PaginatedResponse, User } from '@/types'
 
+export type MembershipRequestStatus = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED'
+
 export interface MembershipFilters {
-  status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  status?: MembershipRequestStatus
   memberType?: 'NEW' | 'EXISTING'
+  page?: number
+  limit?: number
+}
+
+export interface AdminMembershipFilters {
+  status?: MembershipRequestStatus
+  chapterId?: string
   page?: number
   limit?: number
 }
@@ -47,6 +56,29 @@ export const membershipApi = {
     return {
       data: response.requests.map(transformRequest),
       pagination: {
+        page: 1,
+        limit: response.requests.length,
+        total: response.requests.length,
+        totalPages: 1,
+      },
+    }
+  },
+
+  // Get all membership requests (Super Admin — paginated, global)
+  getAdminRequests: async (filters?: AdminMembershipFilters): Promise<PaginatedResponse<MembershipRequest>> => {
+    const params = new URLSearchParams()
+    if (filters?.status && filters.status !== 'ALL') params.append('status', filters.status)
+    if (filters?.chapterId) params.append('chapterId', filters.chapterId)
+    if (filters?.page) params.append('page', String(filters.page))
+    if (filters?.limit) params.append('limit', String(filters.limit))
+
+    const response = await apiClient.get<{ requests: any[]; pagination?: any }>(
+      `/admin/membership-requests?${params.toString()}`
+    )
+
+    return {
+      data: response.requests.map(transformRequest),
+      pagination: response.pagination || {
         page: 1,
         limit: response.requests.length,
         total: response.requests.length,

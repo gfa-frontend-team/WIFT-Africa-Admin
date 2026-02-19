@@ -226,7 +226,7 @@ export interface MembershipRequest {
   reviewedAt?: Date
   reviewedBy?: string
   reviewNotes?: string
-  memberType: MemberType
+  memberType?: MemberType
   membershipId?: string
   phoneNumber?: string
   additionalInfo?: string
