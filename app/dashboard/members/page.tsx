@@ -11,7 +11,8 @@ import { usePermissions } from "@/lib/hooks/usePermissions";
 import { PermissionGuard } from "@/lib/guards/PermissionGuard";
 import { Permission } from "@/lib/constants/permissions";
 import Image from "next/image";
-import { getCountryIsoCode, getFlagEmoji } from "@/lib/utils/countryMapping";
+import { getCountryIsoCode } from "@/lib/utils/countryMapping";
+// import { Select } from "@/components/ui/select";
 import {
   Select,
   SelectContent,
@@ -91,7 +92,7 @@ export default function MembersPage() {
       {isChapterAdmin && currentChapter && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-300 dark:border-blue-700">
           <div className="flex items-start gap-3">
-            <Info className="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <Info className="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
             <div>
               <p className="text-base font-semibold text-blue-900 dark:text-blue-300">
                 Viewing Your Chapter Only
