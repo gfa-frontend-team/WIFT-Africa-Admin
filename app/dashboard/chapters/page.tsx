@@ -27,6 +27,9 @@ export default function ChaptersPage() {
     limit: 20,
   })
 
+  console.log(data,"data");
+  
+
   const chapters = data?.data || []
   const pagination = data?.pagination || { page: 1, totalPages: 1 }
 

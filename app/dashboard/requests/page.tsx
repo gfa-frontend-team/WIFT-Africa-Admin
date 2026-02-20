@@ -20,9 +20,7 @@ import { Permission } from '@/lib/constants/permissions'
 import { cn } from '@/lib/utils'
 
 const STATUS_TABS: { label: string; value: MembershipRequestStatus }[] = [
-  { label: 'All', value: 'ALL' },
-  { label: 'Pending Approval', value: 'PENDING' },
-  { label: 'Approved', value: 'APPROVED' },
+  { label: 'Pending', value: 'PENDING' },
   { label: 'Rejected', value: 'REJECTED' },
   { label: 'Suspended', value: 'SUSPENDED' },
 ]
@@ -31,7 +29,7 @@ export default function RequestsPage() {
   const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions()
 
   const [selectedChapter, setSelectedChapter] = useState<string>('')
-  const [statusFilter, setStatusFilter] = useState<MembershipRequestStatus>('ALL')
+  const [statusFilter, setStatusFilter] = useState<MembershipRequestStatus>('PENDING')
   const [memberTypeFilter, setMemberTypeFilter] = useState<'NEW' | 'EXISTING' | ''>('')
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -46,7 +44,7 @@ export default function RequestsPage() {
 
   // ── Chapter Admin: chapter-scoped endpoint
   const chapterFilters = {
-    status: statusFilter === 'ALL' ? undefined : statusFilter,
+    status: statusFilter,
     memberType: memberTypeFilter || undefined,
   }
   const { data: chapterRequestsResponse, isLoading: chapterLoading } = useMembershipRequests(
@@ -62,9 +60,6 @@ export default function RequestsPage() {
   const { data: adminRequestsResponse, isLoading: adminLoading } = useAdminMembershipRequests(
     isSuperAdmin ? adminFilters : {}
   )
-
-  console.log(adminRequestsResponse,"adminRequestsResponse");
-  
 
   const isLoading = isChapterAdmin ? chapterLoading : adminLoading
   const requests = (isChapterAdmin ? chapterRequestsResponse?.data : adminRequestsResponse?.data) || []
@@ -197,7 +192,7 @@ export default function RequestsPage() {
       </div>
 
       {/* Content */}
-      {isSuperAdmin && !selectedChapter && statusFilter !== 'ALL' ? (
+      {isSuperAdmin && !selectedChapter && statusFilter !== 'PENDING' ? (
         // For Super Admin with no chapter selected and a specific status — still load global results (already handled by adminFilters)
         null
       ) : null}
@@ -211,7 +206,7 @@ export default function RequestsPage() {
         </div>
       ) : filteredRequests.length === 0 ? (
         <div className="bg-card rounded-lg border border-border p-12 text-center">
-          <p className="text-muted-foreground">No {statusFilter !== 'ALL' ? statusFilter.toLowerCase() : ''} requests found</p>
+          <p className="text-muted-foreground">No {statusFilter.toLowerCase()} requests found</p>
           {searchTerm && (
             <p className="text-sm text-muted-foreground mt-2">Try adjusting your search or filters</p>
           )}
