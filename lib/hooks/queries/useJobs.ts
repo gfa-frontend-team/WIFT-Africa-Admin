@@ -16,6 +16,7 @@ export function useJobs(filters: JobFilters = {}) {
   return useQuery({
     queryKey: jobsKeys.list(filters),
     queryFn: () => jobsApi.getJobs(filters),
+     refetchOnWindowFocus: true
   })
 }
 
@@ -24,6 +25,7 @@ export function useJob(id: string) {
     queryKey: jobsKeys.detail(id),
     queryFn: () => jobsApi.getJob(id),
     enabled: !!id,
+     refetchOnWindowFocus: true
   })
 }
 
@@ -32,6 +34,7 @@ export function useJobApplications(jobId: string, filters: ApplicationFilters = 
     queryKey: jobsKeys.applications(jobId, filters),
     queryFn: () => jobsApi.getJobApplications(jobId, filters),
     enabled: !!jobId,
+     refetchOnWindowFocus: true
   })
 }
 

@@ -97,32 +97,19 @@ export function FundingForm({
   } = useForm<FundingFormValues>({
     resolver: zodResolver(fundingSchema),
     defaultValues: {
-      // name: '',
-      // description: '',
-      // role: '',
-      // fundingType: FundingType.GRANT,
-      // applicationType: ApplicationType.REDIRECT,
-      // applicationLink: '',
-      // deadline: '',
-      // region: '',
-      // amount: '',
-      // eligibility: '',
-      // chapterId: admin?.role === AdminRole.CHAPTER_ADMIN ? (admin.chapterId || '') : '',
-      // status: FundingStatus.OPEN
-      name: "Community Innovation Grant",
-      description:
-        "Funding for innovative community projects that drive positive social change",
-      role: "Project Lead",
+      name: '',
+      description: '',
+      role: '',
       fundingType: FundingType.GRANT,
       applicationType: ApplicationType.REDIRECT,
-      applicationLink: "https://example.com/apply",
-      deadline: "2024-12-31",
-      region: "North America",
-      amount: "$10,000",
-      eligibility: "Non-profit organizations with 501(c)(3) status",
-      chapterId:
-        admin?.role === AdminRole.CHAPTER_ADMIN ? admin.chapterId || "" : "",
-      status: FundingStatus.OPEN,
+      applicationLink: '',
+      deadline: '',
+      region: '',
+      amount: '',
+      eligibility: '',
+      chapterId: admin?.role === AdminRole.CHAPTER_ADMIN ? (admin.chapterId || '') : '',
+      status: FundingStatus.OPEN
+     
     },
   });
 

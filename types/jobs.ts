@@ -24,6 +24,7 @@ export interface Job {
   status: JobStatus
   expiresAt?: string
   createdAt: string
+  createdBy: string
   updatedAt: string
 
   // Stats (if available from backend)
