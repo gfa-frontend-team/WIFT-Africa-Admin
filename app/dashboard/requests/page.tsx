@@ -63,6 +63,9 @@ export default function RequestsPage() {
     isSuperAdmin ? adminFilters : {}
   )
 
+  console.log(adminRequestsResponse,"adminRequestsResponse");
+  
+
   const isLoading = isChapterAdmin ? chapterLoading : adminLoading
   const requests = (isChapterAdmin ? chapterRequestsResponse?.data : adminRequestsResponse?.data) || []
 

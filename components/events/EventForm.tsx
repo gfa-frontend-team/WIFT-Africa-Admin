@@ -319,7 +319,7 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
       </div>
 
       {/* Actions */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border flex justify-end gap-3 z-10 md:pl-72">
+      <div className=" p-4 bg-background border-t border-border flex justify-end gap-3 z-10 md:pl-72">
         <Link href="/dashboard/events" className="px-4 py-2 border rounded-md hover:bg-muted font-medium">Cancel</Link>
         <button
           type="submit"
