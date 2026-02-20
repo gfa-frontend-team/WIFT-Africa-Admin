@@ -7,11 +7,12 @@ import { useAuthStore } from '@/lib/stores'
 import { useLogin } from '@/lib/hooks/queries/useAuth'
 import { Shield, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useTheme } from 'next-themes'
 
 export default function LoginPage() {
   const router = useRouter()
   const { error, isAuthenticated, clearError } = useAuthStore()
-
+ const {theme} = useTheme()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -55,7 +56,7 @@ export default function LoginPage() {
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl mb-4 overflow-hidden relative">
           <Image
-            src="/logo.jpg"
+            src={theme !== "light" ?  "/logo.jpg": "/WIFTAFRICA.png"}
             alt="WIFT Africa Logo"
             fill
             className="object-contain"

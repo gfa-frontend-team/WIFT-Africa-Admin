@@ -26,6 +26,7 @@ import { useAuthStore } from "@/lib/stores";
 import { useChapter } from "@/lib/hooks/queries/useChapters";
 import { getCountryIsoCode } from "@/lib/utils/countryMapping";
 import { useState } from "react";
+import { useTheme } from "next-themes";
 
 const superAdminNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -68,6 +69,9 @@ export function Sidebar({ isCollapsed }: { isCollapsed: boolean }) {
   const pathname = usePathname();
   const { admin } = useAuthStore();
 
+  const {theme} = useTheme()
+
+  
   const [isHovered, setIsHovered] = useState(false);
 
   // It is "expanded" if the user hasn't collapsed it OR if they are hovering
@@ -84,22 +88,22 @@ export function Sidebar({ isCollapsed }: { isCollapsed: boolean }) {
     ? superAdminNavigation
     : chapterAdminNavigation;
 
-  const getRoleBadge = () => {
-    if (admin?.role === "SUPER_ADMIN") {
-      return {
-        text: "Super Admin",
-        color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-      };
-    }
-    if (admin?.role === "CHAPTER_ADMIN") {
-      return {
-        text: "Chapter Admin",
-        color:
-          "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-      };
-    }
-    return null;
-  };
+  // const getRoleBadge = () => {
+  //   if (admin?.role === "SUPER_ADMIN") {
+  //     return {
+  //       text: "Super Admin",
+  //       color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  //     };
+  //   }
+  //   if (admin?.role === "CHAPTER_ADMIN") {
+  //     return {
+  //       text: "Chapter Admin",
+  //       color:
+  //         "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  //     };
+  //   }
+  //   return null;
+  // };
 
   // const roleBadge = getRoleBadge()
 
@@ -122,13 +126,14 @@ export function Sidebar({ isCollapsed }: { isCollapsed: boolean }) {
           isExpanded ? "w-30 h-10" : "w-10 h-10"
         )}>
           <Image
-            src="/logo.jpg"
+            src={theme === "light" ?  "/logo.jpg": "/WIFTAFRICA.png"}
             alt="WIFT Africa Logo"
             fill
             className={cn(
-              "object-cover transition-all",
+              " transition-all",
               !isExpanded && "scale-150" // Zoom in slightly when collapsed to make logo more visible
             )}
+            objectFit={theme === "light" ? "cover" : "contain"}
           />
         </div>
       </div>
