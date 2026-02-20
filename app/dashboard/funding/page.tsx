@@ -51,7 +51,8 @@ export default function FundingPage() {
             limit: 10,
             search: debouncedSearch,
             chapterId: isChapterAdmin ? userChapterId || undefined : undefined
-        })
+        }),
+        refetchOnWindowFocus: true
     })
 
     const deleteMutation = useMutation({
