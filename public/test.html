@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  </head>
+  <body>
+    <script>
+      const socket = io("https://wiftafricabackend-test.azurewebsites.net");
+
+      socket.on("connect", () => {
+        console.log("Connected:", socket.id);
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Disconnected");
+      });
+
+      socket.on("message", (data) => {
+        console.log("Message:", data);
+      });
+    </script>
+  </body>
+</html>

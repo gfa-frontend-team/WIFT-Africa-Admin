@@ -56,7 +56,7 @@ export default function LoginPage() {
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl mb-4 overflow-hidden relative">
           <Image
-            src={theme !== "light" ?  "/logo.jpg": "/WIFTAFRICA.png"}
+            src={theme === "light" ?  "/logo.jpg": "/WIFTAFRICA.png"}
             alt="WIFT Africa Logo"
             fill
             className="object-contain"
