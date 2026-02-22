@@ -36,6 +36,8 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
   const [targetType, setTargetType] = useState<'ALL' | 'CHAPTER'>('ALL')
   const [targetChapterId, setTargetChapterId] = useState('')
 
+  const contentWords = content.trim() === '' ? 0 : content.trim().split(/\s+/).length;
+
   const { data: chaptersData } = useChapters({}, { enabled: isOpen && admin?.role === 'SUPER_ADMIN' })
   const chapters = chaptersData?.data || []
 
@@ -47,6 +49,11 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
 
     if (!content.trim()) {
       toast({ title: 'Error', description: 'Content is required', variant: 'destructive' })
+      return
+    }
+
+    if (contentWords > 200) {
+      toast({ title: 'Error', description: 'Content cannot exceed 200 words', variant: 'destructive' })
       return
     }
 
@@ -80,7 +87,12 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="content">Content</Label>
+              <span className={`text-xs ${contentWords > 200 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                {contentWords}/200 words
+              </span>
+            </div>
             <Textarea
               id="content"
               placeholder="What do you want to announce?"

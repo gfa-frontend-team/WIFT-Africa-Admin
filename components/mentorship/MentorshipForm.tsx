@@ -29,7 +29,10 @@ const mentorshipSchema = z.object({
 
     // OPTIONAL FIELDS
     mentorshipLink: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
-    description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description must be less than 2000 characters'),
+    description: z.string().min(10, 'Description must be at least 10 characters')
+        .refine((val) => (val.trim().split(/\s+/).filter(Boolean).length) <= 500, {
+            message: "Description cannot exceed 500 words",
+        }),
     eligibility: z.string().max(500, 'Eligibility must be less than 500 characters').optional(),
 
     // METADATA
@@ -103,6 +106,8 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
     })
 
     const selectedFormat = watch('mentorshipFormat')
+    const descriptionText = watch('description') || ''
+    const descriptionWords = descriptionText.trim() === '' ? 0 : descriptionText.trim().split(/\s+/).length
 
     useEffect(() => {
         if (mentorship) {
@@ -180,11 +185,11 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                 data: error.response?.data,
                 fullError: error
             })
-            
-            const errorMessage = error.response?.data?.error || 
-                                error.response?.data?.message || 
-                                "Failed to save mentorship"
-            
+
+            const errorMessage = error.response?.data?.error ||
+                error.response?.data?.message ||
+                "Failed to save mentorship"
+
             toast({
                 title: "Error",
                 description: errorMessage,
@@ -293,7 +298,12 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                     <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-foreground/80">Details</h3>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Description *</label>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium">Description *</label>
+                                <span className={`text-xs ${descriptionWords > 500 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                                    {descriptionWords}/500 words
+                                </span>
+                            </div>
                             <Textarea {...register('description')} placeholder="Detailed description of the mentorship program..." className="h-24" />
                             {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
                         </div>

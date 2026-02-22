@@ -10,7 +10,9 @@ export const eventSchema = z
     description: z
       .string()
       .min(10, "Description must be at least 10 characters")
-      .max(5000, "Description must be less than 5000 characters"),
+      .refine((val) => (val.trim().split(/\s+/).filter(Boolean).length) <= 500, {
+        message: "Description cannot exceed 500 words",
+      }),
     type: z.nativeEnum(EventType),
     chapterId: z.string().optional(), // Empty string = Global event
     startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {

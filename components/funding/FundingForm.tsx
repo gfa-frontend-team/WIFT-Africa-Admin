@@ -30,7 +30,10 @@ const fundingSchema = z
     name: z.string().min(3, "Name must be at least 3 characters"),
     description: z
       .string()
-      .min(10, "Description must be at least 10 characters"),
+      .min(10, "Description must be at least 10 characters")
+      .refine((val) => (val.trim().split(/\s+/).filter(Boolean).length) <= 500, {
+        message: "Description cannot exceed 500 words",
+      }),
     role: z.string().min(2, "Target role is required"),
     fundingType: z.nativeEnum(FundingType),
     applicationType: z.nativeEnum(ApplicationType),
@@ -109,11 +112,13 @@ export function FundingForm({
       eligibility: '',
       chapterId: admin?.role === AdminRole.CHAPTER_ADMIN ? (admin.chapterId || '') : '',
       status: FundingStatus.OPEN
-     
+
     },
   });
 
   const applicationType = watch("applicationType");
+  const descriptionText = watch('description') || ''
+  const descriptionWords = descriptionText.trim() === '' ? 0 : descriptionText.trim().split(/\s+/).length
 
   useEffect(() => {
     if (opportunity) {
@@ -229,7 +234,12 @@ export function FundingForm({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Description *</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Description *</label>
+                <span className={`text-xs ${descriptionWords > 500 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                  {descriptionWords}/500 words
+                </span>
+              </div>
               <Textarea
                 {...register("description")}
                 placeholder="Detailed description of the funding opportunity..."

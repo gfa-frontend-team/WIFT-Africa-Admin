@@ -13,7 +13,10 @@ import { Upload, X, FileText, Video, ImageIcon, Link as LinkIcon } from 'lucide-
 
 const resourceSchema = z.object({
     title: z.string().min(3, 'Title must be at least 3 characters'),
-    description: z.string().optional(),
+    description: z.string().optional()
+        .refine((val) => !val || (val.trim().split(/\s+/).filter(Boolean).length) <= 200, {
+            message: "Description cannot exceed 200 words",
+        }),
     resourceType: z.nativeEnum(ResourceType),
     status: z.nativeEnum(ResourceStatus),
     externalLink: z.string().url('Must be a valid URL').optional().or(z.literal(''))
@@ -49,6 +52,9 @@ export function ResourceForm({ resource, isOpen, onClose, onSuccess }: ResourceF
     })
 
     // Reset form when modal opens/closes or resource changes
+    const descriptionText = watch('description') || ''
+    const descriptionWords = descriptionText.trim() === '' ? 0 : descriptionText.trim().split(/\s+/).length
+
     useEffect(() => {
         if (resource) {
             reset({
@@ -156,8 +162,14 @@ export function ResourceForm({ resource, isOpen, onClose, onSuccess }: ResourceF
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Description</label>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium">Description</label>
+                                <span className={`text-xs ${descriptionWords > 200 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                                    {descriptionWords}/200 words
+                                </span>
+                            </div>
                             <Input {...register('description')} placeholder="Brief description (optional)" />
+                            {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

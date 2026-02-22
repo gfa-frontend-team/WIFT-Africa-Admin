@@ -55,6 +55,9 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
 
   // Watch location type to conditionally show fields
   const locationType = watch('location.type')
+  const descriptionText = watch('description') || ''
+  const descriptionWords = descriptionText.trim() === '' ? 0 : descriptionText.trim().split(/\s+/).length
+
   const [tagInput, setTagInput] = useState('')
 
   const handleAddTag = (e: React.KeyboardEvent | React.MouseEvent) => {
@@ -107,7 +110,12 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
           </div>
 
           <div className="space-y-2 col-span-2">
-            <label className="text-sm font-medium">Description <span className="text-destructive">*</span></label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Description <span className="text-destructive">*</span></label>
+              <span className={`text-xs ${descriptionWords > 500 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                {descriptionWords}/500 words
+              </span>
+            </div>
             <textarea
               {...register('description')}
               rows={5}

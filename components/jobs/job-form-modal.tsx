@@ -24,7 +24,10 @@ import { ChapterSelect } from "@/components/shared/ChapterSelect";
 // Zod schema
 const jobSchema = z.object({
   title: z.string().min(3, "Title is required"),
-  description: z.string().min(10, "description requires 10 char"),
+  description: z.string().min(10, "description requires 10 char")
+    .refine((val) => (val.trim().split(/\s+/).filter(Boolean).length) <= 500, {
+      message: "Description cannot exceed 500 words",
+    }),
   role: z.string().min(2, "Role is required"),
   location: z.string().min(2, "Location is required"),
   isRemote: z.boolean(),
@@ -72,6 +75,7 @@ export function JobFormModal({
     reset,
     setValue,
     control,
+    watch,
     formState: { errors },
   } = useForm<JobFormData>({
     resolver: zodResolver(jobSchema),
@@ -83,6 +87,9 @@ export function JobFormModal({
         admin?.role === AdminRole.CHAPTER_ADMIN ? admin.chapterId || "" : "",
     },
   });
+
+  const descriptionText = watch("description") || "";
+  const descriptionWords = descriptionText.trim() === "" ? 0 : descriptionText.trim().split(/\s+/).length;
 
   useEffect(() => {
     if (isOpen) {
@@ -139,10 +146,10 @@ export function JobFormModal({
         salaryRange:
           data.salaryMin && data.salaryMax
             ? {
-                min: Number(data.salaryMin),
-                max: Number(data.salaryMax),
-                currency: data.currency,
-              }
+              min: Number(data.salaryMin),
+              max: Number(data.salaryMax),
+              currency: data.currency,
+            }
             : undefined,
       };
 
@@ -220,25 +227,30 @@ export function JobFormModal({
                   placeholder="e.g. Acme Corp"
                   className="bg-background border-border focus-visible:ring-ring transition-colors"
                 />
-                  {errors.companyName && (
-                <p className="text-xs text-destructive">
-                  {errors.companyName.message}
-                </p>
-              )}
+                {errors.companyName && (
+                  <p className="text-xs text-destructive">
+                    {errors.companyName.message}
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-semibold">
-                Description
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description" className="text-sm font-semibold">
+                  Description
+                </Label>
+                <span className={`text-xs ${descriptionWords > 500 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                  {descriptionWords}/500 words
+                </span>
+              </div>
               <Textarea
                 id="description"
                 {...register("description")}
                 placeholder="What does this role entail?"
                 className="h-32 bg-background border-border resize-none focus-visible:ring-ring transition-colors"
               />
-                {errors.description && (
+              {errors.description && (
                 <p className="text-xs text-destructive">
                   {errors.description.message}
                 </p>
