@@ -7,13 +7,21 @@ export const resourcesApi = {
         return await apiClient.get('/resources', { params: filters })
     },
 
+    // Get a single resource by ID
+    getResource: async (id: string): Promise<Resource> => {
+        const data = await apiClient.get<{ data: Resource }>(`/resources/${id}`)
+        return data.data
+    },
+
     // Create a new resource
     createResource: async (data: CreateResourceData): Promise<Resource> => {
         const formData = new FormData()
         formData.append('title', data.title)
         formData.append('resourceType', data.resourceType)
-        formData.append('file', data.file)
 
+        if (data.file) formData.append('file', data.file)
+        if (data.externalLink) formData.append('externalLink', data.externalLink)
+        if (data.thumbnail) formData.append('thumbnail', data.thumbnail)
         if (data.description) formData.append('description', data.description)
         if (data.status) formData.append('status', data.status)
 
@@ -35,6 +43,8 @@ export const resourcesApi = {
         if (data.resourceType) formData.append('resourceType', data.resourceType)
         if (data.status) formData.append('status', data.status)
         if (data.file) formData.append('file', data.file)
+        if (data.externalLink) formData.append('externalLink', data.externalLink)
+        if (data.thumbnail) formData.append('thumbnail', data.thumbnail)
 
         return await apiClient.patch(`/resources/${id}`, formData, {
             headers: {

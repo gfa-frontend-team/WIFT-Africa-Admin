@@ -164,11 +164,13 @@ export default function DashboardPage() {
                 trend={memberStats.trend || undefined}
                 icon={TrendingUp}
               />
+              {/* 
               <StatCard
                 title="Total Impressions"
                 value={analytics.posts?.totalImpressions.toLocaleString() || 0}
                 icon={Globe}
               />
+              */}
             </>
           )}
         </div>
@@ -283,9 +285,9 @@ export default function DashboardPage() {
             trend={
               analytics.chapterStats.pendingApprovals > 0
                 ? {
-                    value: "Pending",
-                    isPositive: false, // Red color to indicate urgency
-                  }
+                  value: "Pending",
+                  isPositive: false, // Red color to indicate urgency
+                }
                 : undefined
             }
             className={
@@ -381,11 +383,10 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    currentChapter.isActive
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${currentChapter.isActive
                       ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                       : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
-                  }`}
+                    }`}
                 >
                   {currentChapter.isActive ? "Active" : "Inactive"}
                 </span>

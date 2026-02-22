@@ -7,6 +7,7 @@ import { useCreateChapter, useUpdateChapter } from '@/lib/hooks/queries/useChapt
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { TimezoneSelect } from '@/components/ui/TimezoneSelect'
 
 interface ChapterFormProps {
   chapter?: Chapter
@@ -18,7 +19,7 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
   const router = useRouter()
   const { mutateAsync: createChapter, isPending: isCreating } = useCreateChapter()
   const { mutateAsync: updateChapter, isPending: isUpdating } = useUpdateChapter(isAdminView)
-  
+
   const isLoading = isCreating || isUpdating
 
   const [formData, setFormData] = useState({
@@ -26,6 +27,7 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
     code: chapter?.code || '',
     country: chapter?.country || '',
     city: chapter?.city || '',
+    timezone: chapter?.timezone || '',
     description: chapter?.description || '',
     missionStatement: chapter?.missionStatement || '',
     currentPresident: chapter?.currentPresident || '',
@@ -116,6 +118,15 @@ export function ChapterForm({ chapter, isEdit = false, isAdminView = false }: Ch
               value={formData.city}
               onChange={(e) => handleChange('city', e.target.value)}
               placeholder="e.g., Lagos"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TimezoneSelect
+              label="Timezone"
+              value={formData.timezone}
+              onChange={(e) => handleChange('timezone', e.target.value)}
+              required
             />
           </div>
 

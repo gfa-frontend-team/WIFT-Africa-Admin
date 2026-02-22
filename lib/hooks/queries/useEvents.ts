@@ -52,7 +52,7 @@ export function useUpdateEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateEventData }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateEventData }) =>
       eventsApi.updateEvent(id, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(data.event.id) })
@@ -65,7 +65,7 @@ export function useCancelEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: CancelEventData }) => 
+    mutationFn: ({ id, data }: { id: string; data: CancelEventData }) =>
       eventsApi.cancelEvent(id, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(data.event.id) })
@@ -78,7 +78,7 @@ export function useRSVPEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: RSVPEventData }) => 
+    mutationFn: ({ id, data }: { id: string; data: RSVPEventData }) =>
       eventsApi.rsvpEvent(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(variables.id) })
@@ -96,6 +96,24 @@ export function useCancelRSVP() {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) })
       queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
+    },
+  })
+}
+
+export function useExportEventAttendees() {
+  return useMutation({
+    mutationFn: ({ id, format }: { id: string; format: 'csv' | 'pdf' }) =>
+      eventsApi.exportEventAttendees(id, format),
+    onSuccess: (data, variables) => {
+      // Create a blob URL and trigger download
+      const url = window.URL.createObjectURL(new Blob([data as any]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `event-${variables.id}-attendees.${variables.format}`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
     },
   })
 }

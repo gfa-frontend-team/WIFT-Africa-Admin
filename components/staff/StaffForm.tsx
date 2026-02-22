@@ -91,7 +91,7 @@ export function StaffForm({
     email: initialData?.email || "",
     role:
       initialData?.role ||
-      (isChapterAdmin ? AdminRole.CHAPTER_STAFF : AdminRole.HQ_STAFF),
+      (isChapterAdmin ? AdminRole.CHAPTER_STAFF : AdminRole.SUPER_ADMIN),
     // If Editing or Chapter Admin creating, pre-fill chapter
     chapterId:
       initialData?.chapterId || (isChapterAdmin ? (userChapterId ?? "") : ""),
@@ -188,7 +188,6 @@ export function StaffForm({
           {isSuperAdmin && (
             <>
               <option value={AdminRole.SUPER_ADMIN}>Super Admin</option>
-              <option value={AdminRole.HQ_STAFF}>HQ Staff</option>
               <option value={AdminRole.CHAPTER_ADMIN}>Chapter Admin</option>
             </>
           )}
@@ -206,16 +205,16 @@ export function StaffForm({
             Chapter
           </label>
           <NativeSelect
-        {...register("chapterId")}
-        className="w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:ring-2 focus:ring-ring text-foreground"
-      >
-        <option value="">Select a Chapter</option>
-        {chapters.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </NativeSelect>
+            {...register("chapterId")}
+            className="w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:ring-2 focus:ring-ring text-foreground"
+          >
+            <option value="">Select a Chapter</option>
+            {chapters.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </NativeSelect>
 
           {/* <Form {...form}>
             <form onSubmit={form.handleSubmit((data) => console.log(data))}>

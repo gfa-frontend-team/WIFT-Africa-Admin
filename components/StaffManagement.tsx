@@ -181,7 +181,6 @@ export default function StaffPage() {
             <option value="">All Roles</option>
             <option value={AdminRole.SUPER_ADMIN}>Super Admin</option>
             <option value={AdminRole.CHAPTER_ADMIN}>Chapter Admin</option>
-            <option value={AdminRole.HQ_STAFF}>HQ Staff</option>
             {/* <option value={AdminRole.CHAPTER_STAFF}>Chapter Staff</option> */}
           </select>
         )}

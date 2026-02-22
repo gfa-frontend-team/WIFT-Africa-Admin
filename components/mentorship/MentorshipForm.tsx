@@ -12,6 +12,9 @@ import { ChapterSelect } from '@/components/shared/ChapterSelect'
 import { DaysCheckboxGroup } from '@/components/shared/DaysCheckboxGroup'
 import { Mentorship, MentorshipFormat, MentorshipStatus, DayOfWeek } from '@/types/mentorship'
 import { mentorshipApi } from '@/lib/api/mentorship'
+import { TimezoneSelect } from '@/components/ui/TimezoneSelect'
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
+import { useChapters } from '@/lib/hooks/queries/useChapters'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { AdminRole, AccountType } from '@/types'
 
@@ -26,10 +29,14 @@ const mentorshipSchema = z.object({
     endPeriod: z.string().min(1, 'End date is required'),
     days: z.array(z.nativeEnum(DayOfWeek)).min(1, 'Please select at least one day'),
     timeFrame: z.string().min(1, 'Time frame is required (e.g., "12:30pm - 3:00pm")'),
+    timezone: z.string().min(1, 'Timezone is required'),
 
     // OPTIONAL FIELDS
     mentorshipLink: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
-    description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description must be less than 2000 characters'),
+    description: z.string().min(10, 'Description must be at least 10 characters')
+        .refine((val) => (val.trim().split(/\s+/).filter(Boolean).length) <= 500, {
+            message: "Description cannot exceed 500 words",
+        }),
     eligibility: z.string().max(500, 'Eligibility must be less than 500 characters').optional(),
 
     // METADATA
@@ -82,6 +89,7 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
     const { toast } = useToast()
     const { admin } = useAuthStore() // Changed user to admin
     const [isLoading, setIsLoading] = useState(false)
+    const { data: chaptersData } = useChapters({ isActive: true })
 
     const { register, handleSubmit, reset, control, watch, formState: { errors }, setValue } = useForm<MentorshipFormValues>({
         resolver: zodResolver(mentorshipSchema),
@@ -94,6 +102,7 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
             endPeriod: '',
             days: [],
             timeFrame: '',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             mentorshipLink: '',
             description: '',
             eligibility: '',
@@ -103,12 +112,15 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
     })
 
     const selectedFormat = watch('mentorshipFormat')
+    const descriptionText = watch('description') || ''
+    const descriptionWords = descriptionText.trim() === '' ? 0 : descriptionText.trim().split(/\s+/).length
 
     useEffect(() => {
         if (mentorship) {
+            const defaultTimezone = mentorship.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
             // Convert ISO dates to YYYY-MM-DD format for date inputs
-            const startDate = mentorship.startPeriod ? new Date(mentorship.startPeriod).toISOString().split('T')[0] : ''
-            const endDate = mentorship.endPeriod ? new Date(mentorship.endPeriod).toISOString().split('T')[0] : ''
+            const startDate = mentorship.startPeriod ? formatInTimeZone(new Date(mentorship.startPeriod), defaultTimezone, 'yyyy-MM-dd') : ''
+            const endDate = mentorship.endPeriod ? formatInTimeZone(new Date(mentorship.endPeriod), defaultTimezone, 'yyyy-MM-dd') : ''
 
             reset({
                 mentorName: mentorship.mentorName,
@@ -119,6 +131,7 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                 endPeriod: endDate,
                 days: mentorship.days,
                 timeFrame: mentorship.timeFrame,
+                timezone: defaultTimezone,
                 mentorshipLink: mentorship.mentorshipLink || '',
                 description: mentorship.description,
                 eligibility: mentorship.eligibility || '',
@@ -135,6 +148,7 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                 endPeriod: '',
                 days: [],
                 timeFrame: '',
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 mentorshipLink: '',
                 description: '',
                 eligibility: '',
@@ -144,12 +158,23 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
         }
     }, [mentorship, reset, isOpen, admin])
 
+    // Auto-fill timezone based on chapter
+    const selectedChapterId = watch('chapterId');
+    useEffect(() => {
+        if (selectedChapterId && chaptersData?.data) {
+            const chapter = chaptersData.data.find(c => c.id === selectedChapterId);
+            if (chapter && chapter.timezone) {
+                setValue('timezone', chapter.timezone, { shouldDirty: true });
+            }
+        }
+    }, [selectedChapterId, chaptersData, setValue]);
+
     const onSubmit = async (data: MentorshipFormValues) => {
         setIsLoading(true)
         try {
-            // Convert date inputs to ISO strings
-            const startPeriodISO = new Date(data.startPeriod).toISOString()
-            const endPeriodISO = new Date(data.endPeriod).toISOString()
+            // Convert date inputs to ISO strings using selected timezone
+            const startPeriodISO = fromZonedTime(data.startPeriod, data.timezone).toISOString()
+            const endPeriodISO = fromZonedTime(data.endPeriod, data.timezone).toISOString()
 
             // Convert comma separated string to array
             const formattedData = {
@@ -180,11 +205,11 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                 data: error.response?.data,
                 fullError: error
             })
-            
-            const errorMessage = error.response?.data?.error || 
-                                error.response?.data?.message || 
-                                "Failed to save mentorship"
-            
+
+            const errorMessage = error.response?.data?.error ||
+                error.response?.data?.message ||
+                "Failed to save mentorship"
+
             toast({
                 title: "Error",
                 description: errorMessage,
@@ -279,6 +304,14 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                             <p className="text-xs text-muted-foreground">Specify the time range for sessions</p>
                         </div>
 
+                        <div className="space-y-2">
+                            <TimezoneSelect
+                                label="Timezone *"
+                                {...register('timezone')}
+                                error={errors.timezone?.message}
+                            />
+                        </div>
+
                         {(selectedFormat === MentorshipFormat.VIRTUAL || selectedFormat === MentorshipFormat.HYBRID) && (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Meeting Link *</label>
@@ -293,7 +326,12 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                     <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-foreground/80">Details</h3>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Description *</label>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium">Description *</label>
+                                <span className={`text-xs ${descriptionWords > 500 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                                    {descriptionWords}/500 words
+                                </span>
+                            </div>
                             <Textarea {...register('description')} placeholder="Detailed description of the mentorship program..." className="h-24" />
                             {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
                         </div>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Loader2, Plus, Search, FileText, Video, MoreVertical, Edit, Trash2, ExternalLink } from 'lucide-react'
+import { Loader2, Plus, Search, FileText, Video, MoreVertical, Edit, Trash2, ExternalLink, Eye } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/DropdownMenu'
 import { useDebounce } from '@/lib/hooks/useDebounce'
 import { format } from 'date-fns'
+import Link from 'next/link'
 import { ResourceForm } from '@/components/resources/ResourceForm'
 import { useToast } from '@/components/ui/use-toast'
 import {
@@ -125,8 +126,10 @@ export default function ResourcesPage() {
                             <Card key={resource._id || index} className="overflow-hidden hover:shadow-sm transition-shadow">
                                 <CardContent className="p-0">
                                     <div className="flex items-center p-4 gap-4">
-                                        <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 shrink-0">
-                                            {resource.resourceType === ResourceType.VIDEO ? (
+                                        <div className="flex items-center justify-center w-16 h-16 rounded-lg bg-primary/10 shrink-0 overflow-hidden relative">
+                                            {resource.thumbnailUrl ? (
+                                                <img src={resource.thumbnailUrl} alt={resource.title} className="w-full h-full object-cover" />
+                                            ) : resource.resourceType === ResourceType.VIDEO ? (
                                                 <Video className="w-6 h-6 text-primary" />
                                             ) : (
                                                 <FileText className="w-6 h-6 text-primary" />
@@ -149,13 +152,16 @@ export default function ResourcesPage() {
                                         </div>
 
                                         <div className="flex items-center gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => window.open(resource.fileUrl, '_blank')}
-                                            >
-                                                <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                                            </Button>
+                                            {resource.fileUrl && !resource.externalLink && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    title="Open File"
+                                                    onClick={() => window.open(resource.fileUrl, '_blank')}
+                                                >
+                                                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                                                </Button>
+                                            )}
 
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -164,6 +170,12 @@ export default function ResourcesPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={`/dashboard/resources/${resource._id}`} className="cursor-pointer">
+                                                            <Eye className="w-4 h-4 mr-2" />
+                                                            View Details
+                                                        </Link>
+                                                    </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => handleEdit(resource)}>
                                                         <Edit className="w-4 h-4 mr-2" />
                                                         Edit
