@@ -3,8 +3,8 @@
 import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, MapPin, Users, Edit, Trash2, Globe, Video, Clock } from 'lucide-react'
-import { useEvent } from '@/lib/hooks/queries/useEvents'
+import { ArrowLeft, Calendar, MapPin, Users, Edit, Trash2, Globe, Video, Clock, Download, Loader2 } from 'lucide-react'
+import { useEvent, useExportEventAttendees } from '@/lib/hooks/queries/useEvents'
 import { EventStatus, LocationType } from '@/types'
 import { AttendeesList } from '@/components/events/AttendeesList'
 import { CancelEventModal } from '@/components/events/CancelEventModal'
@@ -14,10 +14,11 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
   const { eventId } = use(params)
   const router = useRouter()
   const { data: event, isLoading, error } = useEvent(eventId)
+  const { mutate: exportAttendees, isPending: isExporting } = useExportEventAttendees()
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
 
   if (isLoading) return <div className="p-12 text-center text-muted-foreground">Loading event details...</div>
-  
+
   if (error) return (
     <div className="p-12 text-center">
       <p className="text-destructive mb-4">Error loading event</p>
@@ -53,14 +54,14 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
         </div>
 
         <div className="flex items-center gap-2">
-           <Link 
+          <Link
             href={`/dashboard/events/${event.id}/edit`}
             className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors font-medium"
           >
             <Edit className="w-4 h-4" />
             Edit Event
           </Link>
-          
+
           {event.status !== EventStatus.CANCELLED && (
             <button
               onClick={() => setIsCancelModalOpen(true)}
@@ -72,8 +73,8 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
           )}
         </div>
       </div>
-      
-      <CancelEventModal 
+
+      <CancelEventModal
         eventId={event.id}
         isOpen={isCancelModalOpen}
         onClose={() => setIsCancelModalOpen(false)}
@@ -82,23 +83,23 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
       {/* Cover Image */}
       {event.coverImage && (
         <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted">
-           {/* In a real app, uses Image component. Using img for simplicity if domains not configured. */}
-           <img src={event.coverImage} alt={event.title} className="object-cover w-full h-full" />
+          {/* In a real app, uses Image component. Using img for simplicity if domains not configured. */}
+          <img src={event.coverImage} alt={event.title} className="object-cover w-full h-full" />
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
-          
+
           {/* Description */}
           <section className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-lg font-semibold mb-4">About Event</h2>
             <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap text-muted-foreground">
               {event.description}
             </div>
-            
+
             {event.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-border">
                 {event.tags.map(tag => (
@@ -112,14 +113,36 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
 
           {/* Attendees Section */}
           <section className="bg-card border border-border rounded-lg p-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <Users className="w-5 h-5" />
                 Attendees via RSVP
               </h2>
-              <span className="text-sm text-muted-foreground">
-                Total: {event.currentAttendees} / {event.capacity || '∞'}
-              </span>
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  Total: {event.currentAttendees} / {event.capacity || '∞'}
+                </span>
+
+                {/* Export Buttons */}
+                <div className="flex items-center gap-2 bg-muted p-1 rounded-md border border-border overflow-x-auto">
+                  <button
+                    onClick={() => exportAttendees({ id: event.id, format: 'csv' })}
+                    disabled={isExporting}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-background border border-border rounded shadow-sm hover:bg-muted transition-colors disabled:opacity-50"
+                  >
+                    {isExporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                    CSV
+                  </button>
+                  <button
+                    onClick={() => exportAttendees({ id: event.id, format: 'pdf' })}
+                    disabled={isExporting}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-background border border-border rounded shadow-sm hover:bg-muted transition-colors disabled:opacity-50"
+                  >
+                    {isExporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                    PDF
+                  </button>
+                </div>
+              </div>
             </div>
             <AttendeesList eventId={event.id} />
           </section>
@@ -128,79 +151,79 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
 
         {/* Sidebar Info */}
         <div className="space-y-6">
-          
+
           {/* Date & Time */}
           <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-             <div className="flex items-start gap-3">
-               <Calendar className="w-5 h-5 text-primary mt-0.5" />
-               <div>
-                 <h3 className="font-medium">Date & Time</h3>
-                 <div className="text-sm text-muted-foreground mt-1 space-y-1">
-                   <p>Start: {new Date(event.startDate).toLocaleString()}</p>
-                   <p>End: {new Date(event.endDate).toLocaleString()}</p>
-                   <p className="flex items-center gap-1 mt-2 text-xs bg-muted px-2 py-1 rounded w-fit">
-                     <Clock className="w-3 h-3" />
-                     {event.timezone}
-                   </p>
-                 </div>
-               </div>
-             </div>
+            <div className="flex items-start gap-3">
+              <Calendar className="w-5 h-5 text-primary mt-0.5" />
+              <div>
+                <h3 className="font-medium">Date & Time</h3>
+                <div className="text-sm text-muted-foreground mt-1 space-y-1">
+                  <p>Start: {new Date(event.startDate).toLocaleString()}</p>
+                  <p>End: {new Date(event.endDate).toLocaleString()}</p>
+                  <p className="flex items-center gap-1 mt-2 text-xs bg-muted px-2 py-1 rounded w-fit">
+                    <Clock className="w-3 h-3" />
+                    {event.timezone}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Location */}
           <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-             <div className="flex items-start gap-3">
-               <MapPin className="w-5 h-5 text-primary mt-0.5" />
-               <div className="w-full">
-                 <h3 className="font-medium">Location</h3>
-                 
-                 <div className="mt-2 text-sm text-muted-foreground space-y-3">
-                   {isPhysical && (
-                     <div>
-                       <p className="font-medium text-foreground mb-1">Physical Address</p>
-                       <p>{event.location.address}</p>
-                       <p>{event.location.city}, {event.location.country}</p>
-                     </div>
-                   )}
-                   
-                   {isVirtual && (
-                     <div>
-                       <p className="font-medium text-foreground mb-1 flex items-center gap-2">
-                         <Video className="w-3 h-3" /> Virtual Link
-                       </p>
-                       {event.location.virtualUrl ? (
-                         <a href={event.location.virtualUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
-                           {event.location.virtualUrl}
-                         </a>
-                       ) : <span className="italic">Link TBD</span>}
-                       {event.location.virtualPlatform && (
-                         <p className="text-xs mt-1">Platform: {event.location.virtualPlatform}</p>
-                       )}
-                     </div>
-                   )}
-                 </div>
-               </div>
-             </div>
+            <div className="flex items-start gap-3">
+              <MapPin className="w-5 h-5 text-primary mt-0.5" />
+              <div className="w-full">
+                <h3 className="font-medium">Location</h3>
+
+                <div className="mt-2 text-sm text-muted-foreground space-y-3">
+                  {isPhysical && (
+                    <div>
+                      <p className="font-medium text-foreground mb-1">Physical Address</p>
+                      <p>{event.location.address}</p>
+                      <p>{event.location.city}, {event.location.country}</p>
+                    </div>
+                  )}
+
+                  {isVirtual && (
+                    <div>
+                      <p className="font-medium text-foreground mb-1 flex items-center gap-2">
+                        <Video className="w-3 h-3" /> Virtual Link
+                      </p>
+                      {event.location.virtualUrl ? (
+                        <a href={event.location.virtualUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
+                          {event.location.virtualUrl}
+                        </a>
+                      ) : <span className="italic">Link TBD</span>}
+                      {event.location.virtualPlatform && (
+                        <p className="text-xs mt-1">Platform: {event.location.virtualPlatform}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Organizer / Chapter */}
           <div className="bg-card border border-border rounded-lg p-6 space-y-4">
             <div className="flex items-start gap-3">
-               <Globe className="w-5 h-5 text-primary mt-0.5" />
-               <div>
-                 <h3 className="font-medium">Context</h3>
-                 <div className="text-sm text-muted-foreground mt-2 space-y-2">
-                   <div>
-                     <span className="block text-xs font-semibold text-foreground">TYPE</span>
-                     {event.type.replace('_', ' ')}
-                   </div>
-                   <div>
-                     <span className="block text-xs font-semibold text-foreground">CHAPTER</span>
-                     {event.chapter?.name || 'Global Event'}
-                   </div>
-                 </div>
-               </div>
-             </div>
+              <Globe className="w-5 h-5 text-primary mt-0.5" />
+              <div>
+                <h3 className="font-medium">Context</h3>
+                <div className="text-sm text-muted-foreground mt-2 space-y-2">
+                  <div>
+                    <span className="block text-xs font-semibold text-foreground">TYPE</span>
+                    {event.type.replace('_', ' ')}
+                  </div>
+                  <div>
+                    <span className="block text-xs font-semibold text-foreground">CHAPTER</span>
+                    {event.chapter?.name || 'Global Event'}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>

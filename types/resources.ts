@@ -13,7 +13,8 @@ export interface Resource {
   title: string
   description?: string
   resourceType: ResourceType
-  fileUrl: string
+  fileUrl?: string
+  externalLink?: string
   thumbnailUrl?: string
   status: ResourceStatus
   createdBy: string
@@ -25,7 +26,9 @@ export interface CreateResourceData {
   title: string
   description?: string
   resourceType: ResourceType
-  file: File
+  file?: File
+  externalLink?: string
+  thumbnail?: File
   status?: ResourceStatus
 }
 
@@ -34,6 +37,8 @@ export interface UpdateResourceData {
   description?: string
   resourceType?: ResourceType
   file?: File
+  externalLink?: string
+  thumbnail?: File
   status?: ResourceStatus
 }
 

@@ -1,9 +1,9 @@
 import { apiClient } from './client'
-import { 
-  Event, 
-  EventFilters, 
-  CreateEventData, 
-  UpdateEventData, 
+import {
+  Event,
+  EventFilters,
+  CreateEventData,
+  UpdateEventData,
   CancelEventData,
   EventAttendeesResponse,
   RSVPEventData,
@@ -15,7 +15,7 @@ const ADMIN_BASE_URL = '/events/admin/events'
 
 interface GetEventsResponse {
 
-  data:{
+  data: {
 
     events: Event[]
     total: number
@@ -105,8 +105,8 @@ export const eventsApi = {
   },
 
   cancelEvent: async (id: string, cancelData: CancelEventData) => {
-    const data = await apiClient.delete<CancelEventResponse>(`${ADMIN_BASE_URL}/${id}`, { 
-      data: cancelData 
+    const data = await apiClient.delete<CancelEventResponse>(`${ADMIN_BASE_URL}/${id}`, {
+      data: cancelData
     })
     if (data.event) {
       data.event = transformEvent(data.event)
@@ -116,6 +116,14 @@ export const eventsApi = {
 
   getEventAttendees: async (id: string) => {
     const data = await apiClient.get<EventAttendeesResponse>(`${ADMIN_BASE_URL}/${id}/attendees`)
+    return data
+  },
+
+  exportEventAttendees: async (id: string, format: 'csv' | 'pdf') => {
+    const data = await apiClient.get<Blob>(`${ADMIN_BASE_URL}/${id}/attendees`, {
+      params: { export: format },
+      responseType: 'blob',
+    })
     return data
   }
 }
