@@ -16,6 +16,7 @@ export interface CreateChapterData {
   code: string
   country: string
   city?: string
+  timezone?: string
   description?: string
   missionStatement?: string
   currentPresident?: string

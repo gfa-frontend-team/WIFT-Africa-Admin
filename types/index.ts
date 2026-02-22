@@ -179,6 +179,7 @@ export interface Chapter {
   code: string
   country: string
   city?: string
+  timezone?: string
   description?: string
   missionStatement?: string
   memberCount: number

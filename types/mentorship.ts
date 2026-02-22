@@ -39,6 +39,7 @@ export interface Mentorship {
     endPeriod: string               // ISO date string
     days: DayOfWeek[]               // e.g., ["Monday", "Wednesday", "Friday"]
     timeFrame: string               // e.g., "12:30pm - 3:00pm"
+    timezone?: string               // e.g., "Africa/Lagos"
 
     // Optional Fields
     mentorshipLink?: string         // URL for virtual meetings
@@ -71,6 +72,7 @@ export interface CreateMentorshipData {
     endPeriod: string
     days: DayOfWeek[]
     timeFrame: string
+    timezone?: string
 
     // Optional
     mentorshipLink?: string

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Calendar, MapPin, Loader2, X, Plus } from 'lucide-react'
@@ -9,6 +9,9 @@ import Link from 'next/link'
 
 import { eventSchema, EventFormValues } from '@/lib/validations/events'
 import { FileUpload } from '@/components/ui/FileUpload'
+
+import { TimezoneSelect } from '@/components/ui/TimezoneSelect'
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
 
 import { EventStatus, EventType, LocationType, CreateEventData, UpdateEventData } from '@/types'
 import { useChapters } from '@/lib/hooks/queries/useChapters'
@@ -30,6 +33,8 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
     { enabled: isSuperAdmin }
   )
 
+  const defaultTimezone = initialData?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const {
     register,
     handleSubmit,
@@ -42,16 +47,31 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
     defaultValues: {
       status: EventStatus.DRAFT,
       type: EventType.WORKSHOP,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       tags: [],
       location: {
         type: LocationType.PHYSICAL,
       },
       ...initialData,
+      startDate: initialData?.startDate ? formatInTimeZone(new Date(initialData.startDate), defaultTimezone, "yyyy-MM-dd'T'HH:mm") : '',
+      endDate: initialData?.endDate ? formatInTimeZone(new Date(initialData.endDate), defaultTimezone, "yyyy-MM-dd'T'HH:mm") : '',
+      timezone: defaultTimezone,
       // Pre-fill chapterId for Chapter Admin if not provided
       chapterId: initialData?.chapterId || (!isSuperAdmin ? (userChapterId || '') : ''),
     }
   })
+
+  // Watch chapter selection to sync timezone
+  const selectedChapterId = watch('chapterId');
+
+
+  useEffect(() => {
+    if (selectedChapterId && chaptersData?.data) {
+      const chapter = chaptersData.data.find(c => c.id === selectedChapterId);
+      if (chapter && chapter.timezone) {
+        setValue('timezone', chapter.timezone, { shouldDirty: true });
+      }
+    }
+  }, [selectedChapterId, chaptersData, setValue]);
 
   // Watch location type to conditionally show fields
   const locationType = watch('location.type')
@@ -88,8 +108,8 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
         // Ensure chapterId is set for Chapter Admins
         chapterId: (!isSuperAdmin ? userChapterId : data.chapterId) || undefined,
         // Transform dates to strict ISO string for backend
-        startDate: new Date(data.startDate).toISOString(),
-        endDate: new Date(data.endDate).toISOString(),
+        startDate: fromZonedTime(data.startDate, data.timezone).toISOString(),
+        endDate: fromZonedTime(data.endDate, data.timezone).toISOString(),
       }
       return onSubmit(cleanData)
     })} className="space-y-8 max-w-5xl mx-auto pb-20">
@@ -221,12 +241,11 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium">Timezone <span className="text-destructive">*</span></label>
-            <input
+            <TimezoneSelect
+              label="Timezone"
               {...register('timezone')}
-              className="w-full px-3 py-2 bg-background border border-input rounded-md"
+              error={errors.timezone?.message}
             />
-            {errors.timezone && <p className="text-destructive text-xs">{errors.timezone.message}</p>}
           </div>
         </div>
       </div>

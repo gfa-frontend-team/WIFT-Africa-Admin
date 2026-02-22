@@ -12,6 +12,9 @@ import { ChapterSelect } from '@/components/shared/ChapterSelect'
 import { DaysCheckboxGroup } from '@/components/shared/DaysCheckboxGroup'
 import { Mentorship, MentorshipFormat, MentorshipStatus, DayOfWeek } from '@/types/mentorship'
 import { mentorshipApi } from '@/lib/api/mentorship'
+import { TimezoneSelect } from '@/components/ui/TimezoneSelect'
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
+import { useChapters } from '@/lib/hooks/queries/useChapters'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { AdminRole, AccountType } from '@/types'
 
@@ -26,6 +29,7 @@ const mentorshipSchema = z.object({
     endPeriod: z.string().min(1, 'End date is required'),
     days: z.array(z.nativeEnum(DayOfWeek)).min(1, 'Please select at least one day'),
     timeFrame: z.string().min(1, 'Time frame is required (e.g., "12:30pm - 3:00pm")'),
+    timezone: z.string().min(1, 'Timezone is required'),
 
     // OPTIONAL FIELDS
     mentorshipLink: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
@@ -85,6 +89,7 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
     const { toast } = useToast()
     const { admin } = useAuthStore() // Changed user to admin
     const [isLoading, setIsLoading] = useState(false)
+    const { data: chaptersData } = useChapters({ isActive: true })
 
     const { register, handleSubmit, reset, control, watch, formState: { errors }, setValue } = useForm<MentorshipFormValues>({
         resolver: zodResolver(mentorshipSchema),
@@ -97,6 +102,7 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
             endPeriod: '',
             days: [],
             timeFrame: '',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             mentorshipLink: '',
             description: '',
             eligibility: '',
@@ -111,9 +117,10 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
 
     useEffect(() => {
         if (mentorship) {
+            const defaultTimezone = mentorship.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
             // Convert ISO dates to YYYY-MM-DD format for date inputs
-            const startDate = mentorship.startPeriod ? new Date(mentorship.startPeriod).toISOString().split('T')[0] : ''
-            const endDate = mentorship.endPeriod ? new Date(mentorship.endPeriod).toISOString().split('T')[0] : ''
+            const startDate = mentorship.startPeriod ? formatInTimeZone(new Date(mentorship.startPeriod), defaultTimezone, 'yyyy-MM-dd') : ''
+            const endDate = mentorship.endPeriod ? formatInTimeZone(new Date(mentorship.endPeriod), defaultTimezone, 'yyyy-MM-dd') : ''
 
             reset({
                 mentorName: mentorship.mentorName,
@@ -124,6 +131,7 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                 endPeriod: endDate,
                 days: mentorship.days,
                 timeFrame: mentorship.timeFrame,
+                timezone: defaultTimezone,
                 mentorshipLink: mentorship.mentorshipLink || '',
                 description: mentorship.description,
                 eligibility: mentorship.eligibility || '',
@@ -140,6 +148,7 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                 endPeriod: '',
                 days: [],
                 timeFrame: '',
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 mentorshipLink: '',
                 description: '',
                 eligibility: '',
@@ -149,12 +158,23 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
         }
     }, [mentorship, reset, isOpen, admin])
 
+    // Auto-fill timezone based on chapter
+    const selectedChapterId = watch('chapterId');
+    useEffect(() => {
+        if (selectedChapterId && chaptersData?.data) {
+            const chapter = chaptersData.data.find(c => c.id === selectedChapterId);
+            if (chapter && chapter.timezone) {
+                setValue('timezone', chapter.timezone, { shouldDirty: true });
+            }
+        }
+    }, [selectedChapterId, chaptersData, setValue]);
+
     const onSubmit = async (data: MentorshipFormValues) => {
         setIsLoading(true)
         try {
-            // Convert date inputs to ISO strings
-            const startPeriodISO = new Date(data.startPeriod).toISOString()
-            const endPeriodISO = new Date(data.endPeriod).toISOString()
+            // Convert date inputs to ISO strings using selected timezone
+            const startPeriodISO = fromZonedTime(data.startPeriod, data.timezone).toISOString()
+            const endPeriodISO = fromZonedTime(data.endPeriod, data.timezone).toISOString()
 
             // Convert comma separated string to array
             const formattedData = {
@@ -282,6 +302,14 @@ export function MentorshipForm({ mentorship, isOpen, onClose, onSuccess }: Mento
                             <Input {...register('timeFrame')} placeholder="e.g. 12:30pm - 3:00pm" />
                             {errors.timeFrame && <p className="text-xs text-destructive">{errors.timeFrame.message}</p>}
                             <p className="text-xs text-muted-foreground">Specify the time range for sessions</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <TimezoneSelect
+                                label="Timezone *"
+                                {...register('timezone')}
+                                error={errors.timezone?.message}
+                            />
                         </div>
 
                         {(selectedFormat === MentorshipFormat.VIRTUAL || selectedFormat === MentorshipFormat.HYBRID) && (
