@@ -11,6 +11,7 @@ import { useChapters } from "@/lib/hooks/queries/useChapters";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { NativeSelect } from "@/components/ui/NativeSelect";
+import { getEmojiFlag } from "@/lib/utils/countryFlags";
 // import {
 //   Form,
 //   FormControl,
@@ -208,10 +209,10 @@ export function StaffForm({
             {...register("chapterId")}
             className="w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:ring-2 focus:ring-ring text-foreground"
           >
-            <option value="">Select a Chapter</option>
+            <option value="">🌍 Select a Chapter</option>
             {chapters.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {getEmojiFlag(c.code)} {c.name}
               </option>
             ))}
           </NativeSelect>

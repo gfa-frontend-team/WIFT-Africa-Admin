@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { usePosts } from '@/lib/hooks/queries/usePosts'
-import { Post } from '@/types'
+import { Post, PostFilters } from '@/types'
 import { 
   Card, 
   CardContent, 
@@ -35,9 +35,12 @@ import { CreatePostModal } from '@/components/posts/create-post-modal'
 
 export default function PostsPage() {
   const [page, setPage] = useState(1)
+  const [filters, setFilters] = useState<PostFilters>({
+    status: 'all'
+  })
   
   // Data Fetching
-  const { data: postsResponse, isLoading } = usePosts(page, 20)
+  const { data: postsResponse, isLoading } = usePosts(page, 20, filters)
   const posts = postsResponse?.data || []
 
   // Modals state
@@ -141,6 +144,15 @@ export default function PostsPage() {
                 <div className="text-sm whitespace-pre-wrap">
                   {post.content}
                 </div>
+                
+                {/* Hidden Reason Display */}
+                {post.isHidden && post.hiddenReason && (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-md">
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      <strong>Hidden Reason:</strong> {post.hiddenReason}
+                    </p>
+                  </div>
+                )}
                 
                 {/* Media Grid - Simple display for MVP */}
                 {post.media && post.media.length > 0 && (

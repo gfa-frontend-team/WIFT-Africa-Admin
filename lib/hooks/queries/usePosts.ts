@@ -5,7 +5,7 @@ import { Post, CreatePostData, HidePostData, PostFilters, Comment } from '@/type
 export const postsKeys = {
   all: ['posts'] as const,
   lists: () => [...postsKeys.all, 'list'] as const,
-  list: (page: number, limit: number) => [...postsKeys.lists(), { page, limit }] as const,
+  list: (page: number, limit: number, filters?: PostFilters) => [...postsKeys.lists(), { page, limit, ...filters }] as const,
   details: () => [...postsKeys.all, 'detail'] as const,
   detail: (id: string) => [...postsKeys.details(), id] as const,
   comments: (postId: string) => [...postsKeys.detail(postId), 'comments'] as const,
@@ -13,10 +13,10 @@ export const postsKeys = {
 }
 
 // Queries
-export function usePosts(page = 1, limit = 10) {
+export function usePosts(page = 1, limit = 10, filters?: PostFilters) {
   return useQuery({
-    queryKey: postsKeys.list(page, limit),
-    queryFn: () => postsApi.getFeed(page, limit),
+    queryKey: postsKeys.list(page, limit, filters),
+    queryFn: () => postsApi.getFeed(page, limit, filters),
   })
 }
 
@@ -97,23 +97,28 @@ export function useDeletePost() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: (id: string) => postsApi.deletePost(id),
-    onSuccess: (_, id) => {
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => postsApi.deletePost(id, reason),
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: postsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: postsKeys.detail(id) })
     },
   })
 }
 
-export function useDeleteComment() {
+export function useDeleteComment(postId?: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: ({ commentId }: { commentId: string }) => postsApi.deleteComment(commentId),
-    onSuccess: (_, { commentId }) => {
-      // We don't have easy access to postId here from args without passing it
-      // But we can invalidate all comments or pass postId in mutation
-      queryClient.invalidateQueries({ queryKey: postsKeys.all }) 
+    onSuccess: () => {
+      if (postId) {
+        // Targeted invalidation
+        queryClient.invalidateQueries({ queryKey: postsKeys.comments(postId) })
+        queryClient.invalidateQueries({ queryKey: postsKeys.detail(postId) })
+      } else {
+        // Fallback to broad invalidation
+        queryClient.invalidateQueries({ queryKey: postsKeys.all })
+      }
     }
   })
 }

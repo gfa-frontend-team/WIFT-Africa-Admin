@@ -16,6 +16,7 @@ import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
 import { EventStatus, EventType, LocationType, CreateEventData, UpdateEventData } from '@/types'
 import { useChapters } from '@/lib/hooks/queries/useChapters'
 import { usePermissions } from '@/lib/hooks/usePermissions'
+import { getEmojiFlag } from '@/lib/utils/countryFlags'
 
 interface EventFormProps {
   initialData?: Partial<EventFormValues>
@@ -167,9 +168,11 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
             >
               {isSuperAdmin ? (
                 <>
-                  <option value="">Global Event</option>
+                  <option value="">🌍 Global Event</option>
                   {chaptersData?.data?.map(chapter => (
-                    <option key={chapter.id} value={chapter.id}>{chapter.name}</option>
+                    <option key={chapter.id} value={chapter.id}>
+                      {getEmojiFlag(chapter.code)} {chapter.name}
+                    </option>
                   ))}
                 </>
               ) : (
@@ -182,17 +185,18 @@ export function EventForm({ initialData, onSubmit, isSubmitting, mode }: EventFo
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Status</label>
-            <select
-              {...register('status')}
-              className="w-full px-3 py-2 bg-background border border-input rounded-md"
-            >
-              {Object.values(EventStatus).map((s: string) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
+          {isSuperAdmin && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <select
+                {...register('status')}
+                className="w-full px-3 py-2 bg-background border border-input rounded-md"
+              >
+                <option value={EventStatus.DRAFT}>DRAFT</option>
+                <option value={EventStatus.PUBLISHED}>PUBLISHED</option>
+              </select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Cover Image</label>

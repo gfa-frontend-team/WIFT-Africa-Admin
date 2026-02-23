@@ -68,6 +68,45 @@ export function useCancelEvent() {
     mutationFn: ({ id, data }: { id: string; data: CancelEventData }) =>
       eventsApi.cancelEvent(id, data),
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
+      if (!data.deleted && data.event) {
+        queryClient.invalidateQueries({ queryKey: eventKeys.detail(data.event.id) })
+      }
+    },
+  })
+}
+
+export function useSubmitForApproval() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => eventsApi.submitForApproval(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(data.event.id) })
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
+    },
+  })
+}
+
+export function useApproveEvent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => eventsApi.approveEvent(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(data.event.id) })
+      queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
+    },
+  })
+}
+
+export function useRejectEvent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      eventsApi.rejectEvent(id, { reason }),
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(data.event.id) })
       queryClient.invalidateQueries({ queryKey: eventKeys.lists() })
     },

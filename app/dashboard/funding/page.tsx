@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fundingApi } from '@/lib/api/funding'
-import { FundingOpportunity, FundingType, ApplicationType, FundingStatus } from '@/types'
+import { FundingOpportunity, FundingType, ApplicationType, FundingStatus, TargetRole } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -132,7 +132,7 @@ export default function FundingPage() {
 
                                         <div className="flex-1 min-w-0 space-y-3">
                                             <div className="flex items-start justify-between gap-4">
-                                                <div>
+                                                <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <h3 className="text-lg font-semibold text-foreground">{opportunity.name}</h3>
                                                         <div className="flex gap-2">
@@ -144,7 +144,31 @@ export default function FundingPage() {
                                                             </Badge>
                                                         </div>
                                                     </div>
-                                                    <p className="text-sm font-medium text-muted-foreground">For: {opportunity.role}</p>
+                                                    
+                                                    {/* Display target roles */}
+                                                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                        <span className="text-xs text-muted-foreground">For:</span>
+                                                        {opportunity.targetRoles && opportunity.targetRoles.length > 0 ? (
+                                                            <>
+                                                                {opportunity.targetRoles.map((role) => (
+                                                                    <Badge key={role} variant="secondary" className="text-[10px]">
+                                                                        {role}
+                                                                    </Badge>
+                                                                ))}
+                                                                {opportunity.customRoles && opportunity.customRoles.length > 0 && (
+                                                                    <>
+                                                                        {opportunity.customRoles.map((role, index) => (
+                                                                            <Badge key={`custom-${index}`} variant="outline" className="text-[10px]">
+                                                                                {role}
+                                                                            </Badge>
+                                                                        ))}
+                                                                    </>
+                                                                )}
+                                                            </>
+                                                        ) : (
+                                                            <span className="text-xs text-muted-foreground">No roles specified</span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
 

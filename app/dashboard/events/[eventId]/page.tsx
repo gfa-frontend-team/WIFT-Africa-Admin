@@ -3,11 +3,13 @@
 import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, MapPin, Users, Edit, Trash2, Globe, Video, Clock, Download, Loader2 } from 'lucide-react'
-import { useEvent, useExportEventAttendees } from '@/lib/hooks/queries/useEvents'
+import { ArrowLeft, Calendar, MapPin, Users, Edit, Trash2, Globe, Video, Clock, Download, Loader2, Send, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
+import { useEvent, useExportEventAttendees, useSubmitForApproval, useApproveEvent } from '@/lib/hooks/queries/useEvents'
 import { EventStatus, LocationType } from '@/types'
 import { AttendeesList } from '@/components/events/AttendeesList'
 import { CancelEventModal } from '@/components/events/CancelEventModal'
+import { RejectEventModal } from '@/components/events/RejectEventModal'
+import { usePermissions } from '@/lib/hooks/usePermissions'
 import { useState } from 'react'
 
 export default function EventDetailsPage({ params }: { params: Promise<{ eventId: string }> }) {
@@ -15,7 +17,11 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
   const router = useRouter()
   const { data: event, isLoading, error } = useEvent(eventId)
   const { mutate: exportAttendees, isPending: isExporting } = useExportEventAttendees()
+  const { mutate: submitForApproval, isPending: isSubmitting } = useSubmitForApproval()
+  const { mutate: approveEvent, isPending: isApproving } = useApproveEvent()
+  const { isSuperAdmin, isChapterAdmin } = usePermissions()
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false)
 
   if (isLoading) return <div className="p-12 text-center text-muted-foreground">Loading event details...</div>
 
@@ -35,6 +41,8 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
 
   const isPhysical = event.location.type === LocationType.PHYSICAL || event.location.type === LocationType.HYBRID
   const isVirtual = event.location.type === LocationType.VIRTUAL || event.location.type === LocationType.HYBRID
+  const isDeletable = event.status === EventStatus.DRAFT || event.status === EventStatus.WAITING
+  const isCancellable = event.status === EventStatus.PUBLISHED
 
   return (
     <div className="p-6 pb-20 max-w-5xl mx-auto space-y-8">
@@ -53,7 +61,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Link
             href={`/dashboard/events/${event.id}/edit`}
             className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors font-medium"
@@ -62,13 +70,49 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
             Edit Event
           </Link>
 
-          {event.status !== EventStatus.CANCELLED && (
+          {/* Submit for Approval — Chapter Admin, DRAFT only */}
+          {isChapterAdmin && event.status === EventStatus.DRAFT && (
+            <button
+              onClick={() => submitForApproval(event.id, { onSuccess: () => router.refresh() })}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Submit for Approval
+            </button>
+          )}
+
+          {/* Approve — Super Admin, WAITING only */}
+          {isSuperAdmin && event.status === EventStatus.WAITING && (
+            <button
+              onClick={() => approveEvent(event.id, { onSuccess: () => router.refresh() })}
+              disabled={isApproving}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
+            >
+              {isApproving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+              Approve
+            </button>
+          )}
+
+          {/* Reject — Super Admin, WAITING only */}
+          {isSuperAdmin && event.status === EventStatus.WAITING && (
+            <button
+              onClick={() => setIsRejectModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 transition-colors font-medium border border-destructive/20"
+            >
+              <XCircle className="w-4 h-4" />
+              Reject
+            </button>
+          )}
+
+          {/* Delete / Cancel — hidden for CANCELLED and COMPLETED */}
+          {(isDeletable || isCancellable) && (
             <button
               onClick={() => setIsCancelModalOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 transition-colors font-medium border border-destructive/20"
             >
               <Trash2 className="w-4 h-4" />
-              Cancel Event
+              {isDeletable ? 'Delete Event' : 'Cancel Event'}
             </button>
           )}
         </div>
@@ -76,14 +120,31 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
 
       <CancelEventModal
         eventId={event.id}
+        eventStatus={event.status}
         isOpen={isCancelModalOpen}
         onClose={() => setIsCancelModalOpen(false)}
       />
 
+      <RejectEventModal
+        eventId={event.id}
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+      />
+
+      {/* Rejection Reason — shown after Super Admin rejects, event returns to DRAFT */}
+      {event.rejectionReason && event.status === EventStatus.DRAFT && (
+        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-1">Rejection Reason</p>
+            <p className="text-sm text-red-600 dark:text-red-300">{event.rejectionReason}</p>
+          </div>
+        </div>
+      )}
+
       {/* Cover Image */}
       {event.coverImage && (
         <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted">
-          {/* In a real app, uses Image component. Using img for simplicity if domains not configured. */}
           <img src={event.coverImage} alt={event.title} className="object-cover w-full h-full" />
         </div>
       )}
@@ -233,9 +294,10 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
 }
 
 function StatusBadge({ status }: { status: EventStatus }) {
-  const styles = {
+  const styles: Record<EventStatus, string> = {
     [EventStatus.PUBLISHED]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     [EventStatus.DRAFT]: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+    [EventStatus.WAITING]: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     [EventStatus.CANCELLED]: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     [EventStatus.COMPLETED]: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
   }

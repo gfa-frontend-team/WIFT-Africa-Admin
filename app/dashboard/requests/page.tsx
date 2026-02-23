@@ -18,6 +18,7 @@ import { usePermissions } from '@/lib/hooks/usePermissions'
 import { PermissionGuard } from '@/lib/guards/PermissionGuard'
 import { Permission } from '@/lib/constants/permissions'
 import { cn } from '@/lib/utils'
+import { getEmojiFlag } from '@/lib/utils/countryFlags'
 
 const STATUS_TABS: { label: string; value: MembershipRequestStatus }[] = [
   { label: 'Pending', value: 'PENDING' },
@@ -150,9 +151,11 @@ export default function RequestsPage() {
                 onChange={(e) => setSelectedChapter(e.target.value)}
                 className="w-full px-3 py-2 border border-input rounded-lg bg-background"
               >
-                <option value="">All Chapters</option>
+                <option value="">🌍 All Chapters</option>
                 {chapters.map((chapter) => (
-                  <option key={chapter.id} value={chapter.id}>{chapter.name}</option>
+                  <option key={chapter.id} value={chapter.id}>
+                    {getEmojiFlag(chapter.code)} {chapter.name}
+                  </option>
                 ))}
               </select>
             </div>

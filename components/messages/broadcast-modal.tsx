@@ -19,6 +19,7 @@ import { useAuthStore } from '@/lib/stores'
 import { useChapters } from '@/lib/hooks/queries/useChapters'
 import { MessageRecipientType } from '@/types'
 import { AlertCircle, Loader2 } from 'lucide-react'
+import { getEmojiFlag } from '@/lib/utils/countryFlags'
 
 interface BroadcastModalProps {
   isOpen: boolean
@@ -144,10 +145,10 @@ export function BroadcastModal({ isOpen, onClose, onSuccess }: BroadcastModalPro
                 onChange={(e) => setChapterId(e.target.value)}
                 disabled={loading}
               >
-                <option value="">Select a chapter...</option>
+                <option value="">🌍 Select a chapter...</option>
                 {chapters.map((chapter) => (
                   <option key={chapter.id} value={chapter.id}>
-                    {chapter.name}
+                    {getEmojiFlag(chapter.code)} {chapter.name}
                   </option>
                 ))}
               </NativeSelect>

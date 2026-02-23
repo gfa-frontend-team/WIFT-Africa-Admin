@@ -27,6 +27,9 @@ export enum Permission {
   DELETE_EVENT = 'delete_event',
   VIEW_EVENT_ATTENDEES = 'view_event_attendees',
   EXPORT_EVENT_ATTENDEES = 'export_event_attendees',
+  SUBMIT_EVENT_FOR_APPROVAL = 'submit_event_for_approval',
+  APPROVE_EVENT = 'approve_event',
+  REJECT_EVENT = 'reject_event',
 
   // System & Statistics
   VIEW_PLATFORM_STATS = 'view_platform_stats',
@@ -64,6 +67,8 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.DELETE_EVENT,
     Permission.VIEW_EVENT_ATTENDEES,
     Permission.EXPORT_EVENT_ATTENDEES,
+    Permission.APPROVE_EVENT,
+    Permission.REJECT_EVENT,
 
     // System & Statistics - Full access
     Permission.VIEW_PLATFORM_STATS,
@@ -86,6 +91,8 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.EDIT_EVENT,
     Permission.VIEW_EVENT_ATTENDEES,
     Permission.EXPORT_EVENT_ATTENDEES,
+    Permission.APPROVE_EVENT,
+    Permission.REJECT_EVENT,
     Permission.VIEW_PLATFORM_STATS,
     Permission.VIEW_COUNTRIES_LIST,
     Permission.MANAGE_VERIFICATION,
@@ -107,6 +114,7 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.DELETE_EVENT,
     Permission.VIEW_EVENT_ATTENDEES,
     Permission.EXPORT_EVENT_ATTENDEES,
+    Permission.SUBMIT_EVENT_FOR_APPROVAL,
   ],
 
   [AdminRole.CHAPTER_STAFF]: [

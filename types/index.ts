@@ -62,11 +62,11 @@ export enum LocationType {
 export enum RSVPStatus {
   GOING = 'GOING',
   INTERESTED = 'INTERESTED',
-  NOT_GOING = 'NOT_GOING',
 }
 
 export enum EventStatus {
   DRAFT = 'DRAFT',
+  WAITING = 'WAITING',
   PUBLISHED = 'PUBLISHED',
   CANCELLED = 'CANCELLED',
   COMPLETED = 'COMPLETED',
@@ -365,6 +365,12 @@ export interface Event {
   status: EventStatus
   isPublished: boolean
   isCancelled: boolean
+  cancellationReason?: string
+  rejectionReason?: string
+  approvedBy?: string
+  approvedAt?: string
+  submittedAt?: string
+  submitCount?: number
   myRSVP?: RSVPStatus | null
   createdAt: Date
   updatedAt: Date
@@ -390,7 +396,6 @@ export interface EventAttendeesResponse {
   stats: {
     going: number
     interested: number
-    notGoing: number
   }
 }
 
@@ -427,5 +432,5 @@ export interface RSVPEventData {
 }
 
 export interface CancelEventData {
-  reason: string
+  reason?: string
 }

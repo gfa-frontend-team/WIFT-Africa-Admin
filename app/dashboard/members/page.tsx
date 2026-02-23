@@ -10,6 +10,7 @@ import { Search, Users as UsersIcon, Info } from "lucide-react";
 import { usePermissions } from "@/lib/hooks/usePermissions";
 import { PermissionGuard } from "@/lib/guards/PermissionGuard";
 import { Permission } from "@/lib/constants/permissions";
+import { getEmojiFlag } from "@/lib/utils/countryFlags";
 // import Image from "next/image";
 // import { getCountryIsoCode } from "@/lib/utils/countryMapping";
 // // import { Select } from "@/components/ui/select";
@@ -72,16 +73,6 @@ export default function MembersPage() {
       member.email?.toLowerCase().includes(search)
     );
   });
-  const getEmojiFlag = (countryCode:string) => {
-  if (!countryCode || countryCode === 'AFRICA') return '🌍';
-  
-  // Convert ISO code (NG) to regional indicators
-  return countryCode
-    .toUpperCase()
-    .replace(/./g, (char) => 
-      String.fromCodePoint(char.charCodeAt(0) + 127397)
-    );
-};
 
   // console.log(chapters,"chapters")
 

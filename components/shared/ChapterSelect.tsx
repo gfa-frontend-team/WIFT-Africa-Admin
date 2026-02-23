@@ -3,6 +3,7 @@
 import { useChapters } from '@/lib/hooks/queries/useChapters'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { AdminRole, AccountType } from '@/types' // Updated import
+import { getEmojiFlag } from '@/lib/utils/countryFlags'
 
 interface ChapterSelectProps {
     value?: string
@@ -46,10 +47,10 @@ export function ChapterSelect({
                     disabled={disabled || isLoading}
                     className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    <option value="">Global (All Chapters)</option>
+                    <option value="">🌍 Global (All Chapters)</option>
                     {chapters.map((chapter) => (
                         <option key={chapter.id} value={chapter.id}>
-                            {chapter.name} ({chapter.code})
+                            {getEmojiFlag(chapter.code)} {chapter.name}
                         </option>
                     ))}
                 </select>
