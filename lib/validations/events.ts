@@ -86,7 +86,7 @@ export const eventSchema = z
       .optional()
       .or(z.literal("")),
     tags: z.array(z.string()),
-    status: z.nativeEnum(EventStatus).default(EventStatus.DRAFT),
+    status: z.enum([EventStatus.DRAFT, EventStatus.PUBLISHED]).default(EventStatus.DRAFT),
   })
   .refine(
     (data) => {

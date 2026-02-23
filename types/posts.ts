@@ -83,4 +83,11 @@ export interface HidePostData {
 export interface PostFilters {
   page?: number
   limit?: number
+  status?: 'all' | 'pinned' | 'hidden'
+  chapterId?: string
+  search?: string
+}
+
+export interface DeletePostData {
+  reason: string  // min 10 characters
 }

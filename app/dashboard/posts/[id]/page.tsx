@@ -24,8 +24,8 @@ import {
 import { PostActionsModal, PostActionType } from '@/components/posts/post-actions-modal'
 
 // Helper component for comment item to use hook
-function CommentItem({ comment }: { comment: any }) {
-  const { mutateAsync: deleteComment, isPending } = useDeleteComment()
+function CommentItem({ comment, postId }: { comment: any; postId: string }) {
+  const { mutateAsync: deleteComment, isPending } = useDeleteComment(postId)
   
   const handleDelete = async () => {
     if (confirm('Delete this comment?')) {
@@ -169,6 +169,18 @@ export default function PostDetailsPage() {
                   </Badge>
                 )}
               
+              {/* Hidden Reason Display */}
+              {post.isHidden && post.hiddenReason && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-md">
+                  <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                    Post Hidden
+                  </h4>
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    {post.hiddenReason}
+                  </p>
+                </div>
+              )}
+              
               <div className="whitespace-pre-wrap text-base">
                 {post.content}
               </div>
@@ -201,7 +213,7 @@ export default function PostDetailsPage() {
                ) : comments && comments.length > 0 ? (
                  <div className="space-y-6">
                    {comments.map((comment: any) => (
-                      <CommentItem key={comment.id} comment={comment} />
+                      <CommentItem key={comment.id} comment={comment} postId={postId} />
                    ))}
                  </div>
                ) : (

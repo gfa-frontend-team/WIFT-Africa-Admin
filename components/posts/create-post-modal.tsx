@@ -18,6 +18,7 @@ import { useCreatePost } from '@/lib/hooks/queries/usePosts'
 import { useAuthStore } from '@/lib/stores'
 import { useChapters } from '@/lib/hooks/queries/useChapters'
 import { Loader2 } from 'lucide-react'
+import { getEmojiFlag } from '@/lib/utils/countryFlags'
 
 interface CreatePostModalProps {
   isOpen: boolean
@@ -123,10 +124,10 @@ export function CreatePostModal({ isOpen, onClose, onSuccess }: CreatePostModalP
                 onChange={(e) => setTargetChapterId(e.target.value)}
                 disabled={loading}
               >
-                <option value="">Select a chapter...</option>
+                <option value="">🌍 Select a chapter...</option>
                 {chapters.map((chapter) => (
                   <option key={chapter.id} value={chapter.id}>
-                    {chapter.name}
+                    {getEmojiFlag(chapter.code)} {chapter.name}
                   </option>
                 ))}
               </NativeSelect>

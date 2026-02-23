@@ -35,7 +35,9 @@ interface UpdateEventResponse {
 
 interface CancelEventResponse {
   message: string
-  event: Event
+  deleted?: boolean
+  event?: Event
+  notifiedAttendees?: number
 }
 
 interface RSVPResponse {
@@ -125,5 +127,17 @@ export const eventsApi = {
       responseType: 'blob',
     })
     return data
-  }
+  },
+
+  submitForApproval: async (id: string) => {
+    return apiClient.patch<{ message: string; event: Event }>(`${ADMIN_BASE_URL}/${id}/submit`)
+  },
+
+  approveEvent: async (id: string) => {
+    return apiClient.patch<{ message: string; event: Event }>(`${ADMIN_BASE_URL}/${id}/approve`)
+  },
+
+  rejectEvent: async (id: string, data: { reason: string }) => {
+    return apiClient.patch<{ message: string; event: Event }>(`${ADMIN_BASE_URL}/${id}/reject`, data)
+  },
 }

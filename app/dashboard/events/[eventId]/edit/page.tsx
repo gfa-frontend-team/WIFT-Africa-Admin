@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { EventForm } from '@/components/events/EventForm'
 import { useEvent, useUpdateEvent } from '@/lib/hooks/queries/useEvents'
-import { CreateEventData, UpdateEventData } from '@/types'
+import { CreateEventData, UpdateEventData, EventStatus } from '@/types'
 
 export default function EditEventPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params)
@@ -47,6 +47,10 @@ export default function EditEventPage({ params }: { params: Promise<{ eventId: s
           startDate: new Date(event.startDate).toISOString().slice(0, 16), // Format for datetime-local
           endDate: new Date(event.endDate).toISOString().slice(0, 16),
           chapterId: typeof event.chapterId === 'object' ? (event.chapterId as any)._id : event.chapterId, // Handle populated chapter field
+          // Only pass status if it's DRAFT or PUBLISHED (exclude WAITING, CANCELLED, COMPLETED)
+          status: ([EventStatus.DRAFT, EventStatus.PUBLISHED].includes(event.status) 
+            ? event.status 
+            : EventStatus.DRAFT) as EventStatus.DRAFT | EventStatus.PUBLISHED,
         }}
         onSubmit={handleSubmit} 
         isSubmitting={updateEventMutation.isPending} 

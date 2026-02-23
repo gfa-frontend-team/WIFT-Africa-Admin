@@ -15,11 +15,13 @@ import {
 import { NativeSelect } from "@/components/ui/NativeSelect";
 import { useToast } from "@/components/ui/use-toast";
 import { ChapterSelect } from "@/components/shared/ChapterSelect";
+import { RoleMultiSelect } from "./RoleMultiSelect";
 import {
   FundingOpportunity,
   FundingType,
   ApplicationType,
   FundingStatus,
+  TargetRole,
 } from "@/types/funding";
 import { fundingApi } from "@/lib/api/funding";
 import { useAuthStore } from "@/lib/stores/authStore";
@@ -34,7 +36,12 @@ const fundingSchema = z
       .refine((val) => (val.trim().split(/\s+/).filter(Boolean).length) <= 500, {
         message: "Description cannot exceed 500 words",
       }),
-    role: z.string().min(2, "Target role is required"),
+    targetRoles: z
+      .array(z.nativeEnum(TargetRole))
+      .min(1, "At least one target role is required"),
+    customRoles: z
+      .array(z.string().max(50, "Custom role must be 50 characters or less"))
+      .optional(),
     fundingType: z.nativeEnum(FundingType),
     applicationType: z.nativeEnum(ApplicationType),
     applicationLink: z
@@ -45,7 +52,7 @@ const fundingSchema = z
     deadline: z.string().min(1, "Deadline is required"),
     region: z.string().min(2, "Region is required"),
 
-    // NEW OPTIONAL FIELDS
+    // OPTIONAL FIELDS
     amount: z.string().optional(),
     eligibility: z
       .string()
@@ -96,13 +103,15 @@ export function FundingForm({
     reset,
     control,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<FundingFormValues>({
     resolver: zodResolver(fundingSchema),
     defaultValues: {
       name: '',
       description: '',
-      role: '',
+      targetRoles: [],
+      customRoles: [],
       fundingType: FundingType.GRANT,
       applicationType: ApplicationType.REDIRECT,
       applicationLink: '',
@@ -130,7 +139,8 @@ export function FundingForm({
       reset({
         name: opportunity.name,
         description: opportunity.description,
-        role: opportunity.role,
+        targetRoles: opportunity.targetRoles || [],
+        customRoles: opportunity.customRoles || [],
         fundingType: opportunity.fundingType,
         applicationType: opportunity.applicationType,
         applicationLink: opportunity.applicationLink || "",
@@ -145,7 +155,8 @@ export function FundingForm({
       reset({
         name: "",
         description: "",
-        role: "",
+        targetRoles: [],
+        customRoles: [],
         fundingType: FundingType.GRANT,
         applicationType: ApplicationType.REDIRECT,
         applicationLink: "",
@@ -253,16 +264,20 @@ export function FundingForm({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Target Role *</label>
-              <Input
-                {...register("role")}
-                placeholder="e.g. Director, Producer, Writer"
+              <label className="text-sm font-medium">Target Roles *</label>
+              <Controller
+                name="targetRoles"
+                control={control}
+                render={({ field }) => (
+                  <RoleMultiSelect
+                    selectedRoles={field.value}
+                    customRoles={watch('customRoles') || []}
+                    onRolesChange={field.onChange}
+                    onCustomRolesChange={(roles) => setValue('customRoles', roles)}
+                    error={errors.targetRoles?.message}
+                  />
+                )}
               />
-              {errors.role && (
-                <p className="text-xs text-destructive">
-                  {errors.role.message}
-                </p>
-              )}
             </div>
           </div>
 

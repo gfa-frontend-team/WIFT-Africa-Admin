@@ -39,6 +39,21 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Work in Progress Notice */}
+      <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <BarChart3 className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-1">
+              Analytics - Work in Progress
+            </p>
+            <p className="text-sm text-amber-600 dark:text-amber-300">
+              This page is currently under development. Some features may be incomplete or unavailable.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Analytics Overview</h1>
         <p className="text-muted-foreground">Detailed performance metrics for platform content and system health.</p>
