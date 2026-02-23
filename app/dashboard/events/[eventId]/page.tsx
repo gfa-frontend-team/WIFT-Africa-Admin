@@ -1,7 +1,6 @@
 'use client'
 
 import { use } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, MapPin, Users, Edit, Trash2, Globe, Video, Clock, Download, Loader2, Send, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
 import { useEvent, useExportEventAttendees, useSubmitForApproval, useApproveEvent } from '@/lib/hooks/queries/useEvents'
@@ -14,7 +13,6 @@ import { useState } from 'react'
 
 export default function EventDetailsPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params)
-  const router = useRouter()
   const { data: event, isLoading, error } = useEvent(eventId)
   const { mutate: exportAttendees, isPending: isExporting } = useExportEventAttendees()
   const { mutate: submitForApproval, isPending: isSubmitting } = useSubmitForApproval()
@@ -73,7 +71,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
           {/* Submit for Approval — Chapter Admin, DRAFT only */}
           {isChapterAdmin && event.status === EventStatus.DRAFT && (
             <button
-              onClick={() => submitForApproval(event.id, { onSuccess: () => router.refresh() })}
+              onClick={() => submitForApproval(event.id)}
               disabled={isSubmitting}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
             >
@@ -85,7 +83,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ eventId
           {/* Approve — Super Admin, WAITING only */}
           {isSuperAdmin && event.status === EventStatus.WAITING && (
             <button
-              onClick={() => approveEvent(event.id, { onSuccess: () => router.refresh() })}
+              onClick={() => approveEvent(event.id)}
               disabled={isApproving}
               className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
             >

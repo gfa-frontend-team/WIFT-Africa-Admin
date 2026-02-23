@@ -16,7 +16,6 @@ interface CancelEventModalProps {
 
 export function CancelEventModal({ eventId, eventStatus, isOpen, onClose }: CancelEventModalProps) {
   const [reason, setReason] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const cancelEventMutation = useCancelEvent()
   const router = useRouter()
 
@@ -24,26 +23,16 @@ export function CancelEventModal({ eventId, eventStatus, isOpen, onClose }: Canc
 
   const isDeleteMode = eventStatus === EventStatus.DRAFT || eventStatus === EventStatus.WAITING
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!isDeleteMode && !reason.trim()) return
 
-    try {
-      setIsSubmitting(true)
-      const data = await cancelEventMutation.mutateAsync({
-        id: eventId,
-        data: isDeleteMode ? {} : { reason },
-      })
-      onClose()
-      if (data.deleted) {
-        router.push('/dashboard/events')
-      } else {
-        router.refresh()
-      }
-    } catch (error) {
-      console.error('Failed to process event action:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
+    onClose()
+    if (isDeleteMode) router.push('/dashboard/events')
+
+    cancelEventMutation.mutate({
+      id: eventId,
+      data: isDeleteMode ? {} : { reason },
+    })
   }
 
   return (
@@ -77,7 +66,7 @@ export function CancelEventModal({ eventId, eventStatus, isOpen, onClose }: Canc
       <div className="flex justify-end gap-3 pt-2">
         <button
           onClick={onClose}
-          disabled={isSubmitting}
+          disabled={cancelEventMutation.isPending}
           className="px-4 py-2 rounded-md hover:bg-muted font-medium text-sm transition-colors"
         >
           Keep Event
@@ -85,10 +74,10 @@ export function CancelEventModal({ eventId, eventStatus, isOpen, onClose }: Canc
 
         <button
           onClick={handleConfirm}
-          disabled={(!isDeleteMode && !reason.trim()) || isSubmitting}
+          disabled={(!isDeleteMode && !reason.trim()) || cancelEventMutation.isPending}
           className="flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 font-medium text-sm transition-colors disabled:opacity-50"
         >
-          {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+          {cancelEventMutation.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
           {isDeleteMode ? 'Delete Event' : 'Confirm Cancellation'}
         </button>
       </div>
