@@ -78,9 +78,18 @@ export default function RequestsPage() {
   }, [isChapterAdmin, userChapterId])
 
   const handleApprove = async (notes?: string) => {
-    if (!approveModalRequest || !selectedChapter) return
+    if (!approveModalRequest) return
+    
+    // Determine the chapter ID to use
+    const chapterId = selectedChapter || userChapterId
+    
+    if (!chapterId) {
+      console.error('No chapter ID available for approval')
+      return
+    }
+    
     try {
-      await approveRequest({ chapterId: selectedChapter, requestId: approveModalRequest.id, notes })
+      await approveRequest({ chapterId, requestId: approveModalRequest.id, notes })
       setApproveModalRequest(null)
     } catch (error) {
       console.error('Failed to approve request:', error)
@@ -88,9 +97,18 @@ export default function RequestsPage() {
   }
 
   const handleReject = async (reason: string, canReapply: boolean) => {
-    if (!rejectModalRequest || !selectedChapter) return
+    if (!rejectModalRequest) return
+    
+    // Determine the chapter ID to use
+    const chapterId = selectedChapter || userChapterId
+    
+    if (!chapterId) {
+      console.error('No chapter ID available for rejection')
+      return
+    }
+    
     try {
-      await rejectRequest({ chapterId: selectedChapter, requestId: rejectModalRequest.id, reason, canReapply })
+      await rejectRequest({ chapterId, requestId: rejectModalRequest.id, reason, canReapply })
       setRejectModalRequest(null)
     } catch (error) {
       console.error('Failed to reject request:', error)
