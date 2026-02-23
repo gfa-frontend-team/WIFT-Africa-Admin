@@ -4,7 +4,6 @@ import { Dialog } from '@/components/ui/Dialog'
 import { useState } from 'react'
 import { Loader2, XCircle } from 'lucide-react'
 import { useRejectEvent } from '@/lib/hooks/queries/useEvents'
-import { useRouter } from 'next/navigation'
 
 interface RejectEventModalProps {
   readonly eventId: string
@@ -14,31 +13,21 @@ interface RejectEventModalProps {
 
 export function RejectEventModal({ eventId, isOpen, onClose }: RejectEventModalProps) {
   const [reason, setReason] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const rejectEventMutation = useRejectEvent()
-  const router = useRouter()
 
   if (!isOpen) return null
 
-  const handleReject = async () => {
+  const handleReject = () => {
     if (reason.trim().length < 10) return
 
-    try {
-      setIsSubmitting(true)
-      await rejectEventMutation.mutateAsync({ id: eventId, reason: reason.trim() })
-      onClose()
-      setReason('') // Clear reason on success
-      router.refresh()
-    } catch (error) {
-      console.error('Failed to reject event:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
+    rejectEventMutation.mutate({ id: eventId, reason: reason.trim() })
+    onClose()
+    setReason('')
   }
 
   const handleClose = () => {
-    if (!isSubmitting) {
-      setReason('') // Clear reason on close
+    if (!rejectEventMutation.isPending) {
+      setReason('')
       onClose()
     }
   }
@@ -68,7 +57,7 @@ export function RejectEventModal({ eventId, isOpen, onClose }: RejectEventModalP
           onChange={(e) => setReason(e.target.value)}
           placeholder="e.g., Event description needs more details about the agenda and speakers..."
           className="w-full min-h-[120px] p-3 rounded-md border border-input bg-background text-sm focus:ring-2 focus:ring-destructive/20 outline-none resize-y"
-          disabled={isSubmitting}
+          disabled={rejectEventMutation.isPending}
         />
         <p className="text-xs text-muted-foreground">
           Minimum 10 characters ({reason.trim().length}/10)
@@ -78,7 +67,7 @@ export function RejectEventModal({ eventId, isOpen, onClose }: RejectEventModalP
       <div className="flex justify-end gap-3 pt-2">
         <button
           onClick={handleClose}
-          disabled={isSubmitting}
+          disabled={rejectEventMutation.isPending}
           className="px-4 py-2 rounded-md hover:bg-muted font-medium text-sm transition-colors disabled:opacity-50"
         >
           Cancel
@@ -86,10 +75,10 @@ export function RejectEventModal({ eventId, isOpen, onClose }: RejectEventModalP
 
         <button
           onClick={handleReject}
-          disabled={reason.trim().length < 10 || isSubmitting}
+          disabled={reason.trim().length < 10 || rejectEventMutation.isPending}
           className="flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 font-medium text-sm transition-colors disabled:opacity-50"
         >
-          {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+          {rejectEventMutation.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
           Reject Event
         </button>
       </div>
