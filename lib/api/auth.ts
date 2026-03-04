@@ -47,7 +47,6 @@ export const authApi = {
 
       // Step 3: Store admin data
       const admin = transformAdmin(response.admin)
-console.log(admin,"api")
       if (typeof window !== 'undefined') {
         localStorage.setItem('admin', JSON.stringify(admin))
       }

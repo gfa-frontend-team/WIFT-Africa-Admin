@@ -45,12 +45,12 @@ export function useChapterMembers(chapterId: string, page = 1, limit = 20) {
 
 export function useApproveRequest() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: ({ chapterId, requestId, notes }: { chapterId: string; requestId: string; notes?: string }) =>
       membershipApi.approveRequest(chapterId, requestId, notes),
     onSuccess: (_, { chapterId }) => {
       queryClient.invalidateQueries({ queryKey: [...MEMBERSHIP_KEYS.all, 'requests', chapterId] })
+      queryClient.invalidateQueries({ queryKey: [...MEMBERSHIP_KEYS.all, 'adminRequests'] })
       queryClient.invalidateQueries({ queryKey: [...MEMBERSHIP_KEYS.all, 'members', chapterId] })
     },
   })
@@ -58,21 +58,21 @@ export function useApproveRequest() {
 
 export function useRejectRequest() {
   const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: ({
       chapterId,
       requestId,
       reason,
-      canReapply
+      canReapply,
     }: {
-      chapterId: string;
-      requestId: string;
-      reason: string;
+      chapterId: string
+      requestId: string
+      reason: string
       canReapply?: boolean
     }) => membershipApi.rejectRequest(chapterId, requestId, reason, canReapply),
     onSuccess: (_, { chapterId }) => {
       queryClient.invalidateQueries({ queryKey: [...MEMBERSHIP_KEYS.all, 'requests', chapterId] })
+      queryClient.invalidateQueries({ queryKey: [...MEMBERSHIP_KEYS.all, 'adminRequests'] })
     },
   })
 }

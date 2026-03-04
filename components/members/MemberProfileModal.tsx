@@ -37,6 +37,8 @@ export function MemberProfileModal({ member, isOpen, onClose, onStatusChange }: 
   }
 
   const handleStatusUpdate = async (newStatus: 'APPROVED' | 'SUSPENDED') => {
+
+    console.log('Updating status to:', newStatus, 'with reason:', reason) // Debug log
     if (newStatus === 'SUSPENDED' && !reason.trim()) {
       toast({
         title: "Error",

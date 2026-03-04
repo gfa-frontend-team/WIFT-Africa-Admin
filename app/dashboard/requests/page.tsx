@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -13,12 +14,14 @@ import { MembershipRequestStatus } from '@/lib/api/membership'
 import { RequestCard } from '@/components/requests/RequestCard'
 import { ApproveModal } from '@/components/requests/ApproveModal'
 import { RejectModal } from '@/components/requests/RejectModal'
-import { Search } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { PermissionGuard } from '@/lib/guards/PermissionGuard'
 import { Permission } from '@/lib/constants/permissions'
 import { cn } from '@/lib/utils'
 import { getEmojiFlag } from '@/lib/utils/countryFlags'
+import { useToast } from '@/components/ui/use-toast'
+import { Button } from '@/components/ui/Button'
 
 const STATUS_TABS: { label: string; value: MembershipRequestStatus }[] = [
   { label: 'Pending', value: 'PENDING' },
@@ -26,13 +29,30 @@ const STATUS_TABS: { label: string; value: MembershipRequestStatus }[] = [
   { label: 'Suspended', value: 'SUSPENDED' },
 ]
 
+const FRONTEND_LIMIT = 10 // Frontend pagination limit
+
 export default function RequestsPage() {
-  const { isSuperAdmin, isChapterAdmin, userChapterId } = usePermissions()
+  const { isSuperAdmin, isChapterAdmin, admin: adminData } = usePermissions()
+  const { toast } = useToast()
+
+  const [adminState, setAdminState] = useState(adminData)
+
+  useEffect(() => {
+    const storedAdmin = localStorage.getItem('admin')
+    if (storedAdmin) {
+      setAdminState(JSON.parse(storedAdmin))
+    }
+  }, [])
+
+  const admin = adminState || adminData
+
+  const userChapterId = admin?.chapterId || ''
 
   const [selectedChapter, setSelectedChapter] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<MembershipRequestStatus>('PENDING')
   const [memberTypeFilter, setMemberTypeFilter] = useState<'NEW' | 'EXISTING' | ''>('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
 
   const [approveModalRequest, setApproveModalRequest] = useState<MembershipRequest | null>(null)
   const [rejectModalRequest, setRejectModalRequest] = useState<MembershipRequest | null>(null)
@@ -41,12 +61,16 @@ export default function RequestsPage() {
   const { data: chaptersResponse } = useChapters({ isActive: true }, { enabled: isSuperAdmin })
   const chapters = chaptersResponse?.data || []
 
-  const { data: currentChapter } = useChapter(selectedChapter, { enabled: isSuperAdmin && !!selectedChapter })
+  const { data: currentChapter } = useChapter(selectedChapter, {
+    enabled: isSuperAdmin && !!selectedChapter,
+  })
 
   // ── Chapter Admin: chapter-scoped endpoint
   const chapterFilters = {
     status: statusFilter,
     memberType: memberTypeFilter || undefined,
+    page: currentPage,
+    limit: FRONTEND_LIMIT,
   }
   const { data: chapterRequestsResponse, isLoading: chapterLoading } = useMembershipRequests(
     selectedChapter,
@@ -57,13 +81,17 @@ export default function RequestsPage() {
   const adminFilters = {
     status: statusFilter,
     chapterId: selectedChapter || undefined,
+    page: currentPage,
+    limit: FRONTEND_LIMIT,
   }
   const { data: adminRequestsResponse, isLoading: adminLoading } = useAdminMembershipRequests(
     isSuperAdmin ? adminFilters : {}
   )
 
   const isLoading = isChapterAdmin ? chapterLoading : adminLoading
-  const requests = (isChapterAdmin ? chapterRequestsResponse?.data : adminRequestsResponse?.data) || []
+  const requestsData = isChapterAdmin ? chapterRequestsResponse : adminRequestsResponse
+  const requests = requestsData?.data || []
+  const pagination = requestsData?.pagination
 
   // Mutations
   const { mutateAsync: approveRequest, isPending: isApproving } = useApproveRequest()
@@ -77,19 +105,30 @@ export default function RequestsPage() {
     }
   }, [isChapterAdmin, userChapterId])
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [statusFilter, memberTypeFilter, selectedChapter, searchTerm])
+
   const handleApprove = async (notes?: string) => {
     if (!approveModalRequest) return
-    
-    // Determine the chapter ID to use
-    const chapterId = selectedChapter || userChapterId
-    
-    if (!chapterId) {
+
+    let chapterId = selectedChapter || userChapterId
+
+    console.log('Approving request for chapter ID:', approveModalRequest, selectedChapter, userChapterId)
+
+    if (isChapterAdmin && !chapterId) {
       console.error('No chapter ID available for approval')
       return
     }
-    
+
+    if (isSuperAdmin && !chapterId) {
+      chapterId = approveModalRequest.chapter?.id || ''
+    }
+
     try {
       await approveRequest({ chapterId, requestId: approveModalRequest.id, notes })
+      toast({ title: 'Success', description: 'Membership request approved successfully' })
       setApproveModalRequest(null)
     } catch (error) {
       console.error('Failed to approve request:', error)
@@ -98,15 +137,14 @@ export default function RequestsPage() {
 
   const handleReject = async (reason: string, canReapply: boolean) => {
     if (!rejectModalRequest) return
-    
-    // Determine the chapter ID to use
+
     const chapterId = selectedChapter || userChapterId
-    
+
     if (!chapterId) {
       console.error('No chapter ID available for rejection')
       return
     }
-    
+
     try {
       await rejectRequest({ chapterId, requestId: rejectModalRequest.id, reason, canReapply })
       setRejectModalRequest(null)
@@ -126,15 +164,22 @@ export default function RequestsPage() {
     )
   })
 
+  // Calculate pagination info
+  const totalPages = pagination?.pages || Math.ceil((pagination?.total || 0) / FRONTEND_LIMIT)
+  const totalItems = pagination?.total || 0
+  const startIndex = (currentPage - 1) * FRONTEND_LIMIT + 1
+  const endIndex = Math.min(currentPage * FRONTEND_LIMIT, totalItems)
+
+  const canGoToPrevious = currentPage > 1
+  const canGoToNext = currentPage < totalPages
+
   return (
     <div>
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-foreground mb-2">
           Membership Requests
-          {isSuperAdmin && currentChapter && (
-            <span className="text-primary"> - {currentChapter.name}</span>
-          )}
+          {isSuperAdmin && currentChapter && <span className="text-primary"> - {currentChapter.name}</span>}
         </h1>
         <p className="text-muted-foreground">Review and manage membership requests</p>
       </div>
@@ -213,11 +258,6 @@ export default function RequestsPage() {
       </div>
 
       {/* Content */}
-      {isSuperAdmin && !selectedChapter && statusFilter !== 'PENDING' ? (
-        // For Super Admin with no chapter selected and a specific status — still load global results (already handled by adminFilters)
-        null
-      ) : null}
-
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -234,12 +274,14 @@ export default function RequestsPage() {
         </div>
       ) : (
         <>
-          {/* Stats */}
-          <div className="mb-4 flex items-center justify-between">
+          {/* Stats and Pagination Info */}
+          <div className="mb-6 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''}
+              {totalItems > 0
+                ? `Showing ${startIndex}–${endIndex} of ${totalItems} request${totalItems !== 1 ? 's' : ''}`
+                : `Showing 0 requests`}
             </p>
-            {statusFilter === 'PENDING' && (
+            {/* {statusFilter === 'PENDING' && filteredRequests.length > 0 && (
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-muted-foreground">
                   Delayed: <span className="font-medium text-warning">
@@ -247,7 +289,41 @@ export default function RequestsPage() {
                   </span>
                 </span>
               </div>
-            )}
+            )} */}
+
+
+              {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className=" flex items-center gap-3">
+              <Button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={!canGoToPrevious || isLoading}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                {/* Previous */}
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+              </div>
+
+              <Button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={!canGoToNext || isLoading}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                {/* Next */}
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
           </div>
 
           {/* Requests Grid */}
@@ -261,6 +337,8 @@ export default function RequestsPage() {
               />
             ))}
           </div>
+
+        
         </>
       )}
 
