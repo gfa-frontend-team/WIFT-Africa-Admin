@@ -16,6 +16,7 @@ import { getCountryIsoCode } from "@/lib/utils/countryMapping";
 import Image from "next/image";
 import { ModeToggle } from "../shared/ModeToggle";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 export function Header({
   toggleSidebar,
@@ -26,12 +27,23 @@ export function Header({
 }) {
   const { admin } = useAuthStore(); // Changed user to admin
 
+  
   const { isSuperAdmin, isChapterAdmin } = usePermissions();
+  const [adminState, setAdminState] = useState(admin);
+
+  useEffect(() => {
+    const storedAdmin = localStorage.getItem("admin");
+    if (storedAdmin) {
+      // Parse and use the stored admin data
+      setAdminState(JSON.parse(storedAdmin));
+    }
+  }, []);
+
 
 
   // Fetch chapter details if user is Chapter Admin
-  const { data: chapter } = useChapter(admin?.chapterId || "", {
-    enabled: !!admin?.chapterId && isChapterAdmin,
+  const { data: chapter } = useChapter(adminState?.chapterId || "", {
+    enabled: !!adminState?.chapterId && isChapterAdmin,
     isAdminView: true, // Use admin endpoint to get full chapter details
   });
 
@@ -42,7 +54,7 @@ export function Header({
   };
 
 
-console.log("data",admin)
+console.log("data",adminState)
   return (
    <header className={cn(
   "h-16 bg-card border-b border-border flex items-center justify-between px-6 fixed top-0 right-0 z-2 transition-all duration-300",
@@ -98,16 +110,16 @@ console.log("data",admin)
             {/* Fallback initials (hidden by default, shown if flag fails) */}
             {isChapterAdmin && chapter && (
               <div className="hidden items-center justify-center w-8 h-8 bg-primary/10 rounded-full text-primary font-semibold text-sm">
-                {admin?.firstName?.[0]}{admin?.lastName?.[0]}
+                {adminState?.firstName?.[0]}{adminState?.lastName?.[0]}
               </div>
             )}
             <div>
               <p className="text-sm font-medium text-foreground">
                 {isChapterAdmin && chapter
                   ? chapter.name
-                  : `${admin?.firstName} ${admin?.lastName}`}
+                  : `${adminState?.firstName} ${adminState?.lastName}`}
               </p>
-              <p className="text-xs text-muted-foreground">{admin?.email}</p>
+              <p className="text-xs text-muted-foreground">{adminState?.email}</p>
             </div>
           </div>
 

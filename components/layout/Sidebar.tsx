@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/stores";
 import { useChapter } from "@/lib/hooks/queries/useChapters";
 import { getCountryIsoCode } from "@/lib/utils/countryMapping";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 
 const superAdminNavigation = [
@@ -67,7 +67,20 @@ const chapterAdminNavigation = [
 
 export function Sidebar({ isCollapsed }: { isCollapsed: boolean }) {
   const pathname = usePathname();
-  const { admin } = useAuthStore();
+  const { admin:adminData } = useAuthStore();
+
+    const [adminState, setAdminState] = useState(adminData);
+  
+    useEffect(() => {
+      const storedAdmin = localStorage.getItem("admin");
+      if (storedAdmin) {
+        // Parse and use the stored admin data
+        setAdminState(JSON.parse(storedAdmin));
+      }
+    }, []);
+
+    const admin = adminState || adminData; // Use the state variable for rendering
+  
 
   const {theme} = useTheme()
 

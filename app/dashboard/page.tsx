@@ -32,7 +32,20 @@ import { useProfileCountContext } from "@/lib/hooks/useDetails";
 import { StatCardSkeleton } from "@/components/StatCardSkeleton";
 
 export default function DashboardPage() {
-  const { admin } = useAuthStore(); // Changed user to admin
+  const { admin:adminData } = useAuthStore(); // Changed user to admin
+
+    const [adminState, setAdminState] = useState(adminData);
+
+  useEffect(() => {
+    const storedAdmin = localStorage.getItem("admin");
+    if (storedAdmin) {
+      // Parse and use the stored admin data
+      setAdminState(JSON.parse(storedAdmin));
+    }
+  }, []);
+
+  const admin = adminState || adminData; // Use the state variable for rendering
+
 
   // const {chapterId,role} = useProfileCountContext()
 
@@ -135,7 +148,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {isLoading || isTrending ? (
             // Render 4 skeletons while loading
             <>
