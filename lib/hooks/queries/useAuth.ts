@@ -66,3 +66,51 @@ export function useLogout() {
     },
   })
 }
+
+
+export function useForgetPassword() {
+  const queryClient = useQueryClient()
+  const { login: storeLogin } = useAuthStore()
+
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      authApi.login(email, password),
+    onSuccess: (data) => {
+   
+    },
+  })
+}
+
+export function useResetPassword() {
+  const queryClient = useQueryClient()
+  const { login: storeLogin } = useAuthStore()
+
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      authApi.login(email, password),
+    onSuccess: (data) => {
+      // Update store state
+      storeLogin(data.admin)
+
+      // Update query cache
+      queryClient.setQueryData(AUTH_KEYS.admin, data.admin)
+    },
+  })
+}
+
+export function useChangePassword() {
+  const queryClient = useQueryClient()
+  const { login: storeLogin } = useAuthStore()
+
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      authApi.login(email, password),
+    onSuccess: (data) => {
+      // Update store state
+      storeLogin(data.admin)
+
+      // Update query cache
+      queryClient.setQueryData(AUTH_KEYS.admin, data.admin)
+    },
+  })
+}

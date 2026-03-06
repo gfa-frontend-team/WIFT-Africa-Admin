@@ -306,8 +306,8 @@ export function FundingForm({
                 <NativeSelect {...register("fundingType")}>
                   <option value={FundingType.GRANT}>Grant</option>
                   <option value={FundingType.FUND}>Fund</option>
-                  <option value={FundingType.LOAN}>Loan</option>
-                  <option value={FundingType.OTHER}>Other</option>
+                  {/* <option value={FundingType.LOAN}>Loan</option>
+                  <option value={FundingType.OTHER}>Other</option> */}
                 </NativeSelect>
               </div>
               <div className="space-y-2">

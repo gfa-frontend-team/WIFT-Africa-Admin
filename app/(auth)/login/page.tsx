@@ -8,6 +8,7 @@ import { useLogin } from '@/lib/hooks/queries/useAuth'
 import { Shield, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTheme } from 'next-themes'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -36,14 +37,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    clearError()
-
+    
     if (!email || !password) return
-
+    
     login(
       { email, password },
       {
         onSuccess: () => {
+          // clearError()
           router.push('/dashboard')
         },
       }
@@ -159,12 +160,12 @@ export default function LoginPage() {
                 Remember me
               </span>
             </label>
-            <button
-              type="button"
+            <Link
+              href="/forgot-password"
               className="text-sm font-medium text-primary hover:text-primary/80"
             >
               Forgot password?
-            </button>
+            </Link>
           </div>
 
           {/* Button Button */}

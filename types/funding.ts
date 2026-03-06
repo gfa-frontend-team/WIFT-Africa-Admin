@@ -5,8 +5,8 @@
 export enum FundingType {
     GRANT = 'Grant',
     FUND = 'Fund',
-    LOAN = 'Loan',
-    OTHER = 'Other'
+    // LOAN = 'Loan',
+    // OTHER = 'Other'
 }
 
 export enum ApplicationType {

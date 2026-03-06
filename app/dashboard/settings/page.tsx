@@ -4,34 +4,24 @@ import { useEffect, useState } from 'react'
 import { useTheme } from "next-themes";
 import StaffPage from '@/components/StaffManagement'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
-import { Label } from "@/components/ui/Label"
-import { Briefcase, Palette, Sun, Moon, Monitor } from 'lucide-react'
+import { Briefcase, Palette, Sun, Moon, Monitor, Lock } from 'lucide-react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from "@/components/ui/Label"
+import ChangePasswordTab from '@/components/ChangePassword';
 
-export default function SettingsPage() {
+export default function AdminSettingsPage() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<string>("staff")
   
-  // State for primary color selection
-  // const [primaryColor, setPrimaryColor] = useState('blue')
-
   // Prevent hydration mismatch
   useEffect(() => setMounted(true), [])
 
   const descriptions: Record<string, string> = {
     staff: "Manage your team members, roles, and permissions.",
-    theme: "Customize the look and feel and primary brand colors of your dashboard."
+    theme: "Customize the look and feel and primary brand colors of your dashboard.",
+    security: "Change your password and manage your account security."
   }
-
-  // const colorOptions = [
-  //   { name: 'Blue', value: 'blue', class: 'bg-blue-600' },
-  //   { name: 'Indigo', value: 'indigo', class: 'bg-indigo-600' },
-  //   { name: 'Violet', value: 'violet', class: 'bg-violet-600' },
-  //   { name: 'Emerald', value: 'emerald', class: 'bg-emerald-600' },
-  //   { name: 'Rose', value: 'rose', class: 'bg-rose-600' },
-  //   { name: 'Amber', value: 'amber', class: 'bg-amber-600' },
-  // ]
 
   if (!mounted) return null
 
@@ -45,21 +35,28 @@ export default function SettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+        <TabsList className="grid w-full grid-cols-3 max-w-[600px]">
           <TabsTrigger value="staff" className="flex items-center gap-2">
             <Briefcase className="w-4 h-4" />
-            Staff Management
+            <span className="hidden sm:inline">Staff Management</span>
+            <span className="sm:hidden">Staff</span>
           </TabsTrigger>
           <TabsTrigger value="theme" className="flex items-center gap-2">
             <Palette className="w-4 h-4" />
-            Theme
+            <span className="hidden sm:inline">Theme</span>
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Lock className="w-4 h-4" />
+            <span className="hidden sm:inline">Security</span>
           </TabsTrigger>
         </TabsList>
 
+        {/* Staff Management Tab */}
         <TabsContent value="staff">
           <StaffPage />
         </TabsContent>
 
+        {/* Theme Tab */}
         <TabsContent value="theme" className="space-y-6 mt-6">
           <div className="p-6 border border-border rounded-lg bg-card shadow-sm space-y-8">
             
@@ -91,32 +88,12 @@ export default function SettingsPage() {
                 ))}
               </RadioGroup>
             </div>
-
-            <hr className="border-border" />
-
-            {/* Accent Color Section */}
-            {/* <div>
-              <h3 className="text-lg font-medium text-foreground mb-1">Accent Color</h3>
-              <p className="text-sm text-muted-foreground mb-4">Choose the primary color for buttons and links.</p>
-              
-              <div className="flex flex-wrap gap-3">
-                {colorOptions.map((color) => (
-                  <button
-                    key={color.value}
-                    onClick={() => setPrimaryColor(color.value)}
-                    className={`group relative w-10 h-10 rounded-full transition-all ${color.class} flex items-center justify-center hover:scale-110 active:scale-95`}
-                    title={color.name}
-                  >
-                    {primaryColor === color.value && (
-                      <Check className="w-5 h-5 text-white animate-in zoom-in duration-200" />
-                    )}
-                    <span className={`absolute -inset-1 rounded-full border-2 border-blue-600 transition-opacity ${primaryColor === color.value ? "opacity-100" : "opacity-0"}`} />
-                  </button>
-                ))}
-              </div>
-            </div> */}
-
           </div>
+        </TabsContent>
+
+        {/* Security Tab */}
+        <TabsContent value="security" className="space-y-6 mt-6">
+          <ChangePasswordTab />
         </TabsContent>
       </Tabs>
     </div>

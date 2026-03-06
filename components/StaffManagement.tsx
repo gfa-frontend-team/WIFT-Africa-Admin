@@ -8,7 +8,7 @@ import { Admin, AdminRole } from "@/types";
 import { StaffForm } from "@/components/staff/StaffForm";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/AlertDialog";
 
 export default function StaffPage() {
-  const { toast } = useToast();
   const {
     isSuperAdmin,
     isChapterAdmin,
@@ -62,11 +61,7 @@ export default function StaffPage() {
       setStaff(response.admins || []);
     } catch (error) {
       console.error("Failed to fetch staff:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load staff list",
-        variant: "destructive",
-      });
+      toast.error("Failed to load staff list");
     } finally {
       setLoading(false);
     }
@@ -80,18 +75,11 @@ export default function StaffPage() {
     try {
       setIsSubmitting(true);
       await staffApi.createAdmin(data as CreateAdminData);
-      toast({
-        title: "Success",
-        description: "Staff member created successfully",
-      });
+      toast.success("Staff member created successfully");
       setIsModalOpen(false);
       fetchStaff();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to create staff",
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || "Failed to create staff");
     } finally {
       setIsSubmitting(false);
     }
@@ -102,19 +90,13 @@ export default function StaffPage() {
     try {
       setIsSubmitting(true);
       await staffApi.updateAdmin(editingStaff.id, data as UpdateAdminData);
-      toast({
-        title: "Success",
-        description: "Staff member updated successfully",
-      });
+
+      toast.success("Staff member updated successfully");
       setIsModalOpen(false);
       setEditingStaff(undefined);
       fetchStaff();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update staff",
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || "Failed to update staff");
     } finally {
       setIsSubmitting(false);
     }
@@ -124,15 +106,12 @@ export default function StaffPage() {
     if (!deleteId) return;
     try {
       await staffApi.deleteAdmin(deleteId);
-      toast({ title: "Success", description: "Staff member removed" });
+
+      toast.success("Staff member removed");
       setDeleteId(null);
       fetchStaff();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove staff member",
-        variant: "destructive",
-      });
+      toast.error("Failed to delete staff");
     }
   };
 

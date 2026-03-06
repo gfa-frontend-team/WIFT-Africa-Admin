@@ -43,6 +43,9 @@ import {
   XCircle,
   AlertCircle,
   Download,
+  Mail,
+  FileText,
+  CalendarCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -72,8 +75,7 @@ export default function FundingDetailPage() {
     queryFn: () => apiClient.get(`/funding-opportunities/${fundingId}`),
   });
 
-  console.log("Funding Data:", fundingData); // Debugging log
-
+  
   // ✅ Get applications for this funding
   const { data: applicationsData, isLoading: isAppsLoading } = useQuery({
     queryKey: [
@@ -89,8 +91,9 @@ export default function FundingDetailPage() {
           search: debouncedSearch || undefined,
         },
       }),
-  });
-
+    });
+    
+    console.log("applicationsData Data:", applicationsData); // Debugging log
   // ✅ Award grant mutation
   const awardMutation = useMutation({
     mutationFn: (data: { applicationId: string; awardAmount: number }) =>
@@ -167,7 +170,7 @@ export default function FundingDetailPage() {
       "Application Date": format(new Date(app.createdAt), "MMM d, yyyy"),
       Statement: app.statement,
       "Award Amount": app.awardAmount ? `$${app.awardAmount.toLocaleString()}` : "",
-    //   "Application ID": app._id,
+      "Proposal link": app?.proposalUrl || "N/A",
     }));
 
     // Convert to CSV using Papa Parse
@@ -323,7 +326,7 @@ export default function FundingDetailPage() {
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="applications">
-            Applications ({applications.length})
+            Applications ({applications.length || "-"})
           </TabsTrigger>
         </TabsList>
 
@@ -456,6 +459,7 @@ export default function FundingDetailPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-2">
+
                           <h4 className="font-semibold">{app.applicantName}</h4>
                           <Badge className={getStatusColor(app.status)}>
                             {getStatusIcon(app.status)}
@@ -465,15 +469,26 @@ export default function FundingDetailPage() {
                           </Badge>
                         </div>
 
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground flex gap-1 items-center">
+                          <Mail className="w-4 h-4" />
+                          <span>
+
                           {app.applicantEmail}
+                          </span>
                         </p>
 
-                        <p className="text-sm text-foreground/80 truncate line-clamp-2">
+                        <p className="text-sm text-foreground/80  flex items-center gap-1">
+                          <FileText className="w-4 h-4 " />
+                        
+                        <span className="truncate line-clamp-2">
+
                           {app.statement}
+                        </span>
                         </p>
 
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {/* an icon needs to be here for all applications feed */}
+                          <CalendarCheck className="w-4 h-4 " />
                           <span>
                             Applied:{" "}
                             {format(new Date(app.createdAt), "MMM d, yyyy")}
@@ -483,6 +498,20 @@ export default function FundingDetailPage() {
                               Award: ${app.awardAmount.toLocaleString()}
                             </span>
                           )}
+
+                          {
+                            app.proposalUrl && (
+                              <a
+                                href={app.proposalUrl}  
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline flex items-center gap-1"
+                              >
+                                <Download className="w-3 h-3" />
+                                Proposal
+                              </a>
+                            )
+                          }
                         </div>
                       </div>
 

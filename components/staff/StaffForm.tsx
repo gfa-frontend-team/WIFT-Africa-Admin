@@ -163,7 +163,8 @@ export function StaffForm({
         className="bg-background disabled:opacity-60"
       />
 
-      <Input
+
+      { mode === "create" && <Input
         label={
           mode === "create" ? "Password (Optional)" : "New Password (Optional)"
         }
@@ -176,7 +177,7 @@ export function StaffForm({
             : "Leave blank to keep current"
         }
         className="bg-background"
-      />
+      />}
 
       {/* Role Selection */}
       <div className="space-y-2">

@@ -75,6 +75,42 @@ export const authApi = {
     }
   },
 
+  // Add these methods to your existing authApi
+
+/**
+ * Admin Forgot Password
+ * Request: POST /auth/admin/forgot-password
+ */
+async adminForgotPassword(email: string): Promise<void> {
+  const response = await apiClient.post<void>('/auth/admin/forgot-password', { email })
+  return response.data
+},
+
+/**
+ * Admin Reset Password
+ * Request: POST /auth/admin/reset-password
+ */
+async adminResetPassword(token: string, newPassword: string): Promise<void> {
+  const response = await apiClient.post<void>('/auth/admin/reset-password', {
+    token,
+    newPassword,
+  })
+  return response.data
+},
+
+/**
+ * Admin Change Password
+ * Request: POST /auth/admin/change-password
+ * Headers: Authorization: Bearer <token>
+ */
+async adminChangePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const response = await apiClient.post<void>('/auth/admin/change-password', {
+    currentPassword,
+    newPassword,
+  })
+  return response.data
+},
+
   // Get current admin
   getCurrentUser: async (): Promise<Admin> => {
     const response = await apiClient.get<{ admin: any }>('/admin/me')
