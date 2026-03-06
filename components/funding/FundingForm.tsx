@@ -24,6 +24,7 @@ import {
   TargetRole,
 } from "@/types/funding";
 import { fundingApi } from "@/lib/api/funding";
+import {toast as shadToast} from "sonner"
 import { useAuthStore } from "@/lib/stores/authStore";
 import { AdminRole, AccountType } from "@/types";
 
@@ -176,7 +177,20 @@ export function FundingForm({
     // console.log(data,"fund")
     setIsLoading(true);
     try {
-      const deadlineIso = new Date(data.deadline).toISOString();
+      const deadlineDate = new Date(data.deadline);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (deadlineDate < today) {
+        console.log(deadlineDate < today,"deadlineDate < today")
+        shadToast.error(
+           "Deadline cannot be in the past"
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      const deadlineIso = deadlineDate.toISOString();
 
       const formattedData = {
         ...data,

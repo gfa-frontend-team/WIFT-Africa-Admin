@@ -3,6 +3,7 @@ import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { ThemeProvider } from "./ThemeProvider";
 import { ProfileProvider } from "@/lib/hooks/useDetails";
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: "WIFT Africa Admin",
@@ -33,6 +34,7 @@ export default function RootLayout({
             <ProfileProvider>
 
             {children}
+            <Toaster position="top-right" />
             </ProfileProvider>
           </ThemeProvider>
         </QueryProvider>
