@@ -82,8 +82,8 @@ export const authApi = {
  * Request: POST /auth/admin/forgot-password
  */
 async adminForgotPassword(email: string): Promise<void> {
-  const response = await apiClient.post<void>('/auth/admin/forgot-password', { email })
-  return response.data
+   await apiClient.post<void>('/auth/admin/forgot-password', { email })
+  // return response.data
 },
 
 /**
@@ -91,11 +91,11 @@ async adminForgotPassword(email: string): Promise<void> {
  * Request: POST /auth/admin/reset-password
  */
 async adminResetPassword(token: string, newPassword: string): Promise<void> {
-  const response = await apiClient.post<void>('/auth/admin/reset-password', {
+   await apiClient.post<void>('/auth/admin/reset-password', {
     token,
     newPassword,
   })
-  return response.data
+  // return response.data
 },
 
 /**
@@ -104,11 +104,11 @@ async adminResetPassword(token: string, newPassword: string): Promise<void> {
  * Headers: Authorization: Bearer <token>
  */
 async adminChangePassword(currentPassword: string, newPassword: string): Promise<void> {
-  const response = await apiClient.post<void>('/auth/admin/change-password', {
+   await apiClient.post<void>('/auth/admin/change-password', {
     currentPassword,
     newPassword,
   })
-  return response.data
+  // return response.data
 },
 
   // Get current admin

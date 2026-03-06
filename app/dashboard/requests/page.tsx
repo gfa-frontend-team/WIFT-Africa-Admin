@@ -165,7 +165,7 @@ export default function RequestsPage() {
   })
 
   // Calculate pagination info
-  const totalPages = pagination?.pages || Math.ceil((pagination?.total || 0) / FRONTEND_LIMIT)
+  const totalPages = pagination?.page || Math.ceil((pagination?.total || 0) / FRONTEND_LIMIT)
   const totalItems = pagination?.total || 0
   const startIndex = (currentPage - 1) * FRONTEND_LIMIT + 1
   const endIndex = Math.min(currentPage * FRONTEND_LIMIT, totalItems)
