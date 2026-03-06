@@ -51,7 +51,51 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { apiClient } from "@/lib/api/client";
 import { useDebounce } from "@/lib/hooks/useDebounce";
-import Papa from "papaparse"; // Add this import
+import Papa from "papaparse";
+
+  interface Funding {
+    data:{
+
+      _id: string;
+      name: string;
+    description: string;
+    fundingType: "Fund" | string;
+    applicationType: "Redirect" | string;
+    applicationLink?: string;
+    status: "Open" | "Closed" | string;
+    deadline: string;
+    region: string;
+    targetRoles: string[];
+    customRoles: string[];
+    applicantCount: number;
+    clicks: number;
+    chapterId: string | null;
+    createdBy: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    notes?: string;
+  }
+  }
+
+    interface ApplicationType {
+      
+    _id: string;
+    applicantId: string;
+    applicantName: string;
+    applicantEmail: string;
+    statement: string;
+    status: "received" | "shortlisted" | "awarded" | "rejected" | string;
+    awardAmount?: number;
+    proposalUrl?: string;
+    rejectionReason?: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface AwardGrantData {
+data : ApplicationType[]
+  }
 
 export default function FundingDetailPage() {
   const params = useParams();
@@ -70,14 +114,14 @@ export default function FundingDetailPage() {
   const queryClient = useQueryClient();
 
   // ✅ Get funding opportunity details
-  const { data: fundingData, isLoading: isFundingLoading } = useQuery({
+  const { data: fundingData, isLoading: isFundingLoading } = useQuery<Funding>({
     queryKey: ["funding-detail", fundingId],
     queryFn: () => apiClient.get(`/funding-opportunities/${fundingId}`),
-  });
+  } as any);
 
   
   // ✅ Get applications for this funding
-  const { data: applicationsData, isLoading: isAppsLoading } = useQuery({
+  const { data: applicationsData, isLoading: isAppsLoading } = useQuery<AwardGrantData>({
     queryKey: [
       "funding-applications",
       fundingId,
@@ -91,7 +135,7 @@ export default function FundingDetailPage() {
           search: debouncedSearch || undefined,
         },
       }),
-    });
+  } as any);
     
     console.log("applicationsData Data:", applicationsData); // Debugging log
   // ✅ Award grant mutation
@@ -190,9 +234,7 @@ export default function FundingDetailPage() {
     toast.success("Applications exported successfully");
   };
 
-  const funding = fundingData?.data;
-  const applications = applicationsData?.data || [];
-
+  
   if (isFundingLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -201,6 +243,28 @@ export default function FundingDetailPage() {
     );
   }
 
+
+
+
+  interface Application {
+    _id: string;
+    applicantId: string;
+    applicantName: string;
+    applicantEmail: string;
+    statement: string;
+    status: "received" | "shortlisted" | "awarded" | "rejected" | string;
+    awardAmount?: number;
+    proposalUrl?: string;
+    rejectionReason?: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  const funding = fundingData?.data;
+  const applications = applicationsData?.data || [];
+
+  console.log("Funding Data:", applicationsData); // Debugging log
+  
   if (!funding) {
     return (
       <div className="text-center py-12">
